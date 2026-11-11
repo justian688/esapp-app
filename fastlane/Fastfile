@@ -11,7 +11,11 @@ platform :ios do
     issuer_id = ENV.fetch("APP_STORE_CONNECT_ISSUER_ID")
     raw_key = ENV.fetch("APP_STORE_CONNECT_KEY").strip
     # Secret 可以直接貼 .p8 檔內容，也可以貼 Base64
-    key_content = raw_key.include?("BEGIN PRIVATE KEY") ? raw_key : Base64.decode64(raw_key)
+    key_text = raw_key.include?("BEGIN PRIVATE KEY") ? raw_key : Base64.decode64(raw_key)
+    # 重新整理成標準 PEM 格式（貼上時換行可能被吃掉或多出空白/\r）
+    body = key_text.gsub(/-----(BEGIN|END) PRIVATE KEY-----/, "").gsub(/[^A-Za-z0-9+\/=]/, "")
+    UI.user_error!("APP_STORE_CONNECT_KEY 內容不像 .p8 金鑰") if body.length < 100
+    key_content = "-----BEGIN PRIVATE KEY-----\n#{body.scan(/.{1,64}/).join("\n")}\n-----END PRIVATE KEY-----\n"
 
     key_path = File.expand_path("../build/AuthKey_#{key_id}.p8", __dir__)
     FileUtils.mkdir_p(File.dirname(key_path))
