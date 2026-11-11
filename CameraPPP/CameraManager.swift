@@ -64,20 +64,18 @@ nonisolated enum RecordingPreferences {
 @Observable
 final class CameraManager: NSObject, Sendable {
     let session = AVCaptureSession()
-    private let videoOutput = AVCaptureVideoDataOutput()
     private let fileOutput = AVCaptureMovieFileOutput()
     private let photoOutput = AVCapturePhotoOutput()
     private var activePhotoCaptureDelegate: PhotoCaptureDelegate?
     
     private let sessionQueue = DispatchQueue(label: "com.app.camera.sessionQueue")
-    private let motionDetector = MotionDetector()
     private var cameraFacing: CameraFacing
 
     var isRecording = false
-    var isHumanDetected = false
+    /// 錄影無法開始或中途失敗時顯示給使用者看的原因
+    var recordingErrorMessage: String?
     /// 只在 sessionQueue 上讀寫：使用者主動結束錄影時為 true，用來區分「時長到了」和「手動結束」
     @ObservationIgnored private var userRequestedStop = false
-    @ObservationIgnored private var humanDetectedResetTask: Task<Void, Never>?
     var isAuthorized = false
     
     init(initialCameraFacing: CameraFacing = .back) {
@@ -116,11 +114,7 @@ final class CameraManager: NSObject, Sendable {
         
         installCameraInput()
         
-        videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "com.app.camera.videoQueue"))
-        videoOutput.alwaysDiscardsLateVideoFrames = true
-        // 先加錄影輸出，確保錄影一定拿得到畫面；人形偵測的畫面分析只在開啟時才加入
         if session.canAddOutput(fileOutput) { session.addOutput(fileOutput) }
-        if MediaPreferences.isHumanDetectionEnabled, session.canAddOutput(videoOutput) { session.addOutput(videoOutput) }
         if session.canAddOutput(photoOutput) { session.addOutput(photoOutput) }
         photoOutput.maxPhotoQualityPrioritization = .quality
         
@@ -139,23 +133,6 @@ final class CameraManager: NSObject, Sendable {
             self.session.sessionPreset = preset
             self.session.commitConfiguration()
             self.updateMaxPhotoDimensions()
-        }
-    }
-
-    /// 開關人形偵測時加入或移除畫面分析輸出（關閉時完全不分析畫面，省電，也避免和錄影搶畫面）
-    func applyHumanDetectionSetting() {
-        sessionQueue.async {
-            guard !self.fileOutput.isRecording else { return }
-            let enabled = MediaPreferences.isHumanDetectionEnabled
-            let attached = self.session.outputs.contains(self.videoOutput)
-            guard enabled != attached else { return }
-            self.session.beginConfiguration()
-            if enabled {
-                if self.session.canAddOutput(self.videoOutput) { self.session.addOutput(self.videoOutput) }
-            } else {
-                self.session.removeOutput(self.videoOutput)
-            }
-            self.session.commitConfiguration()
         }
     }
 
@@ -223,6 +200,22 @@ final class CameraManager: NSObject, Sendable {
     private func beginRecordingSegment() {
         guard !fileOutput.isRecording else { return }
 
+        guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
+            reportRecordingError("沒有相機權限。請到「設定」→「es省電王」打開相機權限後再試一次。")
+            return
+        }
+        if !session.isRunning {
+            if session.inputs.isEmpty || session.outputs.isEmpty {
+                configureSession()
+            } else {
+                session.startRunning()
+            }
+        }
+        guard session.isRunning, fileOutput.connection(with: .video) != nil else {
+            reportRecordingError("相機還沒準備好，請稍等一下再按錄影。如果一直出現，請把 App 完全關掉再打開。")
+            return
+        }
+
         let minutes = RecordingPreferences.segmentMinutes
         fileOutput.maxRecordedDuration = minutes > 0
             ? CMTime(seconds: Double(minutes * 60), preferredTimescale: 600)
@@ -241,6 +234,14 @@ final class CameraManager: NSObject, Sendable {
         }
     }
 
+    private func reportRecordingError(_ message: String) {
+        print("錄影錯誤：\(message)")
+        Task { @MainActor in
+            self.isRecording = false
+            self.recordingErrorMessage = message
+        }
+    }
+
     /// 一段錄影結束後決定要不要自動接著錄。必須在 sessionQueue 上呼叫。
     private func handleSegmentFinished(error: Error?) {
         guard !userRequestedStop else { return }
@@ -253,6 +254,10 @@ final class CameraManager: NSObject, Sendable {
         } else {
             // 時長到了但沒開重複錄影，或錄影因其他原因中斷：讓畫面回到未錄影狀態
             Task { @MainActor in self.isRecording = false }
+            if let nsError, !reachedDurationLimit,
+               (nsError.userInfo[AVErrorRecordingSuccessfullyFinishedKey] as? Bool) != true {
+                reportRecordingError("錄影中斷了（\(nsError.localizedDescription)，代碼 \(nsError.code)）。請截圖回報。")
+            }
         }
     }
 
@@ -302,30 +307,6 @@ final class CameraManager: NSObject, Sendable {
     }
 }
 
-// MARK: - Video Data Delegate (Vision Trigger)
-extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
-    nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        // 人形偵測預設關閉以省電；開啟時也只在錄影中、每秒分析一次
-        guard MediaPreferences.isHumanDetectionEnabled, fileOutput.isRecording else { return }
-        Task {
-            let detected = await motionDetector.detectHuman(in: sampleBuffer)
-            guard detected else { return }
-            await MainActor.run { self.markHumanDetected() }
-        }
-    }
-
-    /// 顯示「偵測到有人」約 3 秒
-    @MainActor
-    private func markHumanDetected() {
-        isHumanDetected = true
-        humanDetectedResetTask?.cancel()
-        humanDetectedResetTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 3_000_000_000)
-            guard !Task.isCancelled else { return }
-            self.isHumanDetected = false
-        }
-    }
-}
 
 // MARK: - File Output Delegate
 extension CameraManager: AVCaptureFileOutputRecordingDelegate {

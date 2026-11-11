@@ -9,7 +9,6 @@ import SwiftUI
 
 struct SettingsView: View {
     @AppStorage(MediaPreferences.saveToPhotosKey) private var saveToPhotosLibrary = false
-    @AppStorage(MediaPreferences.humanDetectionKey) private var humanDetectionEnabled = false
     @AppStorage(CameraFacing.storageKey) private var preferredCameraFacing = CameraFacing.back.rawValue
     @AppStorage(AppLanguage.storageKey) private var appLanguageRaw = AppLanguage.traditionalChinese.rawValue
     @State private var showingLanguageOptions = false
@@ -80,12 +79,6 @@ struct SettingsView: View {
                         }
                     }
 
-                    SettingsToggleRow(
-                        icon: "person.fill.viewfinder",
-                        title: "人形偵測提示",
-                        subtitle: "錄影中偵測到有人時在畫面上提示。會增加耗電，預設關閉",
-                        isOn: $humanDetectionEnabled
-                    )
 
                     SettingsMenuRow(
                         icon: "camera.rotate",

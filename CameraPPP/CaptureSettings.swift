@@ -81,14 +81,8 @@ nonisolated enum PhotoCaptureMode: String, CaseIterable, Identifiable {
 nonisolated enum MediaPreferences {
     /// 錄完／拍完後是否同時存一份到「照片」App
     static let saveToPhotosKey = "saveToPhotosLibrary"
-    /// 錄影中偵測到有人時是否提示（預設關閉以省電）
-    static let humanDetectionKey = "humanDetectionEnabled"
 
     static var saveToPhotosLibrary: Bool {
         UserDefaults.standard.bool(forKey: saveToPhotosKey)
-    }
-
-    static var isHumanDetectionEnabled: Bool {
-        UserDefaults.standard.bool(forKey: humanDetectionKey)
     }
 }

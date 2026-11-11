@@ -29,16 +29,6 @@ struct RecordView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-//                if cameraManager.isHumanDetected {
-//                    Text("⚠️ Motion Detected")
-//                        .font(.caption)
-//                        .foregroundColor(.white)
-//                        .padding(.horizontal, 12)
-//                        .padding(.vertical, 6)
-//                        .background(Color.red.opacity(0.8))
-//                        .cornerRadius(15)
-//                        .padding(.top, 10)
-//                }
                 
                 if cameraManager.isRecording {
                     if showRecordingPrompt {
@@ -188,25 +178,6 @@ struct RecordingOverlayView: View {
                 Spacer(minLength: 0)
             }
             
-            if cameraManager.isHumanDetected {
-                VStack {
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(Color.red)
-                            .frame(width: 8, height: 8)
-                        Text("偵測到有人")
-                            .font(.caption.weight(.semibold))
-                            .foregroundColor(.white)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.black.opacity(0.6))
-                    .cornerRadius(14)
-                    .padding(.top, 60)
-                    Spacer()
-                }
-                .allowsHitTesting(false)
-            }
 
             RecordingGestureOverlay(
                 onSingleTap: capturePhoto,

@@ -14,7 +14,6 @@ struct MainContainerView: View {
     @State private var selectedTab = 0
     @AppStorage(CameraFacing.storageKey) private var preferredCameraFacingRaw = CameraFacing.back.rawValue
     @AppStorage(CaptureResolution.storageKey) private var captureResolutionRaw = CaptureResolution.hd720.rawValue
-    @AppStorage(MediaPreferences.humanDetectionKey) private var humanDetectionEnabled = false
     @State private var navigationPath: [SideMenuDestination] = []
     @State private var showPaywall = false
     @State private var allowPaywallDismiss = true
@@ -108,8 +107,16 @@ struct MainContainerView: View {
         .onChange(of: captureResolutionRaw) { _, _ in
             cameraManager.applyCaptureResolution()
         }
-        .onChange(of: humanDetectionEnabled) { _, _ in
-            cameraManager.applyHumanDetectionSetting()
+        .alert(
+            "無法錄影",
+            isPresented: Binding(
+                get: { cameraManager.recordingErrorMessage != nil },
+                set: { if !$0 { cameraManager.recordingErrorMessage = nil } }
+            )
+        ) {
+            Button("好", role: .cancel) { cameraManager.recordingErrorMessage = nil }
+        } message: {
+            Text(cameraManager.recordingErrorMessage ?? "")
         }
         .onAppear {
             startTrialMonitoring()
