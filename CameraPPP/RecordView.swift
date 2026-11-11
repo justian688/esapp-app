@@ -16,7 +16,12 @@ struct RecordView: View {
     @State private var showRecordingPrompt = false
     @State private var recordingPromptTask: Task<Void, Never>? = nil
     
-    private let recordingPrompt = "It is recommended to mute your device./n Tap: Take photo/n Double-tap: End/n Swipe left/right: Change background"
+    private var recordingPrompt: String {
+        AppLanguage.current.localized(
+            "Recording in power-saving black screen\nTap: take photo\nDouble-tap: stop recording\nSwipe left/right: show or hide camera view\nTip: mute your phone first",
+            "● 錄影中（省電黑屏）\n點一下：拍照\n點兩下：結束錄影\n左右滑：顯示／隱藏鏡頭畫面\n建議先將手機調成靜音"
+        )
+    }
     
     var body: some View {
         ZStack {
@@ -37,7 +42,7 @@ struct RecordView: View {
                 
                 if cameraManager.isRecording {
                     if showRecordingPrompt {
-                        Text(LocalizedStringKey(recordingPrompt))
+                        Text(recordingPrompt)
                             .font(.callout.weight(.semibold))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
@@ -126,7 +131,7 @@ struct RecordView: View {
 
         recordingPromptTask = Task {
             do {
-                try await Task.sleep(nanoseconds: 3_000_000_000)
+                try await Task.sleep(nanoseconds: 6_000_000_000)
                 try Task.checkCancellation()
                 await MainActor.run {
                     showRecordingPrompt = false
@@ -157,7 +162,12 @@ struct RecordingOverlayView: View {
     @State private var showRecordingPrompt = false
     @State private var recordingPromptTask: Task<Void, Never>? = nil
     
-    private let recordingPrompt = "It is recommended to mute your device./n Tap: Take photo/n Double-tap: End/n Swipe left/right: Change background"
+    private var recordingPrompt: String {
+        AppLanguage.current.localized(
+            "Recording in power-saving black screen\nTap: take photo\nDouble-tap: stop recording\nSwipe left/right: show or hide camera view\nTip: mute your phone first",
+            "● 錄影中（省電黑屏）\n點一下：拍照\n點兩下：結束錄影\n左右滑：顯示／隱藏鏡頭畫面\n建議先將手機調成靜音"
+        )
+    }
     
     var body: some View {
         ZStack {
@@ -167,7 +177,7 @@ struct RecordingOverlayView: View {
                 Spacer(minLength: 0)
                 
                 if selectedBackground == .black && showRecordingPrompt {
-                    Text(LocalizedStringKey(recordingPrompt))
+                    Text(recordingPrompt)
                         .font(.callout.weight(.semibold))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
@@ -240,7 +250,7 @@ struct RecordingOverlayView: View {
 
         recordingPromptTask = Task {
             do {
-                try await Task.sleep(nanoseconds: 3_000_000_000)
+                try await Task.sleep(nanoseconds: 6_000_000_000)
                 try Task.checkCancellation()
                 await MainActor.run {
                     showRecordingPrompt = false

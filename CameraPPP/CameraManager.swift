@@ -118,8 +118,9 @@ final class CameraManager: NSObject, Sendable {
         
         videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "com.app.camera.videoQueue"))
         videoOutput.alwaysDiscardsLateVideoFrames = true
-        if session.canAddOutput(videoOutput) { session.addOutput(videoOutput) }
+        // 先加錄影輸出，確保錄影一定拿得到畫面；人形偵測的畫面分析只在開啟時才加入
         if session.canAddOutput(fileOutput) { session.addOutput(fileOutput) }
+        if MediaPreferences.isHumanDetectionEnabled, session.canAddOutput(videoOutput) { session.addOutput(videoOutput) }
         if session.canAddOutput(photoOutput) { session.addOutput(photoOutput) }
         photoOutput.maxPhotoQualityPrioritization = .quality
         
@@ -138,6 +139,23 @@ final class CameraManager: NSObject, Sendable {
             self.session.sessionPreset = preset
             self.session.commitConfiguration()
             self.updateMaxPhotoDimensions()
+        }
+    }
+
+    /// 開關人形偵測時加入或移除畫面分析輸出（關閉時完全不分析畫面，省電，也避免和錄影搶畫面）
+    func applyHumanDetectionSetting() {
+        sessionQueue.async {
+            guard !self.fileOutput.isRecording else { return }
+            let enabled = MediaPreferences.isHumanDetectionEnabled
+            let attached = self.session.outputs.contains(self.videoOutput)
+            guard enabled != attached else { return }
+            self.session.beginConfiguration()
+            if enabled {
+                if self.session.canAddOutput(self.videoOutput) { self.session.addOutput(self.videoOutput) }
+            } else {
+                self.session.removeOutput(self.videoOutput)
+            }
+            self.session.commitConfiguration()
         }
     }
 
@@ -314,6 +332,14 @@ extension CameraManager: AVCaptureFileOutputRecordingDelegate {
     nonisolated func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
         sessionQueue.async {
             self.handleSegmentFinished(error: error)
+        }
+
+        // 錄影真的失敗（不是正常結束或到達時長）時，不存一個壞掉的空影片
+        if let nsError = error as NSError?,
+           (nsError.userInfo[AVErrorRecordingSuccessfullyFinishedKey] as? Bool) != true {
+            print("錄影失敗：\(nsError)")
+            try? FileManager.default.removeItem(at: outputFileURL)
+            return
         }
 
         Task {
