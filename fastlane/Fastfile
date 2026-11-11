@@ -46,7 +46,7 @@ platform :ios do
 
     update_code_signing_settings(
       use_automatic_signing: true,
-      team_id: "HK77JRQQ85",
+      team_id: "98S428Y7GT",
       path: "CameraPPP.xcodeproj",
       targets: ["CameraPPP"],
       code_sign_identity: "Apple Distribution"
@@ -63,12 +63,12 @@ platform :ios do
       output_directory: "./build",
       output_name: "CameraPPP.ipa",
       clean: true,
-      xcargs: "#{auth_args} DEVELOPMENT_TEAM=HK77JRQQ85 CODE_SIGN_STYLE=Automatic",
+      xcargs: "#{auth_args} DEVELOPMENT_TEAM=98S428Y7GT CODE_SIGN_STYLE=Automatic",
       export_xcargs: auth_args,
       export_options: {
         method: "app-store",
         signingStyle: "automatic",
-        teamID: "HK77JRQQ85",
+        teamID: "98S428Y7GT",
         uploadSymbols: true,
         manageAppVersionAndBuildNumber: false
       }
