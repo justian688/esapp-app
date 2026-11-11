@@ -45,6 +45,22 @@ enum CameraFacing: Int, CaseIterable, Identifiable {
     }
 }
 
+enum RecordingPreferences {
+    /// 錄影完（到達時長）後是否自動接著錄下一段
+    static let repeatRecordingKey = "repeatRecordingEnabled"
+    /// 每段錄影的時長（分鐘），0 代表不限時長
+    static let segmentMinutesKey = "recordingSegmentMinutes"
+    static let defaultSegmentMinutes = 5
+
+    static var isRepeatRecordingEnabled: Bool {
+        UserDefaults.standard.object(forKey: repeatRecordingKey) as? Bool ?? true
+    }
+
+    static var segmentMinutes: Int {
+        UserDefaults.standard.object(forKey: segmentMinutesKey) as? Int ?? defaultSegmentMinutes
+    }
+}
+
 @Observable
 final class CameraManager: NSObject, Sendable {
     let session = AVCaptureSession()
@@ -59,6 +75,8 @@ final class CameraManager: NSObject, Sendable {
 
     var isRecording = false
     var isHumanDetected = false
+    /// 只在 sessionQueue 上讀寫：使用者主動結束錄影時為 true，用來區分「時長到了」和「手動結束」
+    @ObservationIgnored private var userRequestedStop = false
     var isAuthorized = false
     
     init(initialCameraFacing: CameraFacing = .back) {
@@ -137,16 +155,45 @@ final class CameraManager: NSObject, Sendable {
 
     func startRecording() {
         sessionQueue.async {
-            guard !self.fileOutput.isRecording else { return }
-            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp4")
-            self.fileOutput.startRecording(to: tempURL, recordingDelegate: self)
-            Task { @MainActor in self.isRecording = true }
+            self.userRequestedStop = false
+            self.beginRecordingSegment()
         }
+    }
+
+    /// 開始錄一段影片。必須在 sessionQueue 上呼叫。
+    /// 有設定時長時，錄到時長會自動結束這一段；若「重複錄影」開啟，會在 delegate 裡接著錄下一段。
+    private func beginRecordingSegment() {
+        guard !fileOutput.isRecording else { return }
+
+        let minutes = RecordingPreferences.segmentMinutes
+        fileOutput.maxRecordedDuration = minutes > 0
+            ? CMTime(seconds: Double(minutes * 60), preferredTimescale: 600)
+            : .invalid
+
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp4")
+        fileOutput.startRecording(to: tempURL, recordingDelegate: self)
+        Task { @MainActor in self.isRecording = true }
     }
     
     func stopRecording() {
         sessionQueue.async {
+            self.userRequestedStop = true
             self.fileOutput.stopRecording()
+            Task { @MainActor in self.isRecording = false }
+        }
+    }
+
+    /// 一段錄影結束後決定要不要自動接著錄。必須在 sessionQueue 上呼叫。
+    private func handleSegmentFinished(error: Error?) {
+        guard !userRequestedStop else { return }
+
+        let nsError = error as NSError?
+        let reachedDurationLimit = nsError?.code == AVError.Code.maximumDurationReached.rawValue
+
+        if reachedDurationLimit, RecordingPreferences.isRepeatRecordingEnabled, session.isRunning {
+            beginRecordingSegment()
+        } else {
+            // 時長到了但沒開重複錄影，或錄影因其他原因中斷：讓畫面回到未錄影狀態
             Task { @MainActor in self.isRecording = false }
         }
     }
@@ -208,6 +255,10 @@ extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
 // MARK: - File Output Delegate
 extension CameraManager: AVCaptureFileOutputRecordingDelegate {
     nonisolated func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
+        sessionQueue.async {
+            self.handleSegmentFinished(error: error)
+        }
+
         Task {
             do {
                 let savedURL = try await StorageManager.shared.saveVideo(from: outputFileURL)

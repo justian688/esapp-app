@@ -145,8 +145,8 @@ struct ScheduleView: View {
     @State private var showRepeatRecordingOptions = false
     @State private var showAlert = false
     @State private var alertMessage = ""
-    @State private var selectedDurationMinutes = 5
-    @State private var isRepeatRecordingEnabled = true
+    @AppStorage(RecordingPreferences.segmentMinutesKey) private var selectedDurationMinutes = RecordingPreferences.defaultSegmentMinutes
+    @AppStorage(RecordingPreferences.repeatRecordingKey) private var isRepeatRecordingEnabled = true
     @AppStorage(CameraFacing.storageKey) private var preferredCameraFacing = CameraFacing.back.rawValue
     
     private var dateString: String {
@@ -166,7 +166,7 @@ struct ScheduleView: View {
     }
 
     private var duration: String {
-        "\(selectedDurationMinutes) 分鐘 0 秒"
+        selectedDurationMinutes > 0 ? "\(selectedDurationMinutes) 分鐘 0 秒" : "不限"
     }
 
     private var cameraPosition: String {
@@ -220,6 +220,10 @@ struct ScheduleView: View {
 
                         Button("60 分鐘 0 秒") {
                             selectedDurationMinutes = 60
+                        }
+
+                        Button("不限") {
+                            selectedDurationMinutes = 0
                         }
 
                         Button("Cancel", role: .cancel) { }
