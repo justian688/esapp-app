@@ -48,8 +48,7 @@ platform :ios do
       use_automatic_signing: true,
       team_id: "98S428Y7GT",
       path: "CameraPPP.xcodeproj",
-      targets: ["CameraPPP"],
-      code_sign_identity: "Apple Distribution"
+      targets: ["CameraPPP"]
     )
 
     auth_args = "-allowProvisioningUpdates -authenticationKeyPath #{key_path} " \
