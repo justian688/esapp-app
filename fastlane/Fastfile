@@ -40,7 +40,7 @@ platform :ios do
     widget_bundle_id = "com.lin.energysaving.widget"
     if Spaceship::ConnectAPI::BundleId.find(widget_bundle_id).nil?
       Spaceship::ConnectAPI::BundleId.create(
-        name: "es省電王 Widget",
+        name: "esapp Widget",
         platform: Spaceship::ConnectAPI::BundleIdPlatform::IOS,
         identifier: widget_bundle_id
       )
