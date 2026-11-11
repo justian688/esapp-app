@@ -7,8 +7,8 @@ default_platform(:ios)
 platform :ios do
   desc "建置並上傳至 TestFlight（只限內部測試，不會送審）"
   lane :beta do
-    key_id = ENV.fetch("APP_STORE_CONNECT_KEY_ID")
-    issuer_id = ENV.fetch("APP_STORE_CONNECT_ISSUER_ID")
+    key_id = ENV.fetch("APP_STORE_CONNECT_KEY_ID").strip
+    issuer_id = ENV.fetch("APP_STORE_CONNECT_ISSUER_ID").strip
     raw_key = ENV.fetch("APP_STORE_CONNECT_KEY").strip
     # Secret 可以直接貼 .p8 檔內容，也可以貼 Base64
     key_text = raw_key.include?("BEGIN PRIVATE KEY") ? raw_key : Base64.decode64(raw_key)
