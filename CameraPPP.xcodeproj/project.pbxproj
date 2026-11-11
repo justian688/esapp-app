@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E5A000022FC10000000000AA /* esappWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E5A000012FC10000000000AA /* esappWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		455FD0712FBF45C000D15C85 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,12 +25,34 @@
 			remoteGlobalIDString = 455FD0622FBF45BF00D15C85;
 			remoteInfo = CameraPPP;
 		};
+		E5A000042FC10000000000AA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 455FD05B2FBF45BF00D15C85 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E5A000112FC10000000000AA;
+			remoteInfo = esappWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		E5A000032FC10000000000AA /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E5A000022FC10000000000AA /* esappWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		455FD0632FBF45BF00D15C85 /* CameraPPP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CameraPPP.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		455FD0702FBF45C000D15C85 /* CameraPPPTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CameraPPPTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		455FD07A2FBF45C000D15C85 /* CameraPPPUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CameraPPPUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E5A000012FC10000000000AA /* esappWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = esappWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -36,6 +62,13 @@
 				Info.plist,
 			);
 			target = 455FD0622FBF45BF00D15C85 /* CameraPPP */;
+		};
+		E5A000072FC10000000000AA /* Exceptions for "esappWidget" folder in "esappWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = E5A000112FC10000000000AA /* esappWidgetExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -56,6 +89,14 @@
 		455FD07D2FBF45C000D15C85 /* CameraPPPUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = CameraPPPUITests;
+			sourceTree = "<group>";
+		};
+		E5A000062FC10000000000AA /* esappWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E5A000072FC10000000000AA /* Exceptions for "esappWidget" folder in "esappWidgetExtension" target */,
+			);
+			path = esappWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -82,6 +123,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E5A000092FC10000000000AA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -91,6 +139,7 @@
 				455FD0652FBF45BF00D15C85 /* CameraPPP */,
 				455FD0732FBF45C000D15C85 /* CameraPPPTests */,
 				455FD07D2FBF45C000D15C85 /* CameraPPPUITests */,
+				E5A000062FC10000000000AA /* esappWidget */,
 				455FD0642FBF45BF00D15C85 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -101,6 +150,7 @@
 				455FD0632FBF45BF00D15C85 /* CameraPPP.app */,
 				455FD0702FBF45C000D15C85 /* CameraPPPTests.xctest */,
 				455FD07A2FBF45C000D15C85 /* CameraPPPUITests.xctest */,
+				E5A000012FC10000000000AA /* esappWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -115,10 +165,12 @@
 				455FD05F2FBF45BF00D15C85 /* Sources */,
 				455FD0602FBF45BF00D15C85 /* Frameworks */,
 				455FD0612FBF45BF00D15C85 /* Resources */,
+				E5A000032FC10000000000AA /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				E5A000052FC10000000000AA /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				455FD0652FBF45BF00D15C85 /* CameraPPP */,
@@ -176,6 +228,28 @@
 			productReference = 455FD07A2FBF45C000D15C85 /* CameraPPPUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		E5A000112FC10000000000AA /* esappWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E5A000142FC10000000000AA /* Build configuration list for PBXNativeTarget "esappWidgetExtension" */;
+			buildPhases = (
+				E5A000082FC10000000000AA /* Sources */,
+				E5A000092FC10000000000AA /* Frameworks */,
+				E5A000102FC10000000000AA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E5A000062FC10000000000AA /* esappWidget */,
+			);
+			name = esappWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = esappWidgetExtension;
+			productReference = E5A000012FC10000000000AA /* esappWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -197,6 +271,9 @@
 						CreatedOnToolsVersion = 26.4;
 						TestTargetID = 455FD0622FBF45BF00D15C85;
 					};
+					E5A000112FC10000000000AA = {
+						CreatedOnToolsVersion = 26.4;
+					};
 				};
 			};
 			buildConfigurationList = 455FD05E2FBF45BF00D15C85 /* Build configuration list for PBXProject "CameraPPP" */;
@@ -217,6 +294,7 @@
 				455FD0622FBF45BF00D15C85 /* CameraPPP */,
 				455FD06F2FBF45C000D15C85 /* CameraPPPTests */,
 				455FD0792FBF45C000D15C85 /* CameraPPPUITests */,
+				E5A000112FC10000000000AA /* esappWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -237,6 +315,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		455FD0782FBF45C000D15C85 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E5A000102FC10000000000AA /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -267,6 +352,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E5A000082FC10000000000AA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -279,6 +371,11 @@
 			isa = PBXTargetDependency;
 			target = 455FD0622FBF45BF00D15C85 /* CameraPPP */;
 			targetProxy = 455FD07B2FBF45C000D15C85 /* PBXContainerItemProxy */;
+		};
+		E5A000052FC10000000000AA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E5A000112FC10000000000AA /* esappWidgetExtension */;
+			targetProxy = E5A000042FC10000000000AA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -568,6 +665,63 @@
 			};
 			name = Release;
 		};
+		E5A000122FC10000000000AA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 11;
+				DEVELOPMENT_TEAM = 98S428Y7GT;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = esappWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "es省電王";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.7.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lin.energysaving.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+			};
+			name = Debug;
+		};
+		E5A000132FC10000000000AA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 11;
+				DEVELOPMENT_TEAM = 98S428Y7GT;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = esappWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "es省電王";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.7.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lin.energysaving.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -603,6 +757,15 @@
 			buildConfigurations = (
 				455FD08B2FBF45C000D15C85 /* Debug */,
 				455FD08C2FBF45C000D15C85 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E5A000142FC10000000000AA /* Build configuration list for PBXNativeTarget "esappWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E5A000122FC10000000000AA /* Debug */,
+				E5A000132FC10000000000AA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
