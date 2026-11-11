@@ -28,8 +28,8 @@ enum SubscriptionConfig {
     /// - 方案 C（高階）：月 NT$330 / 年 NT$990
     static let pricingNote = "請在 App Store Connect → 訂閱 → 定價選擇對應級距"
 
-    /// 新下載免費試用：3 小時
-    static let trialDuration: TimeInterval = 3 * 60 * 60
+    /// 新下載免費試用：1 個月（30 天），之後才會跳出付費牆
+    static let trialDuration: TimeInterval = 30 * 24 * 60 * 60
 
     static let firstInstallDateKey = "premiumFirstInstallDate"
     static let premiumStatusKey = "isPremiumUnlocked"

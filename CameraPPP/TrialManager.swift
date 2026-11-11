@@ -2,7 +2,7 @@
 //  TrialManager.swift
 //  CameraPPP
 //
-//  新下載 3 小時試用期管理
+//  新下載 1 個月（30 天）試用期管理
 //
 
 import Foundation
@@ -26,7 +26,7 @@ final class TrialManager: ObservableObject {
         isTrialActive = Date().timeIntervalSince(installDate) < SubscriptionConfig.trialDuration
     }
 
-    /// 更新試用狀態（App 使用中到達 3 小時時觸發付費牆）
+    /// 更新試用狀態（試用滿 30 天時觸發付費牆）
     func refreshTrialStatus() {
         let active = Date().timeIntervalSince(firstInstallDate) < SubscriptionConfig.trialDuration
         if isTrialActive != active {
@@ -42,8 +42,16 @@ final class TrialManager: ObservableObject {
     /// 試用剩餘時間文字
     var remainingTrialText: String {
         let totalSeconds = Int(remainingTrialSeconds)
-        let hours = totalSeconds / 3600
+        let days = totalSeconds / 86400
+        let hours = (totalSeconds % 86400) / 3600
         let minutes = (totalSeconds % 3600) / 60
+
+        if days > 0 {
+            return AppLanguage.current.localized(
+                "\(days)d \(hours)h remaining",
+                "剩餘 \(days) 天 \(hours) 小時"
+            )
+        }
 
         if hours > 0 {
             return AppLanguage.current.localized(

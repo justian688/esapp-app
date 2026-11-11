@@ -98,7 +98,7 @@ struct PaywallView: View {
             } else {
                 Text(AppLanguage.current.localized(
                     "Your free trial has ended. Subscribe to continue.",
-                    "免費試用已結束（3 小時），請訂閱以繼續使用。"
+                    "免費試用已結束（1 個月），請訂閱以繼續使用。"
                 ))
                 .font(.subheadline)
                 .foregroundColor(.gray)
