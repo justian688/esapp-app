@@ -28,6 +28,14 @@ platform :ios do
       in_house: false
     )
 
+    # 先確認金鑰真的能登入 App Store Connect，失敗時給清楚的錯誤訊息
+    begin
+      app = Spaceship::ConnectAPI::App.find("com.lin.energysaving")
+      UI.success("API 金鑰驗證成功，找到 App：#{app&.name}")
+    rescue => e
+      UI.user_error!("API 金鑰無法登入 App Store Connect（請檢查 3 個 Secrets 是否正確）：#{e.message}")
+    end
+
     # build 號 = GitHub 執行次數 + 11，確保每次上傳都不重複
     if ENV["GITHUB_RUN_NUMBER"]
       increment_build_number(
@@ -40,7 +48,8 @@ platform :ios do
       use_automatic_signing: true,
       team_id: "HK77JRQQ85",
       path: "CameraPPP.xcodeproj",
-      targets: ["CameraPPP"]
+      targets: ["CameraPPP"],
+      code_sign_identity: "Apple Distribution"
     )
 
     auth_args = "-allowProvisioningUpdates -authenticationKeyPath #{key_path} " \
