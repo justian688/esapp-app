@@ -36,6 +36,17 @@ platform :ios do
       UI.user_error!("API 金鑰無法登入 App Store Connect（請檢查 3 個 Secrets 是否正確）：#{e.message}")
     end
 
+    # 小工具需要自己的 App ID，沒有的話先註冊（Xcode 自動註冊有時會失敗）
+    widget_bundle_id = "com.lin.energysaving.widget"
+    if Spaceship::ConnectAPI::BundleId.find(widget_bundle_id).nil?
+      Spaceship::ConnectAPI::BundleId.create(
+        name: "es省電王 Widget",
+        platform: Spaceship::ConnectAPI::BundleIdPlatform::IOS,
+        identifier: widget_bundle_id
+      )
+      UI.success("已註冊小工具 App ID：#{widget_bundle_id}")
+    end
+
     # build 號 = GitHub 執行次數 + 11，確保每次上傳都不重複
     if ENV["GITHUB_RUN_NUMBER"]
       increment_build_number(
