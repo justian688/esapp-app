@@ -50,7 +50,7 @@ jobs:
           fi
           if [ -z "$APP_STORE_CONNECT_KEY" ]; then
             echo "❌ 缺少 Secret: APP_STORE_CONNECT_KEY"
-            echo "請填入 .p8 檔案的 Base64 字串"
+            echo "請填入 .p8 檔案內容（直接貼上整個檔案文字即可）"
             exit 1
           fi
           echo "✅ Secrets 已設定"
@@ -62,12 +62,3 @@ jobs:
           APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
         run: fastlane beta
-
-      - name: Upload build artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: CameraPPP-ipa
-          path: build/CameraPPP.ipa
-          if-no-files-found: ignore
-          retention-days: 7

@@ -1,22 +1,33 @@
-# Fastfile - CameraPPP TestFlight 自動部署
+# Fastfile - es省電王（CameraPPP）TestFlight 自動部署
+# 用 App Store Connect API 金鑰在雲端完成簽章，不需要 Mac 上的 Xcode 帳號或鑰匙圈。
+require "base64"
 
 default_platform(:ios)
 
 platform :ios do
-  desc "建置並上傳至 TestFlight"
+  desc "建置並上傳至 TestFlight（只限內部測試，不會送審）"
   lane :beta do
+    key_id = ENV.fetch("APP_STORE_CONNECT_KEY_ID")
+    issuer_id = ENV.fetch("APP_STORE_CONNECT_ISSUER_ID")
+    raw_key = ENV.fetch("APP_STORE_CONNECT_KEY").strip
+    # Secret 可以直接貼 .p8 檔內容，也可以貼 Base64
+    key_content = raw_key.include?("BEGIN PRIVATE KEY") ? raw_key : Base64.decode64(raw_key)
+
+    key_path = File.expand_path("../build/AuthKey_#{key_id}.p8", __dir__)
+    FileUtils.mkdir_p(File.dirname(key_path))
+    File.write(key_path, key_content)
+
     api_key = app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
-      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
-      key_content: ENV["APP_STORE_CONNECT_KEY"],
-      is_key_content_base64: true,
+      key_id: key_id,
+      issuer_id: issuer_id,
+      key_content: key_content,
       in_house: false
     )
 
-    # 使用 GitHub Actions 流水號作為 Build Number，避免重複上傳
+    # build 號 = GitHub 執行次數 + 11，確保每次上傳都不重複
     if ENV["GITHUB_RUN_NUMBER"]
       increment_build_number(
-        build_number: ENV["GITHUB_RUN_NUMBER"],
+        build_number: (ENV["GITHUB_RUN_NUMBER"].to_i + 11).to_s,
         xcodeproj: "CameraPPP.xcodeproj"
       )
     end
@@ -25,10 +36,11 @@ platform :ios do
       use_automatic_signing: true,
       team_id: "HK77JRQQ85",
       path: "CameraPPP.xcodeproj",
-      targets: ["CameraPPP"],
-      code_sign_identity: "Apple Distribution",
-      bundle_identifier: "com.lin.energysaving"
+      targets: ["CameraPPP"]
     )
+
+    auth_args = "-allowProvisioningUpdates -authenticationKeyPath #{key_path} " \
+                "-authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id}"
 
     build_app(
       project: "CameraPPP.xcodeproj",
@@ -38,7 +50,8 @@ platform :ios do
       output_directory: "./build",
       output_name: "CameraPPP.ipa",
       clean: true,
-      xcargs: "-allowProvisioningUpdates DEVELOPMENT_TEAM=HK77JRQQ85 CODE_SIGN_STYLE=Automatic",
+      xcargs: "#{auth_args} DEVELOPMENT_TEAM=HK77JRQQ85 CODE_SIGN_STYLE=Automatic",
+      export_xcargs: auth_args,
       export_options: {
         method: "app-store",
         signingStyle: "automatic",
@@ -54,5 +67,7 @@ platform :ios do
       skip_waiting_for_build_processing: true,
       distribute_external: false
     )
+  ensure
+    File.delete(key_path) if key_path && File.exist?(key_path)
   end
 end
