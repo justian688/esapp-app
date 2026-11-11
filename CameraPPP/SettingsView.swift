@@ -8,13 +8,8 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage("notifyRecordingComplete") private var notifyRecordingComplete = true
-    @AppStorage("vibrateStart") private var vibrateStart = true
-    @AppStorage("vibrateStop") private var vibrateStop = false
-    @AppStorage("enableDND") private var enableDND = false
-    @AppStorage("shutterSound") private var shutterSound = false
-    @AppStorage("pauseResumeBtn") private var pauseResumeBtn = false
-    @AppStorage("flashlightBtn") private var flashlightBtn = false
+    @AppStorage(MediaPreferences.saveToPhotosKey) private var saveToPhotosLibrary = false
+    @AppStorage(MediaPreferences.humanDetectionKey) private var humanDetectionEnabled = false
     @AppStorage(CameraFacing.storageKey) private var preferredCameraFacing = CameraFacing.back.rawValue
     @AppStorage(AppLanguage.storageKey) private var appLanguageRaw = AppLanguage.traditionalChinese.rawValue
     @State private var showingLanguageOptions = false
@@ -32,7 +27,7 @@ struct SettingsView: View {
                         .foregroundColor(.white)
                 }
                 
-                Text("Settings")
+                Text("設定")
                     .font(.title2)
                     .foregroundColor(.white)
                 
@@ -71,54 +66,25 @@ struct SettingsView: View {
                         Button("Cancel", role: .cancel) { }
                     }
                     
-                    // 開關列表
                     SettingsToggleRow(
-                        icon: "bell.fill",
-                        title: "Recording complete",
-                        subtitle: "Show a notification when recording has stopped",
-                        isOn: $notifyRecordingComplete
+                        icon: "photo.on.rectangle",
+                        title: "錄完自動存到「照片」App",
+                        subtitle: "影片和照片會另存一份到 iPhone 的「照片」，方便分享與 iCloud 備份",
+                        isOn: $saveToPhotosLibrary
                     )
-                    
+                    .onChange(of: saveToPhotosLibrary) { _, enabled in
+                        guard enabled else { return }
+                        Task {
+                            let granted = await PhotoLibrarySaver.requestAccess()
+                            if !granted { saveToPhotosLibrary = false }
+                        }
+                    }
+
                     SettingsToggleRow(
-                        icon: "iphone.radiowaves.left.and.right",
-                        title: "Vibrate when start record video",
-                        subtitle: nil,
-                        isOn: $vibrateStart
-                    )
-                    
-                    SettingsToggleRow(
-                        icon: "iphone.radiowaves.left.and.right",
-                        title: "Vibrate when stop record video",
-                        subtitle: nil,
-                        isOn: $vibrateStop
-                    )
-                    
-                    SettingsToggleRow(
-                        icon: "minus.circle",
-                        title: "Enable Do Not Disturb while recording",
-                        subtitle: nil,
-                        isOn: $enableDND
-                    )
-                    
-                    SettingsToggleRow(
-                        icon: "music.note",
-                        title: "Shutter sound",
-                        subtitle: "Enable shutter sound when start and stop recording",
-                        isOn: $shutterSound
-                    )
-                    
-                    SettingsToggleRow(
-                        icon: "pause.fill",
-                        title: "Pause and resume",
-                        subtitle: "Showing pause and resume buttons on the notification while recording",
-                        isOn: $pauseResumeBtn
-                    )
-                    
-                    SettingsToggleRow(
-                        icon: "bolt.fill",
-                        title: "Flashlight",
-                        subtitle: "Showing the flashlight button on the notification while recording",
-                        isOn: $flashlightBtn
+                        icon: "person.fill.viewfinder",
+                        title: "人形偵測提示",
+                        subtitle: "錄影中偵測到有人時在畫面上提示。會增加耗電，預設關閉",
+                        isOn: $humanDetectionEnabled
                     )
 
                     SettingsMenuRow(
@@ -138,23 +104,6 @@ struct SettingsView: View {
                         }
 
                         Button("Cancel", role: .cancel) { }
-                    }
-                    
-                    SettingsActionRow(
-                        icon: "folder.fill",
-                        title: "/storage/emulated/0/DCIM/QuickVideoRecorder",
-                        subtitle: "Storage location save video"
-                    ) {
-                    }
-                    
-                    SettingsActionRow(
-                        icon: "battery.100.bolt",
-                        title: "Ignoring battery optimizations",
-                        subtitle: "Battery saving mode can make the service's app stops working. You should turn off for this app so it can run more stables"
-                    ) {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
-                        }
                     }
                     
                     Spacer(minLength: 40)

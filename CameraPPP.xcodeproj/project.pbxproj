@@ -418,6 +418,7 @@
 				INFOPLIST_FILE = CameraPPP/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "EnergySaving-IOSAPP";
 				INFOPLIST_KEY_NSCameraUsageDescription = "需要存取相機以提供即時預覽、錄影與拍照功能。";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "開啟「錄完自動存到照片」後，會把你錄的影片與照片另存一份到「照片」App，例如課堂錄影可以直接從相簿分享或備份到 iCloud。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -457,6 +458,7 @@
 				INFOPLIST_FILE = CameraPPP/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "EnergySaving-IOSAPP";
 				INFOPLIST_KEY_NSCameraUsageDescription = "需要存取相機以提供即時預覽、錄影與拍照功能。";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "開啟「錄完自動存到照片」後，會把你錄的影片與照片另存一份到「照片」App，例如課堂錄影可以直接從相簿分享或備份到 iCloud。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

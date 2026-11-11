@@ -11,7 +11,7 @@ import QuartzCore
 
 actor MotionDetector {
     private var lastProcessingTime: TimeInterval = 0
-    private let processingInterval: TimeInterval = 0.2
+    private let processingInterval: TimeInterval = 1.0
     
     
     func detectHuman(in sampleBuffer: CMSampleBuffer) async -> Bool {

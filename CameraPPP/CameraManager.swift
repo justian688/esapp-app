@@ -45,7 +45,7 @@ enum CameraFacing: Int, CaseIterable, Identifiable {
     }
 }
 
-enum RecordingPreferences {
+nonisolated enum RecordingPreferences {
     /// 錄影完（到達時長）後是否自動接著錄下一段
     static let repeatRecordingKey = "repeatRecordingEnabled"
     /// 每段錄影的時長（分鐘），0 代表不限時長
@@ -77,6 +77,7 @@ final class CameraManager: NSObject, Sendable {
     var isHumanDetected = false
     /// 只在 sessionQueue 上讀寫：使用者主動結束錄影時為 true，用來區分「時長到了」和「手動結束」
     @ObservationIgnored private var userRequestedStop = false
+    @ObservationIgnored private var humanDetectedResetTask: Task<Void, Never>?
     var isAuthorized = false
     
     init(initialCameraFacing: CameraFacing = .back) {
@@ -110,7 +111,8 @@ final class CameraManager: NSObject, Sendable {
     
     private func configureSession() {
         session.beginConfiguration()
-        session.sessionPreset = .hd1280x720
+        let preset = CaptureResolution.current.preset
+        session.sessionPreset = session.canSetSessionPreset(preset) ? preset : .hd1280x720
         
         installCameraInput()
         
@@ -122,7 +124,30 @@ final class CameraManager: NSObject, Sendable {
         photoOutput.maxPhotoQualityPrioritization = .quality
         
         session.commitConfiguration()
+        updateMaxPhotoDimensions()
         session.startRunning()
+    }
+
+    /// 套用「錄影與拍照解析度」設定（錄影中不會變更，下次開始錄影前生效）
+    func applyCaptureResolution() {
+        sessionQueue.async {
+            guard !self.fileOutput.isRecording else { return }
+            let preset = CaptureResolution.current.preset
+            guard self.session.sessionPreset != preset, self.session.canSetSessionPreset(preset) else { return }
+            self.session.beginConfiguration()
+            self.session.sessionPreset = preset
+            self.session.commitConfiguration()
+            self.updateMaxPhotoDimensions()
+        }
+    }
+
+    /// 讓照片使用目前鏡頭格式支援的最大尺寸。必須在 sessionQueue 上呼叫。
+    private func updateMaxPhotoDimensions() {
+        guard let device = (session.inputs.first as? AVCaptureDeviceInput)?.device,
+              let largest = device.activeFormat.supportedMaxPhotoDimensions.max(by: {
+                  Int($0.width) * Int($0.height) < Int($1.width) * Int($1.height)
+              }) else { return }
+        photoOutput.maxPhotoDimensions = largest
     }
 
     func updateCameraFacing(_ facing: CameraFacing) {
@@ -134,6 +159,7 @@ final class CameraManager: NSObject, Sendable {
             self.session.beginConfiguration()
             self.installCameraInput()
             self.session.commitConfiguration()
+            self.updateMaxPhotoDimensions()
         }
     }
 
@@ -157,6 +183,20 @@ final class CameraManager: NSObject, Sendable {
         sessionQueue.async {
             self.userRequestedStop = false
             self.beginRecordingSegment()
+        }
+    }
+
+    /// 從 Siri 捷徑、小工具開啟 App 時使用：等相機準備好再開始錄影（最多等約 6 秒）
+    func startRecordingWhenReady(attempt: Int = 0) {
+        sessionQueue.async {
+            if self.session.isRunning {
+                self.userRequestedStop = false
+                self.beginRecordingSegment()
+            } else if attempt < 20 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    self.startRecordingWhenReady(attempt: attempt + 1)
+                }
+            }
         }
     }
 
@@ -205,7 +245,8 @@ final class CameraManager: NSObject, Sendable {
 
             let settings = AVCapturePhotoSettings()
             settings.flashMode = .off
-            settings.photoQualityPrioritization = .quality
+            settings.photoQualityPrioritization = PhotoCaptureMode.current.prioritization
+            settings.maxPhotoDimensions = self.photoOutput.maxPhotoDimensions
 
             let delegate = PhotoCaptureDelegate(manager: self)
 
@@ -233,6 +274,9 @@ final class CameraManager: NSObject, Sendable {
             do {
                 let savedURL = try await StorageManager.shared.savePhoto(from: data)
                 print("Securely saved photo to sandbox: \(savedURL)")
+                if MediaPreferences.saveToPhotosLibrary {
+                    await PhotoLibrarySaver.savePhoto(at: savedURL)
+                }
             } catch {
                 print("Failed to save photo: \(error)")
             }
@@ -243,11 +287,24 @@ final class CameraManager: NSObject, Sendable {
 // MARK: - Video Data Delegate (Vision Trigger)
 extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
     nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        // 人形偵測預設關閉以省電；開啟時也只在錄影中、每秒分析一次
+        guard MediaPreferences.isHumanDetectionEnabled, fileOutput.isRecording else { return }
         Task {
             let detected = await motionDetector.detectHuman(in: sampleBuffer)
-            if detected {
-                await MainActor.run { self.isHumanDetected = true }
-            }
+            guard detected else { return }
+            await MainActor.run { self.markHumanDetected() }
+        }
+    }
+
+    /// 顯示「偵測到有人」約 3 秒
+    @MainActor
+    private func markHumanDetected() {
+        isHumanDetected = true
+        humanDetectedResetTask?.cancel()
+        humanDetectedResetTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            guard !Task.isCancelled else { return }
+            self.isHumanDetected = false
         }
     }
 }
@@ -263,6 +320,9 @@ extension CameraManager: AVCaptureFileOutputRecordingDelegate {
             do {
                 let savedURL = try await StorageManager.shared.saveVideo(from: outputFileURL)
                 print("Securely saved to sandbox: \(savedURL)")
+                if MediaPreferences.saveToPhotosLibrary {
+                    await PhotoLibrarySaver.saveVideo(at: savedURL)
+                }
             } catch {
                 print("Failed to save video: \(error)")
             }

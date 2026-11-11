@@ -13,6 +13,7 @@ struct MainContainerView: View {
     @State private var isMenuOpen = false
     @State private var selectedTab = 0
     @AppStorage(CameraFacing.storageKey) private var preferredCameraFacingRaw = CameraFacing.back.rawValue
+    @AppStorage(CaptureResolution.storageKey) private var captureResolutionRaw = CaptureResolution.hd720.rawValue
     @State private var navigationPath: [SideMenuDestination] = []
     @State private var showPaywall = false
     @State private var allowPaywallDismiss = true
@@ -103,9 +104,21 @@ struct MainContainerView: View {
         .task(id: preferredCameraFacingRaw) {
             cameraManager.updateCameraFacing(preferredCameraFacing)
         }
+        .onChange(of: captureResolutionRaw) { _, _ in
+            cameraManager.applyCaptureResolution()
+        }
         .onAppear {
             startTrialMonitoring()
             evaluatePaywallPresentation()
+            handlePendingStartRecording()
+        }
+        .onOpenURL { url in
+            if AppAction.isRecordURL(url) {
+                AppAction.requestStartRecording()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: AppAction.startRecordingNotification)) { _ in
+            handlePendingStartRecording()
         }
         .onDisappear {
             trialCheckTimer?.invalidate()
@@ -128,6 +141,16 @@ struct MainContainerView: View {
                 .environmentObject(subscriptionManager)
                 .environmentObject(trialManager)
         }
+    }
+
+    /// Siri 捷徑、小工具要求開始錄影：回到錄影頁並在相機就緒後開始錄
+    private func handlePendingStartRecording() {
+        guard AppAction.consumePendingStartRecording() else { return }
+        isMenuOpen = false
+        navigationPath.removeAll()
+        selectedTab = 0
+        guard !cameraManager.isRecording else { return }
+        cameraManager.startRecordingWhenReady()
     }
 
     private func openDestination(_ destination: SideMenuDestination) {

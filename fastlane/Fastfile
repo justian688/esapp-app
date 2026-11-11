@@ -63,7 +63,6 @@ platform :ios do
       output_name: "CameraPPP.ipa",
       clean: true,
       xcargs: "#{auth_args} DEVELOPMENT_TEAM=98S428Y7GT CODE_SIGN_STYLE=Automatic",
-      export_xcargs: auth_args,
       export_options: {
         method: "app-store",
         signingStyle: "automatic",

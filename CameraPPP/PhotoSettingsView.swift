@@ -6,15 +6,24 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct PhotoSettingsView: View {
     @Environment(\.dismiss) var dismiss
-    
-    @AppStorage("photo_notifyComplete") private var notifyComplete = true
-    @AppStorage("photo_vibrateStart") private var vibrateStart = true
-    @AppStorage("photo_vibrateComplete") private var vibrateComplete = true
-    @AppStorage("photo_flashlight") private var flashlight = false
-    
+
+    @AppStorage(PhotoCaptureMode.storageKey) private var photoModeRaw = PhotoCaptureMode.quality.rawValue
+    @AppStorage(CaptureResolution.storageKey) private var resolutionRaw = CaptureResolution.hd720.rawValue
+    @State private var showingModeOptions = false
+    @State private var showingResolutionOptions = false
+
+    private var photoMode: PhotoCaptureMode {
+        PhotoCaptureMode(rawValue: photoModeRaw) ?? .quality
+    }
+
+    private var resolution: CaptureResolution {
+        CaptureResolution(rawValue: resolutionRaw) ?? .hd720
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 20) {
@@ -23,124 +32,73 @@ struct PhotoSettingsView: View {
                         .font(.title3)
                         .foregroundColor(.white)
                 }
-                
-                Text("Photo settings (BETA)")
+
+                Text("拍照與畫質設定")
                     .font(.title2)
                     .foregroundColor(.white)
-                
+
                 Spacer()
             }
             .padding()
             .background(Color.black)
-            
+
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    
-                    // MARK: - GENERAL SETTINGS
-                    SectionHeader(title: "GENERAL SETTINGS")
-                    
-                    SettingsToggleRow(
-                        icon: "bell.fill",
-                        title: "Capturing complete",
-                        subtitle: "Show a notification when taking photo completed",
-                        isOn: $notifyComplete
-                    )
-                    
-                    SettingsToggleRow(
-                        icon: "iphone.radiowaves.left.and.right",
-                        title: "Vibrate when start",
-                        subtitle: nil,
-                        isOn: $vibrateStart
-                    )
-                    
-                    SettingsToggleRow(
-                        icon: "iphone.radiowaves.left.and.right",
-                        title: "Vibrate when complete",
-                        subtitle: nil,
-                        isOn: $vibrateComplete
-                    )
-                    
-                    Divider().padding(.vertical, 5)
-                    
-                    // MARK: - VIEW SETTINGS
-                    SectionHeader(title: "VIEW SETTINGS")
-                    
-                    SettingsActionRow(
-                        icon: "camera.aperture",
-                        title: "Camera",
-                        subtitle: "Back"
-                    ) {}
-                    
-                    SettingsActionRow(
-                        icon: "camera.fill",
-                        title: "Back camera resolution",
-                        subtitle: "Full resolution ratio 4:3"
-                    ) {}
-                    
-                    SettingsActionRow(
-                        icon: "person.crop.square.fill",
-                        title: "Front camera resolution",
-                        subtitle: "Full resolution ratio 4:3"
-                    ) {}
-                    
-                    SettingsActionRow(
+
+                    // MARK: - 畫質
+                    SectionHeader(title: "畫質")
+
+                    SettingsMenuRow(
                         icon: "hq",
-                        title: "Capture mode",
-                        subtitle: "Maximize quality"
-                    ) {}
-                    
-                    SettingsToggleRow(
-                        icon: "bolt.fill",
-                        title: "Flashlight",
-                        subtitle: "Enable flashlight when take photo",
-                        isOn: $flashlight
-                    )
-                    
+                        title: "拍照模式",
+                        subtitle: "\(photoMode.title)：\(photoMode.subtitle)"
+                    ) {
+                        showingModeOptions = true
+                    }
+                    .confirmationDialog("拍照模式", isPresented: $showingModeOptions, titleVisibility: .visible) {
+                        ForEach(PhotoCaptureMode.allCases) { mode in
+                            Button(mode.title) { photoModeRaw = mode.rawValue }
+                        }
+                        Button("取消", role: .cancel) { }
+                    }
+
+                    SettingsMenuRow(
+                        icon: "camera.fill",
+                        title: "錄影與拍照解析度",
+                        subtitle: "\(resolution.title)。錄影中變更會在下次錄影時生效"
+                    ) {
+                        showingResolutionOptions = true
+                    }
+                    .confirmationDialog("錄影與拍照解析度", isPresented: $showingResolutionOptions, titleVisibility: .visible) {
+                        ForEach(CaptureResolution.allCases) { option in
+                            Button(option.title) { resolutionRaw = option.rawValue }
+                        }
+                        Button("取消", role: .cancel) { }
+                    }
+
                     Divider().padding(.vertical, 5)
-                    
-                    // MARK: - SHORTCUT SETTINGS
-                    SectionHeader(title: "SHORTCUT SETTINGS")
-                    
+
+                    // MARK: - 捷徑與小工具
+                    SectionHeader(title: "快速開始錄影")
+
                     ColoredIconActionRow(
-                        icon: "camera.fill",
+                        icon: "mic.fill",
                         iconBgColor: Color.red.opacity(0.8),
-                        title: "Take Photo",
-                        subtitle: "Take Photo"
-                    ) {}
-                    
+                        title: "Siri 與捷徑",
+                        subtitle: "對 Siri 說「用 es省電王 開始錄影」，或在「捷徑」App 加入主畫面"
+                    ) {
+                        if let url = URL(string: "shortcuts://") {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+
                     ColoredIconActionRow(
-                        icon: "camera.fill",
-                        iconBgColor: Color.red.opacity(0.8),
-                        title: "Back Camera Photo",
-                        subtitle: nil
-                    ) {}
-                    
-                    ColoredIconActionRow(
-                        icon: "person.crop.square.fill",
-                        iconBgColor: Color.red.opacity(0.8),
-                        title: "Front Camera Photo",
-                        subtitle: nil
-                    ) {}
-                    
-                    Divider().padding(.vertical, 5)
-                    
-                    // MARK: - WIDGET SETTINGS
-                    SectionHeader(title: "WIDGET SETTINGS")
-                    
-                    ColoredIconActionRow(
-                        icon: "camera.fill",
+                        icon: "square.grid.2x2.fill",
                         iconBgColor: Color(UIColor.darkGray),
-                        title: "Back camera photo widget",
-                        subtitle: "Choose icon to change"
+                        title: "主畫面小工具與控制中心",
+                        subtitle: "長按主畫面空白處 → 左上角「編輯」→「加入小工具」→ 搜尋 es省電王"
                     ) {}
-                    
-                    ColoredIconActionRow(
-                        icon: "person.crop.square.fill",
-                        iconBgColor: Color(UIColor.darkGray),
-                        title: "Front camera photo widget",
-                        subtitle: "Choose icon to change"
-                    ) {}
-                    
+
                     Spacer(minLength: 40)
                 }
             }
