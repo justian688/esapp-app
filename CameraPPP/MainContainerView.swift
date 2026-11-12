@@ -68,7 +68,7 @@ struct MainContainerView: View {
                     )
                     .environmentObject(subscriptionManager)
                     .environmentObject(trialManager)
-                    .frame(width: UIScreen.main.bounds.width * 0.75)
+                    .frame(width: min(UIScreen.main.bounds.width * 0.66, 300))
                     .transition(.move(edge: .leading))
                     .zIndex(2)
                 }

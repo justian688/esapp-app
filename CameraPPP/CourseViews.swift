@@ -13,56 +13,44 @@ import AVKit
 struct CurrentCourseCard: View {
     @State private var store = CourseStore.shared
     @State private var showPicker = false
-    @State private var editingCourse: Course?
 
     var body: some View {
         HStack(spacing: 0) {
-            Button {
-                showPicker = true
-            } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: "graduationcap.fill")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(Theme.chalkYellow)
-                    Text("目前課程")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(Theme.chalkYellow)
-                    Text(title)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(Theme.chalkWhite)
-                        .lineLimit(1)
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.gray)
-                    Spacer(minLength: 4)
-                }
-                .padding(.leading, 16)
-                .frame(minHeight: 52)
-                .contentShape(Rectangle())
+            // 左邊留一個和右邊按鈕一樣寬的空間，讓中間的文字置中
+            Color.clear.frame(width: 52, height: 52)
+
+            Spacer(minLength: 0)
+            HStack(spacing: 10) {
+                Image(systemName: "graduationcap.fill")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(Theme.chalkYellow)
+                Text("目前課程")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(Theme.chalkYellow)
+                Text(title)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(Theme.chalkWhite)
+                    .lineLimit(1)
             }
-            .buttonStyle(.plain)
-            .accessibilityHint("選擇或新增課程")
+            .accessibilityElement(children: .combine)
+            Spacer(minLength: 0)
 
             Button {
-                editingCourse = store.currentCourse ?? Course(name: "")
+                showPicker = true
             } label: {
                 Image(systemName: "square.and.pencil")
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(Theme.chalkWhite)
                     .frame(width: 52, height: 52)
             }
-            .accessibilityLabel("編輯目前課程")
+            .accessibilityLabel("選擇或編輯課程")
         }
+        .frame(maxWidth: .infinity, minHeight: 52)
         .background(Theme.chalkboard)
         .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.chalkLine, lineWidth: 1))
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .sheet(isPresented: $showPicker) {
             CoursePickerSheet()
-        }
-        .sheet(item: $editingCourse) { course in
-            CourseEditor(course: course) { saved in
-                store.currentCourseId = saved.id
-            }
         }
     }
 
@@ -105,15 +93,23 @@ struct CoursePickerSheet: View {
                         CoursePickRow(title: "不指定課程", subtitle: "影片放在「未分類」", selected: store.currentCourseId == nil)
                     }
                     ForEach(store.courses) { course in
-                        Button {
-                            store.currentCourseId = course.id
-                            dismiss()
-                        } label: {
-                            CoursePickRow(title: course.name, subtitle: course.detailLine, selected: store.currentCourseId == course.id)
-                        }
-                        .swipeActions {
-                            Button("編輯") { editingCourse = course }
-                                .tint(.gray)
+                        HStack(spacing: 8) {
+                            Button {
+                                store.currentCourseId = course.id
+                                dismiss()
+                            } label: {
+                                CoursePickRow(title: course.name, subtitle: course.detailLine, selected: store.currentCourseId == course.id)
+                            }
+                            .buttonStyle(.plain)
+                            Button {
+                                editingCourse = course
+                            } label: {
+                                Image(systemName: "pencil")
+                                    .foregroundColor(.gray)
+                                    .frame(width: 44, height: 44)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("編輯 \(course.name)")
                         }
                     }
                 }
@@ -128,7 +124,7 @@ struct CoursePickerSheet: View {
             }
             .scrollContentBackground(.hidden)
             .background(Color.black)
-            .navigationTitle("選擇課程")
+            .navigationTitle("選擇或編輯課程")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

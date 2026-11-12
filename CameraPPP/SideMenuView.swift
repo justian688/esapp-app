@@ -121,10 +121,14 @@ struct MenuRow: View {
                 Text(title)
                     .font(.system(size: 16, weight: .medium))
                 
-                Spacer()
+                Spacer(minLength: 0)
             }
-            .padding(.horizontal, 20)
+            .padding(.leading, 16)
+            .padding(.trailing, 12)
             .padding(.vertical, 14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            // 整列都能點，不用剛好點到文字
+            .contentShape(Rectangle())
         }
         .buttonStyle(MenuButtonStyle())
     }
