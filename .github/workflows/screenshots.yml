@@ -17,14 +17,14 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: Pick 6.9-inch simulator
+      - name: Pick iPad 13-inch simulator
         id: sim
         run: |
           xcrun simctl list devices available
           UDID=$(xcrun simctl list devices available -j | python3 -c '
           import json,sys
           d=json.load(sys.stdin)["devices"]
-          c=[(rt,x) for rt,xs in d.items() if "iOS" in rt for x in xs if "Pro Max" in x["name"]]
+          c=[(rt,x) for rt,xs in d.items() if "iOS" in rt for x in xs if "iPad Pro 13" in x["name"]]
           c.sort(key=lambda p:(p[0],p[1]["name"]))
           print(c[-1][1]["udid"])')
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
@@ -56,7 +56,7 @@ jobs:
           for s in home guide gallery courseInfo notes menu; do
             xcrun simctl launch "$UDID" $BID -uiScreenshot $s $LANGARGS
             if [ "$s" = "guide" ]; then sleep 4; else sleep 7; fi
-            xcrun simctl io "$UDID" screenshot "shots/0${n}_${s}.png"
+            xcrun simctl io "$UDID" screenshot "shots/ipad_0${n}_${s}.png"
             xcrun simctl terminate "$UDID" $BID || true
             n=$((n+1))
             sleep 2
