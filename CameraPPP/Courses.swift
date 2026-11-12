@@ -9,13 +9,39 @@ import Foundation
 import Observation
 
 struct Course: Identifiable, Codable, Hashable {
+    static let defaultCategory = "一般課程"
+
     var id = UUID()
     var name: String
     /// 上課時間，例如「週四 09:10」
     var schedule: String = ""
     /// 教室，例如「B203」
     var room: String = ""
+    /// 老師或講者
+    var teacher: String = ""
+    /// 分類，例如「學校課程」「演講」；沒建立分類時是「一般課程」
+    var category: String = Course.defaultCategory
     var createdAt = Date()
+
+    init(name: String, schedule: String = "", room: String = "", teacher: String = "", category: String = Course.defaultCategory) {
+        self.name = name
+        self.schedule = schedule
+        self.room = room
+        self.teacher = teacher
+        self.category = category
+    }
+
+    // 舊版存的課程沒有老師、分類欄位，讀取時補上預設值
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        name = try c.decodeIfPresent(String.self, forKey: .name) ?? ""
+        schedule = try c.decodeIfPresent(String.self, forKey: .schedule) ?? ""
+        room = try c.decodeIfPresent(String.self, forKey: .room) ?? ""
+        teacher = try c.decodeIfPresent(String.self, forKey: .teacher) ?? ""
+        category = try c.decodeIfPresent(String.self, forKey: .category) ?? Course.defaultCategory
+        createdAt = try c.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+    }
 
     var detailLine: String {
         [schedule, room].filter { !$0.isEmpty }.joined(separator: "．")
@@ -39,6 +65,8 @@ final class CourseStore {
     static let shared = CourseStore()
 
     private(set) var courses: [Course] = []
+    /// 使用者建立的分類（「一般課程」永遠存在，不用另外存）
+    private(set) var customCategories: [String] = []
     private(set) var media: [String: MediaRecord] = [:]
     var currentCourseId: UUID? {
         didSet {
@@ -48,6 +76,7 @@ final class CourseStore {
 
     private static let currentCourseKey = "currentCourseId"
 
+    private static let categoriesKey = "courseCategories"
     private let coursesURL: URL
     private let mediaURL: URL
 
@@ -57,6 +86,7 @@ final class CourseStore {
         mediaURL = dir.appendingPathComponent("course_media.json")
         courses = Self.load([Course].self, from: coursesURL) ?? []
         media = Self.load([String: MediaRecord].self, from: mediaURL) ?? [:]
+        customCategories = UserDefaults.standard.stringArray(forKey: Self.categoriesKey) ?? []
         if let raw = UserDefaults.standard.string(forKey: Self.currentCourseKey),
            let id = UUID(uuidString: raw),
            courses.contains(where: { $0.id == id }) {
@@ -72,6 +102,35 @@ final class CourseStore {
     func course(id: UUID?) -> Course? {
         guard let id else { return nil }
         return courses.first { $0.id == id }
+    }
+
+    // MARK: - 分類
+
+    /// 全部分類：一般課程在最前面，接著是使用者建立的
+    var categories: [String] {
+        [Course.defaultCategory] + customCategories
+    }
+
+    func addCategory(_ name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, !categories.contains(trimmed) else { return }
+        customCategories.append(trimmed)
+        UserDefaults.standard.set(customCategories, forKey: Self.categoriesKey)
+    }
+
+    /// 刪除分類：裡面的課程移回「一般課程」
+    func deleteCategory(_ name: String) {
+        guard name != Course.defaultCategory else { return }
+        customCategories.removeAll { $0 == name }
+        UserDefaults.standard.set(customCategories, forKey: Self.categoriesKey)
+        for index in courses.indices where courses[index].category == name {
+            courses[index].category = Course.defaultCategory
+        }
+        persistCourses()
+    }
+
+    func courses(in category: String) -> [Course] {
+        courses.filter { $0.category == category || (category == Course.defaultCategory && !categories.contains($0.category)) }
     }
 
     // MARK: - 課程

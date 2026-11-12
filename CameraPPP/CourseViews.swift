@@ -182,9 +182,17 @@ struct CourseEditor: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("課程名稱，例如：經濟學", text: $course.name)
-                    TextField("上課時間，例如：週四 09:10", text: $course.schedule)
-                    TextField("教室，例如：B203", text: $course.room)
+                    TextField("課程或演講名稱，例如：經濟學", text: $course.name)
+                    TextField("老師／講者", text: $course.teacher)
+                    TextField("時間，例如：週四 09:10", text: $course.schedule)
+                    TextField("地點，例如：B203", text: $course.room)
+                }
+                Section("分類") {
+                    Picker("分類", selection: $course.category) {
+                        ForEach(CourseStore.shared.categories, id: \.self) { name in
+                            Text(name).tag(name)
+                        }
+                    }
                 }
                 if isExisting {
                     Section {
@@ -231,6 +239,9 @@ struct CourseLibraryView: View {
     @State private var store = CourseStore.shared
     @State private var editingCourse: Course?
     @State private var showAllMedia = false
+    @State private var showNewCategory = false
+    @State private var newCategoryName = ""
+    @State private var categoryToDelete: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -247,9 +258,10 @@ struct CourseLibraryView: View {
                     .foregroundColor(Theme.chalkWhite)
                 Spacer()
                 Button {
-                    showAllMedia = true
+                    newCategoryName = ""
+                    showNewCategory = true
                 } label: {
-                    Text("依日期")
+                    Label("建立分類", systemImage: "folder.badge.plus")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(Theme.chalkYellow)
                         .frame(minHeight: 44)
@@ -259,20 +271,37 @@ struct CourseLibraryView: View {
             .padding(.trailing, 8)
 
             ScrollView {
-                VStack(spacing: 12) {
-                    ForEach(store.courses) { course in
-                        NavigationLink {
-                            CourseDetailView(courseId: course.id)
-                                .navigationBarBackButtonHidden(true)
-                        } label: {
-                            CourseLibraryRow(
-                                title: course.name,
-                                subtitle: course.detailLine,
-                                count: store.videoCount(courseId: course.id),
-                                last: store.lastRecordedAt(courseId: course.id)
-                            )
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(store.categories, id: \.self) { category in
+                        let list = store.courses(in: category)
+                        if !list.isEmpty || category != Course.defaultCategory {
+                            HStack {
+                                Text(category)
+                                    .font(.system(size: 12, weight: .bold))
+                                    .tracking(2)
+                                    .foregroundColor(Theme.chalkYellow)
+                                Spacer()
+                                if category != Course.defaultCategory {
+                                    Button {
+                                        categoryToDelete = category
+                                    } label: {
+                                        Image(systemName: "ellipsis")
+                                            .foregroundColor(.gray)
+                                            .frame(width: 44, height: 32)
+                                    }
+                                    .accessibilityLabel("管理分類 \(category)")
+                                }
+                            }
+                            .padding(.top, 8)
+                            if list.isEmpty {
+                                Text("這個分類還沒有課程。新增課程時選這個分類就會出現在這裡。")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.gray)
+                            }
+                            ForEach(list) { course in
+                                courseLink(course)
+                            }
                         }
-                        .buttonStyle(.plain)
                     }
 
                     NavigationLink {
@@ -287,6 +316,7 @@ struct CourseLibraryView: View {
                         )
                     }
                     .buttonStyle(.plain)
+                    .padding(.top, 8)
 
                     Button {
                         editingCourse = Course(name: "")
@@ -296,6 +326,15 @@ struct CourseLibraryView: View {
                             .foregroundColor(Theme.chalkYellow)
                             .frame(maxWidth: .infinity, minHeight: 52)
                             .overlay(RoundedRectangle(cornerRadius: 14).stroke(style: StrokeStyle(lineWidth: 1, dash: [6, 4])).foregroundColor(Theme.chalkLine))
+                    }
+
+                    Button {
+                        showAllMedia = true
+                    } label: {
+                        Text("查看全部影片與照片（依日期）")
+                            .font(.system(size: 13))
+                            .foregroundColor(.gray)
+                            .frame(maxWidth: .infinity, minHeight: 44)
                     }
                 }
                 .padding(16)
@@ -308,6 +347,152 @@ struct CourseLibraryView: View {
         .fullScreenCover(isPresented: $showAllMedia) {
             GalleryView()
         }
+        .alert("建立分類", isPresented: $showNewCategory) {
+            TextField("例如：學校課程、演講", text: $newCategoryName)
+            Button("取消", role: .cancel) {}
+            Button("建立") { store.addCategory(newCategoryName) }
+        } message: {
+            Text("建立後，新增或編輯課程時可以選這個分類。")
+        }
+        .confirmationDialog(
+            "分類「\(categoryToDelete ?? "")」",
+            isPresented: Binding(get: { categoryToDelete != nil }, set: { if !$0 { categoryToDelete = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button("刪除這個分類（課程移回一般課程）", role: .destructive) {
+                if let name = categoryToDelete { store.deleteCategory(name) }
+                categoryToDelete = nil
+            }
+            Button("取消", role: .cancel) { categoryToDelete = nil }
+        }
+    }
+
+    private func courseLink(_ course: Course) -> some View {
+        NavigationLink {
+            CourseDetailView(courseId: course.id)
+                .navigationBarBackButtonHidden(true)
+        } label: {
+            CourseLibraryRow(
+                title: course.name,
+                subtitle: course.detailLine,
+                count: store.videoCount(courseId: course.id),
+                last: store.lastRecordedAt(courseId: course.id)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - 課程資訊表（演講、學校課程一覽）
+
+struct CourseInfoTableView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var store = CourseStore.shared
+    @State private var editingCourse: Course?
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "arrow.left")
+                        .font(.title3)
+                        .foregroundColor(Theme.chalkWhite)
+                        .frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("返回")
+                Text("課程資訊表")
+                    .font(.title2.weight(.bold))
+                    .foregroundColor(Theme.chalkWhite)
+                Spacer()
+                Button {
+                    editingCourse = Course(name: "")
+                } label: {
+                    Label("新增", systemImage: "plus")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Theme.chalkYellow)
+                        .frame(minHeight: 44)
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.trailing, 8)
+
+            if store.courses.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "tablecells")
+                        .font(.system(size: 40))
+                        .foregroundColor(.gray)
+                    Text("還沒有課程或演講。按右上角「新增」，填名稱、老師或講者、時間和地點。")
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView([.vertical, .horizontal]) {
+                    Grid(alignment: .leading, horizontalSpacing: 0, verticalSpacing: 0) {
+                        GridRow {
+                            headerCell("名稱", width: 140)
+                            headerCell("分類", width: 96)
+                            headerCell("老師／講者", width: 110)
+                            headerCell("時間", width: 110)
+                            headerCell("地點", width: 90)
+                            headerCell("錄影", width: 60)
+                        }
+                        ForEach(store.categories, id: \.self) { category in
+                            ForEach(store.courses(in: category)) { course in
+                                GridRow {
+                                    cell(course.name, width: 140, bold: true)
+                                    cell(category, width: 96)
+                                    cell(course.teacher, width: 110)
+                                    cell(course.schedule, width: 110)
+                                    cell(course.room, width: 90)
+                                    cell("\(store.videoCount(courseId: course.id)) 段", width: 60)
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture { editingCourse = course }
+                                .accessibilityElement(children: .combine)
+                                .accessibilityAddTraits(.isButton)
+                            }
+                        }
+                    }
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.chalkLine, lineWidth: 1))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .padding(16)
+                }
+                Text("點一列可以編輯。分類可在「課程相簿」右上角建立。")
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+                    .padding(.bottom, 16)
+            }
+        }
+        .background(Color.black.ignoresSafeArea())
+        .sheet(item: $editingCourse) { course in
+            CourseEditor(course: course)
+        }
+    }
+
+    private func headerCell(_ text: String, width: CGFloat) -> some View {
+        Text(text)
+            .font(.system(size: 12, weight: .bold))
+            .foregroundColor(Theme.chalkYellow)
+            .frame(width: width, alignment: .leading)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 10)
+            .background(Theme.chalkboard)
+    }
+
+    private func cell(_ text: String, width: CGFloat, bold: Bool = false) -> some View {
+        Text(text.isEmpty ? "—" : text)
+            .font(.system(size: 13, weight: bold ? .bold : .regular))
+            .foregroundColor(text.isEmpty ? .gray : Theme.chalkWhite)
+            .lineLimit(2)
+            .frame(width: width, alignment: .leading)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 12)
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(Theme.chalkLine).frame(height: 1)
+            }
     }
 }
 

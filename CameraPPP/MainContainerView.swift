@@ -84,6 +84,9 @@ struct MainContainerView: View {
                 case .gallery:
                     CourseLibraryView()
                         .navigationBarBackButtonHidden(true)
+                case .courseInfo:
+                    CourseInfoTableView()
+                        .navigationBarBackButtonHidden(true)
                 case .trimmer:
                     VideoTrimmerView()
                         .navigationBarBackButtonHidden(true)

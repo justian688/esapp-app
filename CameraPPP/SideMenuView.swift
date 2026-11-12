@@ -53,6 +53,9 @@ struct SideMenuView: View {
                     MenuRow(icon: "books.vertical.fill", title: "課程相簿") {
                         openPage(.gallery)
                     }
+                    MenuRow(icon: "tablecells", title: "課程資訊表") {
+                        openPage(.courseInfo)
+                    }
                     MenuRow(icon: "scissors", title: "課程剪輯") {
                         openPage(.trimmer)
                     }
@@ -141,6 +144,7 @@ enum SideMenuDestination: Hashable {
     case trimmer
     case settings
     case photoSettings
+    case courseInfo
     case support
 }
 
