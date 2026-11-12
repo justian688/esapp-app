@@ -57,19 +57,19 @@ struct RecordView: View {
                 Spacer()
                 
                 Button(action: startRecordingIfNeeded) {
-                    ZStack {
-                        Circle()
-                            .fill(Color(red: 0.56, green: 0.12, blue: 0.10).opacity(0.25))
-                            .frame(width: 86, height: 86)
-                        Circle()
-                            .fill(Color(red: 0.56, green: 0.12, blue: 0.10))
-                            .frame(width: 64, height: 64)
-                        Image(systemName: "video.fill")
-                            .font(.title2)
-                            .foregroundColor(Color(red: 0.95, green: 0.91, blue: 0.90))
+                    HStack(spacing: 10) {
+                        Image(systemName: "graduationcap.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                        Text("開始上課")
+                            .font(.system(size: 19, weight: .bold))
+                            .tracking(2)
                     }
+                    .foregroundColor(Color(red: 0.95, green: 0.91, blue: 0.90))
+                    .frame(width: 200, height: 60)
+                    .background(Color(red: 0.56, green: 0.12, blue: 0.10))
+                    .clipShape(Capsule())
                 }
-                .accessibilityLabel(CourseStore.shared.currentCourse == nil ? "開始錄影" : "開始錄這堂課")
+                .accessibilityHint("開始錄影")
                 .disabled(cameraManager.isRecording)
                 .opacity(cameraManager.isRecording ? 0.45 : 1.0)
                 .padding(.bottom, 50)
