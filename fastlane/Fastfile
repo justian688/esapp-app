@@ -73,8 +73,9 @@ platform :ios do
       output_directory: "./build",
       output_name: "CameraPPP.ipa",
       clean: true,
-      # 直接用（Apple 雲端管理的）發佈憑證簽章，不在每台雲端機器上產生新的開發憑證，避免憑證數量用完
-      xcargs: "#{auth_args} DEVELOPMENT_TEAM=98S428Y7GT CODE_SIGN_STYLE=Automatic CODE_SIGN_IDENTITY=\"Apple Distribution\"",
+      # 打包時先不簽章（避免每台雲端機器都產生一張新的開發憑證把額度用完），
+      # 匯出時再用 Apple 雲端管理的發佈憑證簽章
+      xcargs: "#{auth_args} DEVELOPMENT_TEAM=98S428Y7GT CODE_SIGN_STYLE=Automatic CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO",
       export_options: {
         method: "app-store",
         signingStyle: "automatic",
