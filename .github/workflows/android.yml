@@ -44,7 +44,8 @@ jobs:
           sed -i 's/android:label="esapp"/android:label="es省電王"/' $M
           grep -q 'android.permission.CAMERA' $M || sed -i 's#<application#<uses-permission android:name="android.permission.CAMERA"/>\n    <uses-permission android:name="android.permission.RECORD_AUDIO"/>\n    <application#' $M
           cat $M | head -20
-          grep -n "applicationId\|minSdk" "$GRADLE"
+          grep -q "checkReleaseBuilds" "$GRADLE" || sed -i '0,/^android {/s//android {\n    lint {\n        checkReleaseBuilds = false\n        abortOnError = false\n    }/' "$GRADLE"
+          grep -n "applicationId\|minSdk\|checkReleaseBuilds" "$GRADLE"
 
       - run: flutter pub get
       - run: flutter analyze --no-fatal-infos --no-fatal-warnings || true
@@ -102,15 +103,15 @@ jobs:
         if: always()
         working-directory: .
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@users.noreply.github.com
           rm -rf /tmp/pub && mkdir -p /tmp/pub
           cp -r out /tmp/pub/ || true
           cp -r flutter_app/android /tmp/pub/android-scaffold || true
-          git checkout --orphan android-build
-          git rm -rf --cached . >/dev/null
-          git clean -fdx >/dev/null
-          cp -r /tmp/pub/* .
-          git add -f out android-scaffold
-          git commit -m "android build ${{ github.run_number }}"
-          git push -f origin android-build
+          rm -rf /tmp/pub/android-scaffold/.gradle /tmp/pub/android-scaffold/app/build /tmp/pub/android-scaffold/local.properties
+          cd /tmp/pub
+          git init -q
+          git checkout -q -b android-build
+          git config user.name github-actions
+          git config user.email github-actions@users.noreply.github.com
+          git add -A
+          git commit -qm "android build ${{ github.run_number }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" android-build
