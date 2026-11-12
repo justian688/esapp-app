@@ -35,7 +35,10 @@ struct RecordView: View {
                 
                 ZStack {
                     Circle()
-                        .stroke(Color.gray.opacity(0.8), lineWidth: 4)
+                        .stroke(Theme.chalkboard, lineWidth: 14)
+                        .frame(width: 220, height: 220)
+                    Circle()
+                        .stroke(Theme.chalkWhite.opacity(0.55), style: StrokeStyle(lineWidth: 3, dash: [10, 6]))
                         .frame(width: 220, height: 220)
                     
                     Text(timeString(time: timeElapsed))

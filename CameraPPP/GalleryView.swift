@@ -34,7 +34,7 @@ struct GalleryView: View {
                         .foregroundColor(.white)
                 }
                 
-                Text("Gallery")
+                Text("課程相簿")
                     .font(.title2)
                     .foregroundColor(.white)
                     .padding(.leading, 10)

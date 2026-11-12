@@ -23,30 +23,38 @@ struct SideMenuView: View {
                 .padding(.top, 40)
                 
                 Text(verbatim: "es省電王")
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .font(.title3)
+                    .fontWeight(.heavy)
+                    .foregroundColor(Theme.chalkWhite)
                 
-                Text("省電錄影，一鍵開錄")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
+                HStack(spacing: 6) {
+                    Image(systemName: "graduationcap.fill")
+                    Text("課堂錄影．課程筆記")
+                }
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(Theme.chalkYellow)
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(UIColor.systemGray6))
+            .background(
+                ZStack(alignment: .bottom) {
+                    Theme.chalkboard
+                    // 黑板下緣的粉筆槽
+                    Rectangle()
+                        .fill(Color(red: 0.35, green: 0.25, blue: 0.16))
+                        .frame(height: 6)
+                }
+            )
             
             Divider().background(Color.gray.opacity(0.5))
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    MenuRow(icon: "play.rectangle.on.rectangle", title: "Gallery") {
+                    MenuRow(icon: "books.vertical.fill", title: "課程相簿") {
                         openPage(.gallery)
                     }
-                    MenuRow(icon: "scissors", title: "Video Trimmer") {
+                    MenuRow(icon: "scissors", title: "課程剪輯") {
                         openPage(.trimmer)
-                    }
-                    MenuRow(icon: "gearshape.fill", title: "Settings") {
-                        openPage(.settings)
                     }
                     MenuRow(
                         icon: subscriptionManager.isPremium ? "crown.fill" : "cart.fill",
@@ -63,6 +71,10 @@ struct SideMenuView: View {
                     }
                     
                     Divider().background(Color.gray.opacity(0.5)).padding(.vertical, 10)
+
+                    MenuRow(icon: "gearshape.fill", title: "Settings") {
+                        openPage(.settings)
+                    }
                     
                     MenuRow(icon: "square.and.arrow.up", title: "Share this app") {
                         withAnimation { isMenuOpen = false }
@@ -118,8 +130,8 @@ struct MenuRow: View {
 struct MenuButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .foregroundColor(configuration.isPressed ? .red : .white)
-            .background(configuration.isPressed ? Color.red.opacity(0.2) : Color.clear)
+            .foregroundColor(configuration.isPressed ? Theme.chalkYellow : Theme.chalkWhite)
+            .background(configuration.isPressed ? Theme.chalkboard : Color.clear)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
@@ -144,7 +156,7 @@ struct ScheduleView: View {
     @State private var alertMessage = ""
     @AppStorage(RecordingPreferences.segmentMinutesKey) private var selectedDurationMinutes = RecordingPreferences.defaultSegmentMinutes
     @AppStorage(RecordingPreferences.repeatRecordingKey) private var isRepeatRecordingEnabled = true
-    @AppStorage(CameraFacing.storageKey) private var preferredCameraFacing = CameraFacing.back.rawValue
+    @AppStorage(CameraFacing.storageKey) private var preferredCameraFacing = CameraFacing.defaultFacing.rawValue
     
     private var dateString: String {
         let formatter = DateFormatter()
@@ -163,7 +175,7 @@ struct ScheduleView: View {
     }
 
     private var cameraPosition: String {
-        (CameraFacing(rawValue: preferredCameraFacing) ?? .back).settingsDisplayName
+        (CameraFacing(rawValue: preferredCameraFacing) ?? CameraFacing.defaultFacing).settingsDisplayName
     }
 
     private var repeatRecording: String {
@@ -176,9 +188,7 @@ struct ScheduleView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     
-                    Text("Set Up a Recording Automatically")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.blue)
+                    ChalkSectionTitle(icon: "calendar.badge.clock", title: "排程錄影")
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
                         .padding(.bottom, 10)
@@ -225,24 +235,25 @@ struct ScheduleView: View {
                 Button(action: {
                     targetDate = Date().addingTimeInterval(300)
                 }) {
-                    Text("CANCEL")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.white)
+                    Text("取消")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(Theme.chalkWhite)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Color.red.opacity(0.6))
+                        .background(Theme.chalkboard)
+                        .overlay(RoundedRectangle(cornerRadius: 25).stroke(Theme.chalkLine, lineWidth: 1))
                         .cornerRadius(25)
                 }
                 
                 Button(action: {
                     scheduleRecording()
                 }) {
-                    Text("SCHEDULE")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.white)
+                    Text("儲存")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Color.blue)
+                        .background(Theme.chalkYellow)
                         .cornerRadius(25)
                 }
             }
@@ -278,8 +289,8 @@ struct ScheduleView: View {
         .sheet(isPresented: $showCameraOptions) {
             WheelPickerSheet(title: "相機鏡頭", isPresented: $showCameraOptions) {
                 Picker("相機鏡頭", selection: $preferredCameraFacing) {
-                    Text("後置鏡頭").tag(CameraFacing.back.rawValue)
                     Text("前置鏡頭").tag(CameraFacing.front.rawValue)
+                    Text("後置鏡頭").tag(CameraFacing.back.rawValue)
                 }
             }
         }

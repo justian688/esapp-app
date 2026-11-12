@@ -28,14 +28,14 @@ struct CustomTopAppBar: View {
                 Button(action: { withAnimation { selectedTab = 0 } }) {
                     Image(systemName: "video.fill")
                         .font(.title2)
-                        .foregroundColor(selectedTab == 0 ? .white : .gray)
+                        .foregroundColor(selectedTab == 0 ? Theme.chalkWhite : .gray)
                         .frame(maxWidth: .infinity)
                 }
                 
                 Button(action: { withAnimation { selectedTab = 1 } }) {
                     Image(systemName: "pencil")
                         .font(.title2)
-                        .foregroundColor(selectedTab == 1 ? .white : .gray)
+                        .foregroundColor(selectedTab == 1 ? Theme.chalkWhite : .gray)
                         .frame(maxWidth: .infinity)
                 }
             }
@@ -44,8 +44,8 @@ struct CustomTopAppBar: View {
             
             GeometryReader { geo in
                 Rectangle()
-                    .fill(Color.white)
-                    .frame(width: geo.size.width / 2, height: 2)
+                    .fill(Theme.chalkYellow)
+                    .frame(width: geo.size.width / 2, height: 3)
                     .offset(x: selectedTab == 0 ? 0 : geo.size.width / 2)
                     .animation(.easeInOut, value: selectedTab)
             }

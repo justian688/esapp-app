@@ -30,7 +30,7 @@ struct VideoTrimmerView: View {
                         .foregroundColor(.white)
                 }
                 
-                Text("Video Trimmer")
+                Text("課程剪輯")
                     .font(.title2)
                     .foregroundColor(.white)
                     .padding(.leading, 10)

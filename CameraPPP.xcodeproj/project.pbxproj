@@ -513,7 +513,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CameraPPP/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "EnergySaving-IOSAPP";
+				INFOPLIST_KEY_CFBundleDisplayName = "es省電王";
 				INFOPLIST_KEY_NSCameraUsageDescription = "需要存取相機以提供即時預覽、錄影與拍照功能。";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "錄影時需要使用麥克風錄下聲音，例如上課時老師的講解，讓影片有聲音可以完整複習。";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "開啟「錄完自動存到照片」後，會把你錄的影片與照片另存一份到「照片」App，例如課堂錄影可以直接從相簿分享或備份到 iCloud。";
@@ -554,7 +554,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CameraPPP/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "EnergySaving-IOSAPP";
+				INFOPLIST_KEY_CFBundleDisplayName = "es省電王";
 				INFOPLIST_KEY_NSCameraUsageDescription = "需要存取相機以提供即時預覽、錄影與拍照功能。";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "錄影時需要使用麥克風錄下聲音，例如上課時老師的講解，讓影片有聲音可以完整複習。";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "開啟「錄完自動存到照片」後，會把你錄的影片與照片另存一份到「照片」App，例如課堂錄影可以直接從相簿分享或備份到 iCloud。";

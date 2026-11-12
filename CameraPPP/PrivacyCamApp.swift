@@ -17,6 +17,7 @@ struct PrivacyCamApp: App {
         WindowGroup {
             MainContainerView()
                 .preferredColorScheme(.dark)
+                .tint(Theme.chalkYellow)
                 .environment(\.locale, Locale(identifier: appLanguageRaw))
                 .environmentObject(subscriptionManager)
                 .environmentObject(trialManager)

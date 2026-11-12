@@ -79,16 +79,14 @@ struct CourseNotesSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("課程筆記")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.blue)
+                ChalkSectionTitle(icon: "pencil.and.list.clipboard", title: "課程筆記")
                 Spacer()
                 Button {
                     editingNote = CourseNote(title: "", body: "")
                 } label: {
                     Label("新增筆記", systemImage: "plus.circle.fill")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.blue)
+                        .foregroundColor(Theme.chalkYellow)
                 }
             }
             .padding(.horizontal, 20)
@@ -130,8 +128,18 @@ struct CourseNotesSection: View {
                                 .font(.system(size: 13, weight: .bold))
                                 .foregroundColor(.gray)
                         }
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, 16)
                         .padding(.vertical, 12)
+                        .background(
+                            HStack(spacing: 0) {
+                                // 筆記本左側紅色邊線
+                                Rectangle().fill(Color.red.opacity(0.55)).frame(width: 3)
+                                Theme.chalkboard
+                            }
+                        )
+                        .cornerRadius(10)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 4)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)

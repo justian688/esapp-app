@@ -12,7 +12,7 @@ struct MainContainerView: View {
     @EnvironmentObject private var trialManager: TrialManager
     @State private var isMenuOpen = false
     @State private var selectedTab = 0
-    @AppStorage(CameraFacing.storageKey) private var preferredCameraFacingRaw = CameraFacing.back.rawValue
+    @AppStorage(CameraFacing.storageKey) private var preferredCameraFacingRaw = CameraFacing.defaultFacing.rawValue
     @AppStorage(CaptureResolution.storageKey) private var captureResolutionRaw = CaptureResolution.hd720.rawValue
     @State private var navigationPath: [SideMenuDestination] = []
     @State private var showPaywall = false
@@ -22,12 +22,12 @@ struct MainContainerView: View {
     @State private var cameraManager: CameraManager
     
     init() {
-        let savedFacing = CameraFacing(rawValue: UserDefaults.standard.integer(forKey: CameraFacing.storageKey)) ?? .back
+        let savedFacing = CameraFacing.saved
         _cameraManager = State(initialValue: CameraManager(initialCameraFacing: savedFacing))
     }
     
     private var preferredCameraFacing: CameraFacing {
-        CameraFacing(rawValue: preferredCameraFacingRaw) ?? .back
+        CameraFacing(rawValue: preferredCameraFacingRaw) ?? CameraFacing.defaultFacing
     }
     
     var body: some View {

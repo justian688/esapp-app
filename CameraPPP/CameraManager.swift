@@ -15,6 +15,12 @@ enum CameraFacing: Int, CaseIterable, Identifiable {
     case front = 1
     
     static let storageKey = "preferredCameraFacing"
+    /// 預設前鏡頭（使用者沒選過時）
+    static let defaultFacing: CameraFacing = .front
+
+    static var saved: CameraFacing {
+        (UserDefaults.standard.object(forKey: storageKey) as? Int).flatMap(CameraFacing.init(rawValue:)) ?? defaultFacing
+    }
     
     var id: Int { rawValue }
     
