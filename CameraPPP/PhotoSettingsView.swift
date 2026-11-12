@@ -12,7 +12,7 @@ struct PhotoSettingsView: View {
     @Environment(\.dismiss) var dismiss
 
     @AppStorage(PhotoCaptureMode.storageKey) private var photoModeRaw = PhotoCaptureMode.quality.rawValue
-    @AppStorage(CaptureResolution.storageKey) private var resolutionRaw = CaptureResolution.hd720.rawValue
+    @AppStorage(CaptureResolution.storageKey) private var resolutionRaw = CaptureResolution.defaultResolution.rawValue
     @State private var showingModeOptions = false
     @State private var showingResolutionOptions = false
 
@@ -21,7 +21,7 @@ struct PhotoSettingsView: View {
     }
 
     private var resolution: CaptureResolution {
-        CaptureResolution(rawValue: resolutionRaw) ?? .hd720
+        CaptureResolution(rawValue: resolutionRaw) ?? .defaultResolution
     }
 
     var body: some View {

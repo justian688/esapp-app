@@ -51,15 +51,15 @@ struct SupportView: View {
                             .padding(.top, 30)
                             
                             Text(AppLanguage.current.localized(
-                                "Quick Video Recorder Version \(appVersion)",
-                                "快速影片錄影機 版本 \(appVersion)"
+                                "es省電王 Version \(appVersion)",
+                                "es省電王 版本 \(appVersion)"
                             ))
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(.gray)
                                 .padding(.bottom, 20)
                         }
                         
-                        if subscriptionManager.isPremium {
+                        if SubscriptionConfig.paymentsEnabled && subscriptionManager.isPremium {
                             HStack(spacing: 10) {
                                 Image(systemName: "checkmark.seal.fill")
                                     .foregroundColor(.green)
@@ -76,11 +76,13 @@ struct SupportView: View {
                         }
 
                         VStack(spacing: 0) {
+                            if SubscriptionConfig.paymentsEnabled {
                             SupportMenuRow(
                                 icon: subscriptionManager.isPremium ? "crown.fill" : "cart.fill",
                                 title: subscriptionManager.isPremium ? "Manage Premium" : "Upgrade to Premium"
                             ) {
                                 showPaywall = true
+                            }
                             }
                             
                             SupportMenuRow(icon: "calendar", title: "Change log") {

@@ -59,6 +59,7 @@ struct SideMenuView: View {
                     MenuRow(icon: "scissors", title: "課程剪輯") {
                         openPage(.trimmer)
                     }
+                    if SubscriptionConfig.paymentsEnabled {
                     MenuRow(
                         icon: subscriptionManager.isPremium ? "crown.fill" : "cart.fill",
                         title: subscriptionManager.isPremium ? "Premium Active" : "Upgrade Premium"
@@ -68,8 +69,9 @@ struct SideMenuView: View {
                             openPaywall()
                         }
                     }
+                    }
 
-                    MenuRow(icon: "paperplane.fill", title: "Support and Upgrade") {
+                    MenuRow(icon: "paperplane.fill", title: SubscriptionConfig.paymentsEnabled ? "Support and Upgrade" : "Support") {
                         openPage(.support)
                     }
                     

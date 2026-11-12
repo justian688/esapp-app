@@ -13,7 +13,7 @@ struct MainContainerView: View {
     @State private var isMenuOpen = false
     @State private var selectedTab = 0
     @AppStorage(CameraFacing.storageKey) private var preferredCameraFacingRaw = CameraFacing.defaultFacing.rawValue
-    @AppStorage(CaptureResolution.storageKey) private var captureResolutionRaw = CaptureResolution.hd720.rawValue
+    @AppStorage(CaptureResolution.storageKey) private var captureResolutionRaw = CaptureResolution.defaultResolution.rawValue
     @State private var navigationPath: [SideMenuDestination] = []
     @State private var showPaywall = false
     @State private var allowPaywallDismiss = true
@@ -201,6 +201,7 @@ struct MainContainerView: View {
 
     /// 試用結束後自動顯示付費牆（不可關閉，直到訂閱）
     private func evaluatePaywallPresentation() {
+        guard SubscriptionConfig.paymentsEnabled else { return }
         guard trialManager.shouldShowPaywall(isPremium: subscriptionManager.isPremium) else { return }
         allowPaywallDismiss = false
         showPaywall = true

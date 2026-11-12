@@ -15,6 +15,8 @@ nonisolated enum CaptureResolution: String, CaseIterable, Identifiable {
     case uhd4K
 
     static let storageKey = "captureResolution"
+    /// 預設錄影畫質
+    static let defaultResolution: CaptureResolution = .uhd4K
 
     var id: String { rawValue }
 
@@ -22,7 +24,7 @@ nonisolated enum CaptureResolution: String, CaseIterable, Identifiable {
         switch self {
         case .hd720: return "720p（最省電）"
         case .hd1080: return "1080p（清晰）"
-        case .uhd4K: return "4K（進階版，最清晰、較耗電佔空間）"
+        case .uhd4K: return SubscriptionConfig.paymentsEnabled ? "4K（進階版，最清晰、較耗電佔空間）" : "4K（最清晰、較耗電佔空間）"
         }
     }
 
@@ -35,10 +37,10 @@ nonisolated enum CaptureResolution: String, CaseIterable, Identifiable {
     }
 
     /// 4K 需要進階版
-    var requiresPremium: Bool { self == .uhd4K }
+    var requiresPremium: Bool { SubscriptionConfig.paymentsEnabled && self == .uhd4K }
 
     static var current: CaptureResolution {
-        let saved = CaptureResolution(rawValue: UserDefaults.standard.string(forKey: storageKey) ?? "") ?? .hd720
+        let saved = CaptureResolution(rawValue: UserDefaults.standard.string(forKey: storageKey) ?? "") ?? .defaultResolution
         // 沒有進階版（例如訂閱過期）時，4K 自動降成 1080p
         if saved.requiresPremium && !UserDefaults.standard.bool(forKey: SubscriptionConfig.premiumStatusKey) {
             return .hd1080

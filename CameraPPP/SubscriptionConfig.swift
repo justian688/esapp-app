@@ -8,6 +8,9 @@
 import Foundation
 
 enum SubscriptionConfig {
+    /// 付費功能總開關：false = 暫時隱藏所有付費畫面、選單與限制（測試期間）
+    static let paymentsEnabled = false
+
     /// 月訂閱 Product ID（須與 App Store Connect 一致）
     static let monthlyProductID = "com.lin.energysaving.premium.monthly"
     /// 年訂閱 Product ID（須與 App Store Connect 一致）

@@ -13,7 +13,7 @@ struct SettingsView: View {
     @AppStorage(AppLanguage.storageKey) private var appLanguageRaw = AppLanguage.traditionalChinese.rawValue
     @State private var showingLanguageOptions = false
     @State private var showingCameraOptions = false
-    @AppStorage(CaptureResolution.storageKey) private var resolutionRaw = CaptureResolution.hd720.rawValue
+    @AppStorage(CaptureResolution.storageKey) private var resolutionRaw = CaptureResolution.defaultResolution.rawValue
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @State private var showingResolutionOptions = false
     @State private var showPaywall = false
@@ -122,7 +122,7 @@ struct SettingsView: View {
                         }
                         Button("取消", role: .cancel) { }
                     } message: {
-                        Text("畫質越高越清楚，但越耗電、檔案越大。4K 需要進階版。")
+                        Text(SubscriptionConfig.paymentsEnabled ? "畫質越高越清楚，但越耗電、檔案越大。4K 需要進階版。" : "畫質越高越清楚，但越耗電、檔案越大。")
                     }
                     
                     Spacer(minLength: 40)
@@ -137,7 +137,7 @@ struct SettingsView: View {
     }
 
     private var currentResolutionTitle: String {
-        let saved = CaptureResolution(rawValue: resolutionRaw) ?? .hd720
+        let saved = CaptureResolution(rawValue: resolutionRaw) ?? .defaultResolution
         if saved.requiresPremium && !subscriptionManager.isPremium {
             return CaptureResolution.hd1080.title + "（4K 需進階版）"
         }

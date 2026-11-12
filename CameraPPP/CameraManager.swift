@@ -164,7 +164,8 @@ final class CameraManager: NSObject, Sendable {
     private func configureSession() {
         session.beginConfiguration()
         let preset = CaptureResolution.current.preset
-        session.sessionPreset = session.canSetSessionPreset(preset) ? preset : .hd1280x720
+        session.sessionPreset = session.canSetSessionPreset(preset) ? preset
+            : (session.canSetSessionPreset(.hd1920x1080) ? .hd1920x1080 : .hd1280x720)
         
         installCameraInput()
         installAudioInput()
