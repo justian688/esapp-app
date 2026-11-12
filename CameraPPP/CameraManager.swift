@@ -6,6 +6,7 @@
 //
 
 @preconcurrency import AVFoundation
+import UIKit
 import Combine
 import SwiftUI
 
@@ -81,13 +82,51 @@ final class CameraManager: NSObject, Sendable {
     init(initialCameraFacing: CameraFacing = .back) {
         self.cameraFacing = initialCameraFacing
         super.init()
+        observeSessionInterruptions()
+        // 第一次使用時由介紹頁按「開始使用」才詢問權限；之後打開 App 直接啟動相機
+        if OnboardingState.isCompleted {
+            requestPermissionsAndStart()
+        }
+    }
+
+    /// 詢問相機與麥克風權限並啟動相機（介紹頁按「開始使用」時呼叫）
+    func requestPermissionsAndStart() {
         Task {
             await checkPermission()
+            if AVCaptureDevice.authorizationStatus(for: .audio) == .notDetermined {
+                _ = await AVCaptureDevice.requestAccess(for: .audio)
+            }
             if isAuthorized {
-                sessionQueue.async { self.configureSession() }
+                sessionQueue.async {
+                    if self.session.inputs.isEmpty {
+                        self.configureSession()
+                    } else if !self.session.isRunning {
+                        self.session.startRunning()
+                    }
+                }
             } else {
                 print("使用者拒絕了相機權限")
             }
+        }
+    }
+
+    // MARK: - 接電話、切換 App 等中斷後自動恢復相機
+    private func observeSessionInterruptions() {
+        let center = NotificationCenter.default
+        let restart: @Sendable (Notification) -> Void = { [weak self] _ in
+            self?.restartSessionIfNeeded()
+        }
+        center.addObserver(forName: AVCaptureSession.interruptionEndedNotification, object: session, queue: nil, using: restart)
+        center.addObserver(forName: AVCaptureSession.runtimeErrorNotification, object: session, queue: nil, using: restart)
+        center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil, using: restart)
+    }
+
+    func restartSessionIfNeeded() {
+        sessionQueue.async {
+            guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized,
+                  !self.session.inputs.isEmpty,
+                  !self.session.isRunning else { return }
+            self.session.startRunning()
         }
     }
     
@@ -113,6 +152,7 @@ final class CameraManager: NSObject, Sendable {
         session.sessionPreset = session.canSetSessionPreset(preset) ? preset : .hd1280x720
         
         installCameraInput()
+        installAudioInput()
         
         if session.canAddOutput(fileOutput) { session.addOutput(fileOutput) }
         if session.canAddOutput(photoOutput) { session.addOutput(photoOutput) }
@@ -138,7 +178,7 @@ final class CameraManager: NSObject, Sendable {
 
     /// 讓照片使用目前鏡頭格式支援的最大尺寸。必須在 sessionQueue 上呼叫。
     private func updateMaxPhotoDimensions() {
-        guard let device = (session.inputs.first as? AVCaptureDeviceInput)?.device,
+        guard let device = session.inputs.compactMap({ ($0 as? AVCaptureDeviceInput)?.device }).first(where: { $0.hasMediaType(.video) }),
               let largest = device.activeFormat.supportedMaxPhotoDimensions.max(by: {
                   Int($0.width) * Int($0.height) < Int($1.width) * Int($1.height)
               }) else { return }
@@ -165,13 +205,23 @@ final class CameraManager: NSObject, Sendable {
             return
         }
         
-        for input in session.inputs {
-            session.removeInput(input)
+        for case let existing as AVCaptureDeviceInput in session.inputs where existing.device.hasMediaType(.video) {
+            session.removeInput(existing)
         }
         
         if session.canAddInput(input) {
             session.addInput(input)
         }
+    }
+
+    /// 加入麥克風，讓錄影有聲音；使用者沒允許麥克風時就錄無聲影片
+    private func installAudioInput() {
+        guard AVCaptureDevice.authorizationStatus(for: .audio) == .authorized,
+              !session.inputs.contains(where: { ($0 as? AVCaptureDeviceInput)?.device.hasMediaType(.audio) == true }),
+              let mic = AVCaptureDevice.default(for: .audio),
+              let input = try? AVCaptureDeviceInput(device: mic),
+              session.canAddInput(input) else { return }
+        session.addInput(input)
     }
 
     func startRecording() {

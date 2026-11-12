@@ -188,9 +188,18 @@ struct RecordingOverlayView: View {
         }
         .onAppear {
             selectedBackground = .black
+            ScreenController.dimForBlackScreen()
             showRecordingPromptForThreeSeconds()
         }
+        .onChange(of: selectedBackground) { _, mode in
+            if mode == .black {
+                ScreenController.dimForBlackScreen()
+            } else {
+                ScreenController.restoreBrightness()
+            }
+        }
         .onDisappear {
+            ScreenController.restoreBrightness()
             hideRecordingPrompt()
         }
     }

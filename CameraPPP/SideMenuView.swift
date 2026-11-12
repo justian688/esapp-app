@@ -22,12 +22,12 @@ struct SideMenuView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .padding(.top, 40)
                 
-                Text("Quick Video Recorder")
+                Text(verbatim: "es省電王")
                     .font(.headline)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 
-                Text("Easy record video by one click")
+                Text("省電錄影，一鍵開錄")
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
@@ -161,10 +161,6 @@ struct ScheduleView: View {
         return formatter.string(from: targetDate)
     }
 
-    private var repeatEveryDay: String {
-        AppLanguage.current.localized("OFF", "關閉")
-    }
-
     private var duration: String {
         selectedDurationMinutes > 0 ? "\(selectedDurationMinutes) 分鐘 0 秒" : "不限"
     }
@@ -177,9 +173,6 @@ struct ScheduleView: View {
         isRepeatRecordingEnabled ? "開啟" : "關閉"
     }
 
-    private var fixScheduling: String {
-        AppLanguage.current.localized("OFF", "關閉")
-    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -201,7 +194,6 @@ struct ScheduleView: View {
                         showTimePicker = true
                     }
                     
-                    ScheduleRow(title: "REPEAT EVERY DAY", value: repeatEveryDay) {}
                     ScheduleRow(title: "時長", value: duration) {
                         showDurationOptions = true
                     }
@@ -256,7 +248,6 @@ struct ScheduleView: View {
 
                         Button("Cancel", role: .cancel) { }
                     }
-                    ScheduleRow(title: "FIX SCHEDULING NOT WORKING", value: fixScheduling) {}
                 }
                 .padding(.bottom, 20)
             }
@@ -292,9 +283,6 @@ struct ScheduleView: View {
             .background(Color.black)
         }
         .background(Color.black)
-        .onAppear {
-            NotificationManager.shared.requestPermission()
-        }
         .alert(isPresented: $showAlert) {
             Alert(title: Text("Schedule"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
@@ -331,6 +319,8 @@ struct ScheduleView: View {
             return
         }
         
+        // 按下「設定排程」時才詢問通知權限
+        NotificationManager.shared.requestPermission()
         NotificationManager.shared.scheduleNotification(at: targetDate)
         
         alertMessage = AppLanguage.current.localized(
