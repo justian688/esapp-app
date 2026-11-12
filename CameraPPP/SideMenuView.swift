@@ -48,9 +48,6 @@ struct SideMenuView: View {
                     MenuRow(icon: "gearshape.fill", title: "Settings") {
                         openPage(.settings)
                     }
-                    MenuRow(icon: "camera.fill", title: "Photo settings (BETA)") {
-                        openPage(.photoSettings)
-                    }
                     MenuRow(
                         icon: subscriptionManager.isPremium ? "crown.fill" : "cart.fill",
                         title: subscriptionManager.isPremium ? "Premium Active" : "Upgrade Premium"
