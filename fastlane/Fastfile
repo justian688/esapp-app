@@ -4,7 +4,38 @@ require "base64"
 
 default_platform(:ios)
 
+def asc_api_key
+  key_id = ENV.fetch("APP_STORE_CONNECT_KEY_ID").strip
+  issuer_id = ENV.fetch("APP_STORE_CONNECT_ISSUER_ID").strip
+  raw_key = ENV.fetch("APP_STORE_CONNECT_KEY").strip
+  key_text = raw_key.include?("BEGIN PRIVATE KEY") ? raw_key : Base64.decode64(raw_key)
+  body = key_text.gsub(/-----(BEGIN|END) PRIVATE KEY-----/, "").gsub(/[^A-Za-z0-9+\/=]/, "")
+  key_content = "-----BEGIN PRIVATE KEY-----\n#{body.scan(/.{1,64}/).join("\n")}\n-----END PRIVATE KEY-----\n"
+  app_store_connect_api_key(key_id: key_id, issuer_id: issuer_id, key_content: key_content, in_house: false)
+end
+
+
 platform :ios do
+
+  desc "查看 App Store 上目前的版本、語系與建置（只讀）"
+  lane :inspect_store do
+    asc_api_key
+    app = Spaceship::ConnectAPI::App.find("com.lin.energysaving")
+    UI.message("App: #{app.name} primary_locale=#{app.primary_locale}")
+    app.get_app_store_versions.each do |v|
+      UI.message("Version #{v.version_string} state=#{v.app_store_state} release=#{v.release_type}")
+      v.get_app_store_version_localizations.each do |l|
+        UI.message("  loc #{l.locale} keywords=#{l.keywords.inspect} support=#{l.support_url} marketing=#{l.marketing_url}")
+        UI.message("  desc=#{l.description.to_s[0,300].inspect}")
+      end
+    end
+    app.fetch_app_infos.each do |info|
+      UI.message("AppInfo state=#{info.app_store_state}")
+      info.get_app_info_localizations.each { |l| UI.message("  info loc #{l.locale} name=#{l.name} subtitle=#{l.subtitle.inspect} privacy=#{l.privacy_policy_url}") }
+    end
+    builds = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 3)
+    builds.each { |b| UI.message("Build #{b.app_version} (#{b.version}) state=#{b.processing_state}") }
+  end
   desc "建置並上傳至 TestFlight（只限內部測試，不會送審）"
   lane :beta do
     key_id = ENV.fetch("APP_STORE_CONNECT_KEY_ID").strip
