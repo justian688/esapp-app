@@ -124,6 +124,9 @@ struct MainContainerView: View {
             evaluatePaywallPresentation()
             handlePendingStartRecording()
         }
+        // 錄影黑屏時隱藏上方狀態列和下方白色橫條，讓整個螢幕全黑
+        .statusBarHidden(cameraManager.isRecording)
+        .persistentSystemOverlays(cameraManager.isRecording ? .hidden : .automatic)
         .onChange(of: cameraManager.isRecording) { _, isRecording in
             ScreenController.setRecordingActive(isRecording)
         }
