@@ -237,11 +237,14 @@ struct CourseEditor: View {
 struct CourseLibraryView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var store = CourseStore.shared
-    @State private var editingCourse: Course?
-    @State private var showAllMedia = false
+    @State private var items: [LibraryItem] = []
+    @State private var selectedCategory: String? = nil
     @State private var showNewCategory = false
     @State private var newCategoryName = ""
-    @State private var categoryToDelete: String?
+    @State private var playingVideo: URL?
+    @State private var viewingPhoto: URL?
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 3)
 
     var body: some View {
         VStack(spacing: 0) {
@@ -270,117 +273,201 @@ struct CourseLibraryView: View {
             .padding(.horizontal, 8)
             .padding(.trailing, 8)
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(store.categories, id: \.self) { category in
-                        let list = store.courses(in: category)
-                        if !list.isEmpty || category != Course.defaultCategory {
-                            HStack {
-                                Text(category)
-                                    .font(.system(size: 12, weight: .bold))
-                                    .tracking(2)
-                                    .foregroundColor(Theme.chalkYellow)
-                                Spacer()
-                                if category != Course.defaultCategory {
-                                    Button {
-                                        categoryToDelete = category
-                                    } label: {
-                                        Image(systemName: "ellipsis")
-                                            .foregroundColor(.gray)
-                                            .frame(width: 44, height: 32)
+            // 有建立分類才顯示篩選列，否則就是全部影片
+            if !store.customCategories.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        categoryChip(title: "全部", value: nil)
+                        ForEach(store.categories, id: \.self) { name in
+                            categoryChip(title: name, value: name)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                }
+            }
+
+            if filteredItems.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "video.slash")
+                        .font(.system(size: 40))
+                        .foregroundColor(.gray)
+                    Text("還沒有影片。到錄影頁按下錄影，錄好的課程都會出現在這裡。")
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
+                        ForEach(groupedByDay, id: \.day) { group in
+                            Section {
+                                LazyVGrid(columns: columns, spacing: 2) {
+                                    ForEach(group.items) { item in
+                                        tile(item)
                                     }
-                                    .accessibilityLabel("管理分類 \(category)")
                                 }
-                            }
-                            .padding(.top, 8)
-                            if list.isEmpty {
-                                Text("這個分類還沒有課程。新增課程時選這個分類就會出現在這裡。")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.gray)
-                            }
-                            ForEach(list) { course in
-                                courseLink(course)
+                            } header: {
+                                Text(group.title)
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundColor(Theme.chalkWhite)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 10)
+                                    .background(Color.black.opacity(0.92))
                             }
                         }
                     }
-
-                    NavigationLink {
-                        CourseDetailView(courseId: nil)
-                            .navigationBarBackButtonHidden(true)
-                    } label: {
-                        CourseLibraryRow(
-                            title: "未分類",
-                            subtitle: "沒有選課程時錄的影片",
-                            count: store.videoCount(courseId: nil),
-                            last: store.lastRecordedAt(courseId: nil)
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.top, 8)
-
-                    Button {
-                        editingCourse = Course(name: "")
-                    } label: {
-                        Label("新增課程", systemImage: "plus")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(Theme.chalkYellow)
-                            .frame(maxWidth: .infinity, minHeight: 52)
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(style: StrokeStyle(lineWidth: 1, dash: [6, 4])).foregroundColor(Theme.chalkLine))
-                    }
-
-                    Button {
-                        showAllMedia = true
-                    } label: {
-                        Text("查看全部影片與照片（依日期）")
-                            .font(.system(size: 13))
-                            .foregroundColor(.gray)
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                    }
                 }
-                .padding(16)
             }
         }
         .background(Color.black.ignoresSafeArea())
-        .sheet(item: $editingCourse) { course in
-            CourseEditor(course: course)
+        .task { await reload() }
+        .fullScreenCover(item: Binding(
+            get: { playingVideo.map { IdentifiableURL(url: $0) } },
+            set: { playingVideo = $0?.url }
+        )) { item in
+            FullScreenVideoPlayer(videoURL: item.url)
         }
-        .fullScreenCover(isPresented: $showAllMedia) {
-            GalleryView()
+        .fullScreenCover(item: Binding(
+            get: { viewingPhoto.map { IdentifiableURL(url: $0) } },
+            set: { viewingPhoto = $0?.url }
+        )) { item in
+            FullScreenPhotoViewer(photoURL: item.url)
         }
         .alert("建立分類", isPresented: $showNewCategory) {
             TextField("例如：學校課程、演講", text: $newCategoryName)
             Button("取消", role: .cancel) {}
             Button("建立") { store.addCategory(newCategoryName) }
         } message: {
-            Text("建立後，新增或編輯課程時可以選這個分類。")
-        }
-        .confirmationDialog(
-            "分類「\(categoryToDelete ?? "")」",
-            isPresented: Binding(get: { categoryToDelete != nil }, set: { if !$0 { categoryToDelete = nil } }),
-            titleVisibility: .visible
-        ) {
-            Button("刪除這個分類（課程移回一般課程）", role: .destructive) {
-                if let name = categoryToDelete { store.deleteCategory(name) }
-                categoryToDelete = nil
-            }
-            Button("取消", role: .cancel) { categoryToDelete = nil }
+            Text("建立後，新增或編輯課程時可以選這個分類，相簿上方也能用分類篩選。")
         }
     }
 
-    private func courseLink(_ course: Course) -> some View {
-        NavigationLink {
-            CourseDetailView(courseId: course.id)
-                .navigationBarBackButtonHidden(true)
+    // MARK: - 畫面元件
+
+    private func categoryChip(title: String, value: String?) -> some View {
+        let selected = selectedCategory == value
+        return Button {
+            selectedCategory = value
         } label: {
-            CourseLibraryRow(
-                title: course.name,
-                subtitle: course.detailLine,
-                count: store.videoCount(courseId: course.id),
-                last: store.lastRecordedAt(courseId: course.id)
-            )
+            Text(title)
+                .font(.system(size: 13, weight: selected ? .bold : .regular))
+                .foregroundColor(selected ? .black : .gray)
+                .padding(.horizontal, 14)
+                .frame(minHeight: 34)
+                .background(selected ? Theme.chalkYellow : Theme.chalkboard)
+                .clipShape(Capsule())
+        }
+        .contextMenu {
+            if let value, value != Course.defaultCategory {
+                Button(role: .destructive) {
+                    store.deleteCategory(value)
+                    if selectedCategory == value { selectedCategory = nil }
+                } label: {
+                    Label("刪除分類（課程移回一般課程）", systemImage: "trash")
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func tile(_ item: LibraryItem) -> some View {
+        Button {
+            if item.kind == .video { playingVideo = item.url } else { viewingPhoto = item.url }
+        } label: {
+            ZStack(alignment: .bottomLeading) {
+                Group {
+                    if item.kind == .video {
+                        VideoThumbnailItem(url: item.url, isGridView: true)
+                    } else {
+                        PhotoThumbnailItem(url: item.url, isGridView: true)
+                    }
+                }
+                .frame(height: 120)
+                .clipped()
+
+                if let name = store.course(id: store.courseId(for: item.url))?.name {
+                    Text(name)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(Color.black.opacity(0.6))
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .padding(4)
+                }
+            }
         }
         .buttonStyle(.plain)
+        .contextMenu {
+            Menu("歸到課程") {
+                Button("未分類") { assign(item.url, to: nil) }
+                ForEach(store.courses) { course in
+                    Button(course.name) { assign(item.url, to: course.id) }
+                }
+            }
+            Button(role: .destructive) {
+                try? FileManager.default.removeItem(at: item.url)
+                store.forget(fileURL: item.url)
+                items.removeAll { $0.url == item.url }
+            } label: {
+                Label(item.kind == .video ? "刪除影片" : "刪除照片", systemImage: "trash")
+            }
+        }
     }
+
+    // MARK: - 資料
+
+    private var filteredItems: [LibraryItem] {
+        guard let category = selectedCategory else { return items }
+        let ids = Set(store.courses(in: category).map(\.id))
+        return items.filter { item in
+            guard let id = store.courseId(for: item.url) else { return false }
+            return ids.contains(id)
+        }
+    }
+
+    private var groupedByDay: [(day: Date, title: String, items: [LibraryItem])] {
+        let cal = Calendar.current
+        let groups = Dictionary(grouping: filteredItems) { cal.startOfDay(for: $0.date) }
+        return groups.keys.sorted(by: >).map { day in
+            (day, dayTitle(day), groups[day]!.sorted { $0.date > $1.date })
+        }
+    }
+
+    private func dayTitle(_ day: Date) -> String {
+        let cal = Calendar.current
+        if cal.isDateInToday(day) { return "今天" }
+        if cal.isDateInYesterday(day) { return "昨天" }
+        return CourseFormat.headerDate.string(from: day)
+    }
+
+    private func assign(_ url: URL, to courseId: UUID?) {
+        store.move(fileURL: url, to: courseId)
+    }
+
+    private func reload() async {
+        let videos = await StorageManager.shared.fetchAllMedia()
+        let photos = await StorageManager.shared.fetchAllPhotos()
+        func date(_ url: URL) -> Date {
+            store.media[url.lastPathComponent]?.recordedAt
+                ?? (try? url.resourceValues(forKeys: [.creationDateKey]).creationDate)
+                ?? Date.distantPast
+        }
+        items = videos.map { LibraryItem(url: $0, kind: .video, date: date($0)) }
+            + photos.map { LibraryItem(url: $0, kind: .photo, date: date($0)) }
+    }
+}
+
+struct LibraryItem: Identifiable {
+    var id: URL { url }
+    let url: URL
+    let kind: MediaKind
+    let date: Date
 }
 
 // MARK: - 課程資訊表（演講、學校課程一覽）
