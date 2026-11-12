@@ -165,13 +165,10 @@ struct RecordingOverlayView: View {
                 Spacer(minLength: 0)
 
                 if selectedBackground == .black && showRecordingPrompt {
-                    Text(recordingPrompt)
-                        .font(.callout.weight(.semibold))
-                        .foregroundColor(Color(white: 0.75))
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
-                        .padding(.horizontal, 24)
+                    RecordingGestureGuide()
+                        .padding(.horizontal, 32)
                         .allowsHitTesting(false)
+                        .transition(.opacity)
                 }
 
                 Spacer(minLength: 0)
@@ -352,5 +349,68 @@ private final class GestureCaptureView: UIView {
     
     @objc private func handleSwipeRight() {
         onSwipeRight?()
+    }
+}
+
+
+/// 錄影黑屏時的操作說明：圖示＋文字，一看就懂
+private struct RecordingGestureGuide: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            GuideRow(icon: "hand.tap.fill", badge: nil, title: "點一下", detail: "拍照（不中斷錄影）")
+            GuideRow(icon: "hand.tap.fill", badge: "2", title: "點兩下", detail: "結束錄影")
+            GuideRow(icon: "hand.draw.fill", badge: nil, title: "左右滑動", detail: "切換黑屏／鏡頭畫面")
+            Divider().background(Color.white.opacity(0.15))
+            HStack(spacing: 10) {
+                Image(systemName: "speaker.slash.fill")
+                    .font(.system(size: 15))
+                    .frame(width: 44)
+                Text("建議先將手機轉為靜音")
+                    .font(.system(size: 14))
+            }
+            .foregroundColor(Color(white: 0.6))
+        }
+        .padding(22)
+        .frame(maxWidth: 320, alignment: .leading)
+        .background(Color(white: 0.08))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.12), lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+}
+
+private struct GuideRow: View {
+    let icon: String
+    let badge: String?
+    let title: String
+    let detail: String
+
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: icon)
+                    .font(.system(size: 22))
+                    .foregroundColor(Color(white: 0.85))
+                    .frame(width: 44, height: 44)
+                    .background(Color(white: 0.14))
+                    .clipShape(Circle())
+                if let badge {
+                    Text(badge)
+                        .font(.system(size: 11, weight: .heavy))
+                        .foregroundColor(.black)
+                        .frame(width: 18, height: 18)
+                        .background(Theme.chalkYellow)
+                        .clipShape(Circle())
+                        .offset(x: 4, y: -4)
+                }
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundColor(Color(white: 0.9))
+                Text(detail)
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(white: 0.6))
+            }
+        }
     }
 }
