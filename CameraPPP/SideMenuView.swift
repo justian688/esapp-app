@@ -59,6 +59,9 @@ struct SideMenuView: View {
                     MenuRow(icon: "scissors", title: "課程剪輯") {
                         openPage(.trimmer)
                     }
+                    MenuRow(icon: "pencil.and.list.clipboard", title: "課程筆記") {
+                        openPage(.notes)
+                    }
                     if SubscriptionConfig.paymentsEnabled {
                     MenuRow(
                         icon: subscriptionManager.isPremium ? "crown.fill" : "cart.fill",
@@ -151,6 +154,7 @@ enum SideMenuDestination: Hashable {
     case settings
     case photoSettings
     case courseInfo
+    case notes
     case support
 }
 

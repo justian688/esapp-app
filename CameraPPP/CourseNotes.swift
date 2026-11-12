@@ -252,3 +252,34 @@ struct CourseNoteEditor: View {
         .preferredColorScheme(.dark)
     }
 }
+
+/// 左側選單「課程筆記」頁：列出所有筆記，可新增、編輯
+struct CourseNotesPageView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "arrow.left")
+                        .font(.title3)
+                        .foregroundColor(Theme.chalkWhite)
+                        .frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("返回")
+                Text("課程筆記")
+                    .font(.title2.weight(.bold))
+                    .foregroundColor(Theme.chalkWhite)
+                Spacer()
+            }
+            .padding(.horizontal, 8)
+
+            ScrollView {
+                CourseNotesSection()
+                Spacer(minLength: 40)
+            }
+        }
+        .background(Color.black.ignoresSafeArea())
+        .navigationBarHidden(true)
+    }
+}
