@@ -133,7 +133,7 @@ struct CourseNotesSection: View {
                         .background(
                             HStack(spacing: 0) {
                                 // 筆記本左側紅色邊線
-                                Rectangle().fill(Color.red.opacity(0.55)).frame(width: 3)
+                                Rectangle().fill(Color.red.opacity(0.3)).frame(width: 3)
                                 Theme.chalkboard
                             }
                         )

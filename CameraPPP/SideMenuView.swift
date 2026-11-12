@@ -41,7 +41,7 @@ struct SideMenuView: View {
                     Theme.chalkboard
                     // 黑板下緣的粉筆槽
                     Rectangle()
-                        .fill(Color(red: 0.35, green: 0.25, blue: 0.16))
+                        .fill(Color(red: 0.18, green: 0.13, blue: 0.09))
                         .frame(height: 6)
                 }
             )
@@ -188,6 +188,12 @@ struct ScheduleView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     
+                    CourseNotesSection()
+
+                    Divider()
+                        .background(Color.gray.opacity(0.3))
+                        .padding(.top, 16)
+
                     ChalkSectionTitle(icon: "calendar.badge.clock", title: "排程錄影")
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
@@ -221,12 +227,6 @@ struct ScheduleView: View {
 
                         Button("Cancel", role: .cancel) { }
                     }
-
-                    Divider()
-                        .background(Color.gray.opacity(0.4))
-                        .padding(.top, 8)
-
-                    CourseNotesSection()
                 }
                 .padding(.bottom, 20)
             }
