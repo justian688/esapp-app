@@ -13,6 +13,10 @@ struct SettingsView: View {
     @AppStorage(AppLanguage.storageKey) private var appLanguageRaw = AppLanguage.traditionalChinese.rawValue
     @State private var showingLanguageOptions = false
     @State private var showingCameraOptions = false
+    @AppStorage(CaptureResolution.storageKey) private var resolutionRaw = CaptureResolution.hd720.rawValue
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
+    @State private var showingResolutionOptions = false
+    @State private var showPaywall = false
     
     @Environment(\.dismiss) var dismiss
     
@@ -98,6 +102,28 @@ struct SettingsView: View {
 
                         Button("Cancel", role: .cancel) { }
                     }
+
+                    SettingsMenuRow(
+                        icon: "video.badge.waveform",
+                        title: "錄影畫質",
+                        subtitle: currentResolutionTitle
+                    ) {
+                        showingResolutionOptions = true
+                    }
+                    .confirmationDialog("錄影畫質", isPresented: $showingResolutionOptions, titleVisibility: .visible) {
+                        ForEach(CaptureResolution.allCases) { option in
+                            Button(option.requiresPremium && !subscriptionManager.isPremium ? "🔒 " + option.title : option.title) {
+                                if option.requiresPremium && !subscriptionManager.isPremium {
+                                    showPaywall = true
+                                } else {
+                                    resolutionRaw = option.rawValue
+                                }
+                            }
+                        }
+                        Button("取消", role: .cancel) { }
+                    } message: {
+                        Text("畫質越高越清楚，但越耗電、檔案越大。4K 需要進階版。")
+                    }
                     
                     Spacer(minLength: 40)
                 }
@@ -105,6 +131,17 @@ struct SettingsView: View {
         }
         .background(Color.black)
         .navigationBarHidden(true)
+        .sheet(isPresented: $showPaywall) {
+            PaywallView(isPresented: $showPaywall, allowDismiss: true)
+        }
+    }
+
+    private var currentResolutionTitle: String {
+        let saved = CaptureResolution(rawValue: resolutionRaw) ?? .hd720
+        if saved.requiresPremium && !subscriptionManager.isPremium {
+            return CaptureResolution.hd1080.title + "（4K 需進階版）"
+        }
+        return saved.title
     }
 
     private var selectedLanguageName: String {
