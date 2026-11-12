@@ -30,17 +30,6 @@ struct RecordView: View {
             
             VStack(spacing: 0) {
                 
-                if cameraManager.isRecording {
-                    if showRecordingPrompt {
-                        Text(recordingPrompt)
-                            .font(.callout.weight(.semibold))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                            .lineSpacing(4)
-                            .padding(.horizontal, 24)
-                            .padding(.top, 14)
-                    }
-                }
                 
                 Spacer()
                 
@@ -166,14 +155,6 @@ struct RecordingOverlayView: View {
             VStack(spacing: 0) {
                 Spacer(minLength: 0)
                 
-                if selectedBackground == .black && showRecordingPrompt {
-                    Text(recordingPrompt)
-                        .font(.callout.weight(.semibold))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
-                        .padding(.horizontal, 24)
-                }
                 
                 Spacer(minLength: 0)
             }
