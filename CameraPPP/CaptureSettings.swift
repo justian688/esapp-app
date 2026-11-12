@@ -82,8 +82,8 @@ nonisolated enum MediaPreferences {
     /// 錄完／拍完後是否同時存一份到「照片」App
     static let saveToPhotosKey = "saveToPhotosLibrary"
 
-    /// 預設開啟：錄完的影片直接出現在 iPhone 的「照片」App（跟 1.3 版一樣）
+    /// 預設關閉：影片和照片只存在 App 自己的相簿；使用者可在設定裡打開
     static var saveToPhotosLibrary: Bool {
-        UserDefaults.standard.object(forKey: saveToPhotosKey) as? Bool ?? true
+        UserDefaults.standard.object(forKey: saveToPhotosKey) as? Bool ?? false
     }
 }
