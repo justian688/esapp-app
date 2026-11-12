@@ -1,0 +1,66 @@
+name: App Store Screenshots
+
+on:
+  workflow_dispatch:
+
+jobs:
+  screenshots:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Pick 6.9-inch simulator
+        id: sim
+        run: |
+          xcrun simctl list devices available
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json,sys
+          d=json.load(sys.stdin)["devices"]
+          c=[(rt,x) for rt,xs in d.items() if "iOS" in rt for x in xs if "Pro Max" in x["name"]]
+          c.sort(key=lambda p:(p[0],p[1]["name"]))
+          print(c[-1][1]["udid"])')
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Build for simulator
+        run: |
+          xcodebuild -project CameraPPP.xcodeproj -scheme CameraPPP -configuration Debug \
+            -sdk iphonesimulator -destination "id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build | tail -20
+
+      - name: Take screenshots
+        run: |
+          UDID=${{ steps.sim.outputs.udid }}
+          APP=$(find build/Build/Products/Debug-iphonesimulator -maxdepth 1 -name "*.app" | head -1)
+          BID=com.lin.energysaving
+          xcrun simctl install "$UDID" "$APP"
+          xcrun simctl privacy "$UDID" grant camera $BID || true
+          xcrun simctl privacy "$UDID" grant microphone $BID || true
+          xcrun simctl ui "$UDID" appearance dark
+          xcrun simctl status_bar "$UDID" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
+          mkdir -p shots
+          LANGARGS="-AppleLanguages (zh-Hant) -AppleLocale zh_TW"
+          xcrun simctl launch "$UDID" $BID -uiScreenshot home $LANGARGS
+          sleep 25
+          xcrun simctl terminate "$UDID" $BID || true
+          n=1
+          for s in home guide gallery courseInfo notes menu; do
+            xcrun simctl launch "$UDID" $BID -uiScreenshot $s $LANGARGS
+            if [ "$s" = "guide" ]; then sleep 4; else sleep 7; fi
+            xcrun simctl io "$UDID" screenshot "shots/0${n}_${s}.png"
+            xcrun simctl terminate "$UDID" $BID || true
+            n=$((n+1))
+            sleep 2
+          done
+          ls -la shots
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: shots

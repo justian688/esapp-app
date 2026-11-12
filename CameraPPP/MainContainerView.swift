@@ -124,6 +124,9 @@ struct MainContainerView: View {
         } message: {
             Text(cameraManager.recordingErrorMessage ?? "")
         }
+        #if targetEnvironment(simulator)
+        .task { await applyScreenshotDemo() }
+        #endif
         .onAppear {
             startTrialMonitoring()
             evaluatePaywallPresentation()
@@ -168,6 +171,24 @@ struct MainContainerView: View {
                 .environmentObject(trialManager)
         }
     }
+
+    #if targetEnvironment(simulator)
+    /// 模擬器自動截圖用：放入示範資料並打開指定畫面
+    private func applyScreenshotDemo() async {
+        guard let screen = ScreenshotDemo.screen else { return }
+        await ScreenshotDemo.seedIfNeeded()
+        try? await Task.sleep(for: .seconds(1))
+        switch screen {
+        case "menu": withAnimation { isMenuOpen = true }
+        case "gallery": navigationPath = [.gallery]
+        case "courseInfo": navigationPath = [.courseInfo]
+        case "notes": navigationPath = [.notes]
+        case "pencil": selectedTab = 1
+        case "guide": cameraManager.isRecording = true
+        default: break
+        }
+    }
+    #endif
 
     /// Siri 捷徑、小工具要求開始錄影：回到錄影頁並在相機就緒後開始錄
     private func handlePendingStartRecording() {
