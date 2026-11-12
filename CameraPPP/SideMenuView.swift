@@ -248,6 +248,12 @@ struct ScheduleView: View {
 
                         Button("Cancel", role: .cancel) { }
                     }
+
+                    Divider()
+                        .background(Color.gray.opacity(0.4))
+                        .padding(.top, 8)
+
+                    CourseNotesSection()
                 }
                 .padding(.bottom, 20)
             }

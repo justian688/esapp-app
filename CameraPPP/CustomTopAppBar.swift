@@ -33,7 +33,7 @@ struct CustomTopAppBar: View {
                 }
                 
                 Button(action: { withAnimation { selectedTab = 1 } }) {
-                    Image(systemName: "alarm")
+                    Image(systemName: "pencil")
                         .font(.title2)
                         .foregroundColor(selectedTab == 1 ? .white : .gray)
                         .frame(maxWidth: .infinity)
