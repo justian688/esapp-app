@@ -58,18 +58,18 @@ struct RecordView: View {
                 
                 Button(action: startRecordingIfNeeded) {
                     // 粉筆框線風格：透明底＋細黃框，左邊小紅點代表錄影
-                    HStack(spacing: 10) {
+                    HStack(spacing: 16) {
                         Circle()
                             .fill(Color(red: 0.72, green: 0.26, blue: 0.24))
-                            .frame(width: 10, height: 10)
+                            .frame(width: 18, height: 18)
                         Text("開始上課")
-                            .font(.system(size: 18, weight: .semibold))
-                            .tracking(2)
+                            .font(.system(size: 30, weight: .semibold))
+                            .tracking(4)
                     }
                     .foregroundColor(Color(red: 0.85, green: 0.81, blue: 0.71))
-                    .padding(.horizontal, 30)
-                    .frame(height: 52)
-                    .overlay(Capsule().stroke(Theme.chalkYellow.opacity(0.8), lineWidth: 1.2))
+                    .padding(.horizontal, 48)
+                    .frame(height: 96)
+                    .overlay(Capsule().stroke(Theme.chalkYellow.opacity(0.8), lineWidth: 2))
                     .contentShape(Capsule())
                 }
                 .accessibilityHint("開始錄影")
