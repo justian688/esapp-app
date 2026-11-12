@@ -13,45 +13,53 @@ import AVKit
 struct CurrentCourseCard: View {
     @State private var store = CourseStore.shared
     @State private var showPicker = false
-    @State private var newCourse: Course?
+    @State private var editingCourse: Course?
 
     var body: some View {
-        Button {
-            if store.courses.isEmpty {
-                newCourse = Course(name: "")
-            } else {
+        HStack(spacing: 0) {
+            Button {
                 showPicker = true
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "graduationcap.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(Theme.chalkYellow)
+                    Text("目前課程")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(Theme.chalkYellow)
+                    Text(title)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(Theme.chalkWhite)
+                        .lineLimit(1)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.gray)
+                    Spacer(minLength: 4)
+                }
+                .padding(.leading, 16)
+                .frame(minHeight: 52)
+                .contentShape(Rectangle())
             }
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "graduationcap.fill")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(Theme.chalkYellow)
-                Text("目前課程")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(Theme.chalkYellow)
-                Text(title)
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(store.currentCourse == nil ? .gray : Theme.chalkWhite)
-                    .lineLimit(1)
-                Spacer(minLength: 4)
-                Image(systemName: store.courses.isEmpty ? "plus.circle.fill" : "chevron.down")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.gray)
+            .buttonStyle(.plain)
+            .accessibilityHint("選擇或新增課程")
+
+            Button {
+                editingCourse = store.currentCourse ?? Course(name: "")
+            } label: {
+                Image(systemName: "square.and.pencil")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(Theme.chalkWhite)
+                    .frame(width: 52, height: 52)
             }
-            .padding(.horizontal, 16)
-            .frame(minHeight: 52)
-            .background(Theme.chalkboard)
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.chalkLine, lineWidth: 1))
-            .clipShape(RoundedRectangle(cornerRadius: 14))
-            .contentShape(Rectangle())
+            .accessibilityLabel("編輯目前課程")
         }
-        .buttonStyle(.plain)
-        .accessibilityHint("選擇或新增課程")
+        .background(Theme.chalkboard)
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.chalkLine, lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
         .sheet(isPresented: $showPicker) {
             CoursePickerSheet()
         }
-        .sheet(item: $newCourse) { course in
+        .sheet(item: $editingCourse) { course in
             CourseEditor(course: course) { saved in
                 store.currentCourseId = saved.id
             }
@@ -59,10 +67,8 @@ struct CurrentCourseCard: View {
     }
 
     private var title: String {
-        if let course = store.currentCourse {
-            return course.schedule.isEmpty ? course.name : "\(course.name)．\(course.schedule)"
-        }
-        return store.courses.isEmpty ? "點這裡新增課程" : "未選擇"
+        guard let course = store.currentCourse else { return "未選擇" }
+        return course.schedule.isEmpty ? course.name : "\(course.name)．\(course.schedule)"
     }
 }
 
@@ -264,11 +270,12 @@ struct CourseLibraryView: View {
                     newCategoryName = ""
                     showNewCategory = true
                 } label: {
-                    Label("建立分類", systemImage: "folder.badge.plus")
-                        .font(.system(size: 14, weight: .semibold))
+                    Image(systemName: "folder.badge.plus")
+                        .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(Theme.chalkYellow)
-                        .frame(minHeight: 44)
+                        .frame(width: 44, height: 44)
                 }
+                .accessibilityLabel("建立分類")
             }
             .padding(.horizontal, 8)
             .padding(.trailing, 8)
@@ -494,11 +501,12 @@ struct CourseInfoTableView: View {
                 Button {
                     editingCourse = Course(name: "")
                 } label: {
-                    Label("新增", systemImage: "plus")
-                        .font(.system(size: 14, weight: .semibold))
+                    Image(systemName: "plus")
+                        .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(Theme.chalkYellow)
-                        .frame(minHeight: 44)
+                        .frame(width: 44, height: 44)
                 }
+                .accessibilityLabel("新增課程")
             }
             .padding(.horizontal, 8)
             .padding(.trailing, 8)

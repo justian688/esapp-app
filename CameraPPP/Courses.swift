@@ -9,7 +9,8 @@ import Foundation
 import Observation
 
 struct Course: Identifiable, Codable, Hashable {
-    static let defaultCategory = "一般課程"
+    static let defaultCategory = "一般分類"
+    static let defaultCourseName = "一般課程"
 
     var id = UUID()
     var name: String
@@ -39,7 +40,8 @@ struct Course: Identifiable, Codable, Hashable {
         schedule = try c.decodeIfPresent(String.self, forKey: .schedule) ?? ""
         room = try c.decodeIfPresent(String.self, forKey: .room) ?? ""
         teacher = try c.decodeIfPresent(String.self, forKey: .teacher) ?? ""
-        category = try c.decodeIfPresent(String.self, forKey: .category) ?? Course.defaultCategory
+        let savedCategory = try c.decodeIfPresent(String.self, forKey: .category) ?? Course.defaultCategory
+        category = savedCategory == "一般課程" ? Course.defaultCategory : savedCategory
         createdAt = try c.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
     }
 
@@ -91,6 +93,19 @@ final class CourseStore {
            let id = UUID(uuidString: raw),
            courses.contains(where: { $0.id == id }) {
             currentCourseId = id
+        }
+        ensureDefaultCourse()
+    }
+
+    /// 預設建立並選好「一般課程」，打開 App 就能直接錄
+    private func ensureDefaultCourse() {
+        if courses.isEmpty {
+            let general = Course(name: Course.defaultCourseName)
+            courses = [general]
+            persistCourses()
+        }
+        if currentCourseId == nil {
+            currentCourseId = (courses.first { $0.name == Course.defaultCourseName } ?? courses.first)?.id
         }
     }
 
@@ -153,6 +168,7 @@ final class CourseStore {
         if currentCourseId == course.id { currentCourseId = nil }
         persistCourses()
         persistMedia()
+        ensureDefaultCourse()
     }
 
     // MARK: - 影片與照片
