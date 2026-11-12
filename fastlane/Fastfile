@@ -34,8 +34,16 @@ platform :ios do
       force: true,
       run_precheck_before_submit: false,
       metadata_path: File.expand_path("metadata", __dir__),
-      screenshots_path: File.expand_path("screenshots", __dir__)
+      screenshots_path: File.expand_path("appstore_screenshots", __dir__)
     )
+
+    # 把 TestFlight 上最新的 1.7.0 建置綁到這個版本
+    app = Spaceship::ConnectAPI::App.find("com.lin.energysaving")
+    version = app.get_edit_app_store_version(platform: Spaceship::ConnectAPI::Platform::IOS)
+    selected = app.get_builds(filter: { version: build.to_s, "preReleaseVersion.version" => "1.7.0" }).first
+    UI.user_error!("找不到建置 #{build}") unless selected
+    version.select_build(build_id: selected.id)
+    UI.success("已選擇建置 1.7.0 (#{build})，版本狀態：#{version.app_store_state}")
   end
 
   desc "查看 App Store 上目前的版本、語系與建置（只讀）"
