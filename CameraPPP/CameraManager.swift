@@ -51,7 +51,16 @@ nonisolated enum RecordingPreferences {
     static let repeatRecordingKey = "repeatRecordingEnabled"
     /// 每段錄影的時長（分鐘），0 代表不限時長
     static let segmentMinutesKey = "recordingSegmentMinutes"
-    static let defaultSegmentMinutes = 5
+    static let defaultSegmentMinutes = 60
+    /// 滑動選單可選的時長（分鐘），0 代表不限
+    static let durationOptions = [3, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 0]
+
+    static func durationLabel(_ minutes: Int) -> String {
+        if minutes == 0 { return "不限" }
+        if minutes % 60 == 0 { return "\(minutes / 60) 小時" }
+        if minutes > 60 { return "\(minutes / 60) 小時 \(minutes % 60) 分鐘" }
+        return "\(minutes) 分鐘"
+    }
 
     static var isRepeatRecordingEnabled: Bool {
         UserDefaults.standard.object(forKey: repeatRecordingKey) as? Bool ?? true

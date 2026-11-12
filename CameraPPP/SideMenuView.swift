@@ -162,7 +162,7 @@ struct ScheduleView: View {
     }
 
     private var duration: String {
-        selectedDurationMinutes > 0 ? "\(selectedDurationMinutes) 分鐘 0 秒" : "不限"
+        RecordingPreferences.durationLabel(selectedDurationMinutes)
     }
 
     private var cameraPosition: String {
@@ -197,42 +197,8 @@ struct ScheduleView: View {
                     ScheduleRow(title: "時長", value: duration) {
                         showDurationOptions = true
                     }
-                    .confirmationDialog("時長", isPresented: $showDurationOptions, titleVisibility: .visible) {
-                        Button("3 分鐘 0 秒") {
-                            selectedDurationMinutes = 3
-                        }
-
-                        Button("5 分鐘 0 秒") {
-                            selectedDurationMinutes = 5
-                        }
-
-                        Button("30 分鐘 0 秒") {
-                            selectedDurationMinutes = 30
-                        }
-
-                        Button("60 分鐘 0 秒") {
-                            selectedDurationMinutes = 60
-                        }
-
-                        Button("不限") {
-                            selectedDurationMinutes = 0
-                        }
-
-                        Button("Cancel", role: .cancel) { }
-                    }
-                    ScheduleRow(title: "CAMERA", value: cameraPosition) {
+                    ScheduleRow(title: "相機鏡頭", value: cameraPosition) {
                         showCameraOptions = true
-                    }
-                    .confirmationDialog("CAMERA", isPresented: $showCameraOptions, titleVisibility: .visible) {
-                        Button("前置鏡頭") {
-                            preferredCameraFacing = CameraFacing.front.rawValue
-                        }
-
-                        Button("後置鏡頭") {
-                            preferredCameraFacing = CameraFacing.back.rawValue
-                        }
-
-                        Button("Cancel", role: .cancel) { }
                     }
                     ScheduleRow(title: "重複錄影", value: repeatRecording) {
                         showRepeatRecordingOptions = true
@@ -303,6 +269,23 @@ struct ScheduleView: View {
             }
             .presentationDetents([.medium])
         }
+        .sheet(isPresented: $showDurationOptions) {
+            WheelPickerSheet(title: "時長", isPresented: $showDurationOptions) {
+                Picker("時長", selection: $selectedDurationMinutes) {
+                    ForEach(RecordingPreferences.durationOptions, id: \.self) { minutes in
+                        Text(RecordingPreferences.durationLabel(minutes)).tag(minutes)
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showCameraOptions) {
+            WheelPickerSheet(title: "相機鏡頭", isPresented: $showCameraOptions) {
+                Picker("相機鏡頭", selection: $preferredCameraFacing) {
+                    Text("後置鏡頭").tag(CameraFacing.back.rawValue)
+                    Text("前置鏡頭").tag(CameraFacing.front.rawValue)
+                }
+            }
+        }
         .sheet(isPresented: $showTimePicker) {
             VStack {
                 DatePicker("Select Time", selection: $targetDate, displayedComponents: .hourAndMinute)
@@ -366,5 +349,37 @@ struct ScheduleRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+
+/// 底部滑動選單（滾輪）
+struct WheelPickerSheet<Content: View>: View {
+    let title: String
+    @Binding var isPresented: Bool
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(.white)
+                Spacer()
+                Button("完成") { isPresented = false }
+                    .font(.headline)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+
+            content()
+                .pickerStyle(.wheel)
+                .labelsHidden()
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal)
+        }
+        .presentationDetents([.height(300)])
+        .presentationDragIndicator(.visible)
+        .preferredColorScheme(.dark)
     }
 }
