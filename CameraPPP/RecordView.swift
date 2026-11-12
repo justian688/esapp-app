@@ -18,8 +18,8 @@ struct RecordView: View {
     
     private var recordingPrompt: String {
         AppLanguage.current.localized(
-            "Recording in power-saving black screen\nTap: take photo\nDouble-tap: stop recording\nSwipe left/right: show or hide camera view\nTip: mute your phone first",
-            "● 錄影中（省電黑屏）\n點一下：拍照\n點兩下：結束錄影\n左右滑：顯示／隱藏鏡頭畫面\n建議先將手機調成靜音"
+            "It is recommended to mute your device.\nTap: take photo\nDouble-tap: end\nSwipe left/right: change background",
+            "建議將裝置轉為靜音。\n點擊：拍照\n雙擊：結束\n左右滑動：切換背景"
         )
     }
     
@@ -29,17 +29,25 @@ struct RecordView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                
+                VStack(alignment: .leading, spacing: 14) {
+                    Text(CourseFormat.headerDate.string(from: Date()))
+                        .font(.system(size: 13))
+                        .tracking(1)
+                        .foregroundColor(.gray)
+                    CurrentCourseCard()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
                 
                 Spacer()
                 
                 ZStack {
                     Circle()
                         .stroke(Theme.chalkboard, lineWidth: 14)
-                        .frame(width: 220, height: 220)
+                        .frame(width: 210, height: 210)
                     Circle()
-                        .stroke(Theme.chalkWhite.opacity(0.55), style: StrokeStyle(lineWidth: 3, dash: [10, 6]))
-                        .frame(width: 220, height: 220)
+                        .stroke(Theme.chalkWhite.opacity(0.35), style: StrokeStyle(lineWidth: 2, dash: [10, 6]))
+                        .frame(width: 194, height: 194)
                     
                     Text(timeString(time: timeElapsed))
                         .font(.system(size: 56, weight: .light, design: .default))
@@ -48,25 +56,28 @@ struct RecordView: View {
                 
                 Spacer()
                 
-                Button(action: startRecordingIfNeeded) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.red.opacity(0.2))
-                            .frame(width: 90, height: 90)
-                        
-                        Circle()
-                            .fill(Color.red)
-                            .frame(width: 65, height: 65)
-                            .shadow(radius: 3)
-                        
-                        Image(systemName: "video.fill")
-                            .font(.title2)
-                            .foregroundColor(.white)
+                VStack(spacing: 12) {
+                    Button(action: startRecordingIfNeeded) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "record.circle.fill")
+                                .font(.title3)
+                            Text(CourseStore.shared.currentCourse == nil ? "開始錄影" : "開始錄這堂課")
+                                .font(.system(size: 18, weight: .bold))
+                        }
+                        .foregroundColor(Color(red: 0.95, green: 0.91, blue: 0.90))
+                        .frame(maxWidth: .infinity, minHeight: 64)
+                        .background(Color(red: 0.56, green: 0.12, blue: 0.10))
+                        .clipShape(Capsule())
                     }
+                    .disabled(cameraManager.isRecording)
+                    .opacity(cameraManager.isRecording ? 0.45 : 1.0)
+
+                    Text("錄影時螢幕全黑省電．點兩下結束")
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
                 }
-                .disabled(cameraManager.isRecording)
-                .opacity(cameraManager.isRecording ? 0.45 : 1.0)
-                .padding(.bottom, 50)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 40)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
@@ -146,8 +157,8 @@ struct RecordingOverlayView: View {
     
     private var recordingPrompt: String {
         AppLanguage.current.localized(
-            "Recording in power-saving black screen\nTap: take photo\nDouble-tap: stop recording\nSwipe left/right: show or hide camera view\nTip: mute your phone first",
-            "● 錄影中（省電黑屏）\n點一下：拍照\n點兩下：結束錄影\n左右滑：顯示／隱藏鏡頭畫面\n建議先將手機調成靜音"
+            "It is recommended to mute your device.\nTap: take photo\nDouble-tap: end\nSwipe left/right: change background",
+            "建議將裝置轉為靜音。\n點擊：拍照\n雙擊：結束\n左右滑動：切換背景"
         )
     }
     
@@ -157,8 +168,17 @@ struct RecordingOverlayView: View {
             
             VStack(spacing: 0) {
                 Spacer(minLength: 0)
-                
-                
+
+                if selectedBackground == .black && showRecordingPrompt {
+                    Text(recordingPrompt)
+                        .font(.callout.weight(.semibold))
+                        .foregroundColor(Color(white: 0.75))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                        .padding(.horizontal, 24)
+                        .allowsHitTesting(false)
+                }
+
                 Spacer(minLength: 0)
             }
             

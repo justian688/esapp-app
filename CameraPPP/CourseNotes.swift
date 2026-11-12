@@ -14,6 +14,8 @@ struct CourseNote: Identifiable, Codable, Equatable {
     var title: String
     var body: String
     var updatedAt = Date()
+    /// 這則筆記屬於哪一堂課（nil = 未指定）
+    var courseId: UUID?
 }
 
 @Observable
@@ -41,6 +43,14 @@ final class CourseNotesStore {
         }
         notes.sort { $0.updatedAt > $1.updatedAt }
         persist()
+    }
+
+    func notes(courseId: UUID) -> [CourseNote] {
+        notes.filter { $0.courseId == courseId }
+    }
+
+    func count(courseId: UUID?) -> Int {
+        notes.filter { $0.courseId == courseId }.count
     }
 
     func delete(_ note: CourseNote) {
@@ -82,7 +92,7 @@ struct CourseNotesSection: View {
                 ChalkSectionTitle(icon: "pencil.and.list.clipboard", title: "課程筆記")
                 Spacer()
                 Button {
-                    editingNote = CourseNote(title: "", body: "")
+                    editingNote = CourseNote(title: "", body: "", courseId: CourseStore.shared.currentCourseId)
                 } label: {
                     Label("新增筆記", systemImage: "plus.circle.fill")
                         .font(.system(size: 14, weight: .semibold))
@@ -119,7 +129,7 @@ struct CourseNotesSection: View {
                                         .foregroundColor(.gray)
                                         .lineLimit(2)
                                 }
-                                Text(Self.dateFormatter.string(from: note.updatedAt))
+                                Text([CourseStore.shared.course(id: note.courseId)?.name, Self.dateFormatter.string(from: note.updatedAt)].compactMap { $0 }.joined(separator: "．"))
                                     .font(.system(size: 11))
                                     .foregroundColor(.gray.opacity(0.8))
                             }
@@ -170,6 +180,25 @@ struct CourseNoteEditor: View {
                     .padding(12)
                     .background(Color(UIColor.systemGray6))
                     .cornerRadius(10)
+
+                if !CourseStore.shared.courses.isEmpty {
+                    HStack {
+                        Text("課程")
+                            .foregroundColor(.gray)
+                        Spacer()
+                        Picker("課程", selection: $note.courseId) {
+                            Text("不指定").tag(UUID?.none)
+                            ForEach(CourseStore.shared.courses) { course in
+                                Text(course.name).tag(Optional(course.id))
+                            }
+                        }
+                        .pickerStyle(.menu)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 4)
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(10)
+                }
 
                 ZStack(alignment: .topLeading) {
                     if note.body.isEmpty {

@@ -360,6 +360,7 @@ final class CameraManager: NSObject, Sendable {
             do {
                 let savedURL = try await StorageManager.shared.savePhoto(from: data)
                 print("Securely saved photo to sandbox: \(savedURL)")
+                await MainActor.run { CourseStore.shared.register(fileURL: savedURL, kind: .photo) }
                 if MediaPreferences.saveToPhotosLibrary {
                     await PhotoLibrarySaver.savePhoto(at: savedURL)
                 }
@@ -390,6 +391,7 @@ extension CameraManager: AVCaptureFileOutputRecordingDelegate {
             do {
                 let savedURL = try await StorageManager.shared.saveVideo(from: outputFileURL)
                 print("Securely saved to sandbox: \(savedURL)")
+                await MainActor.run { CourseStore.shared.register(fileURL: savedURL, kind: .video) }
                 if MediaPreferences.saveToPhotosLibrary {
                     await PhotoLibrarySaver.saveVideo(at: savedURL)
                 }

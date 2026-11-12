@@ -82,7 +82,7 @@ struct MainContainerView: View {
             .navigationDestination(for: SideMenuDestination.self) { destination in
                 switch destination {
                 case .gallery:
-                    GalleryView()
+                    CourseLibraryView()
                         .navigationBarBackButtonHidden(true)
                 case .trimmer:
                     VideoTrimmerView()
