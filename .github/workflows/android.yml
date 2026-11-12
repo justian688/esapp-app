@@ -79,7 +79,7 @@ jobs:
             adb install -r out/esapp-x86_64.apk
             adb shell pm grant com.lin.energysaving android.permission.CAMERA
             adb shell pm grant com.lin.energysaving android.permission.RECORD_AUDIO
-            adb shell am start -n com.lin.energysaving/.MainActivity
+            adb shell monkey -p com.lin.energysaving -c android.intent.category.LAUNCHER 1
             sleep 12
             adb exec-out screencap -p > out/shots/01_home.png
             adb shell input tap 60 190
