@@ -17,6 +17,27 @@ end
 
 platform :ios do
 
+
+  desc "準備 1.7.0 上架資料（說明、截圖、選建置、自動發布）— 不會送審"
+  lane :prepare_release do
+    asc_api_key
+    build = latest_testflight_build_number(app_identifier: "com.lin.energysaving", version: "1.7.0")
+    UI.message("使用建置 1.7.0 (#{build})")
+    deliver(
+      app_identifier: "com.lin.energysaving",
+      app_version: "1.7.0",
+      build_number: build.to_s,
+      skip_binary_upload: true,
+      overwrite_screenshots: true,
+      submit_for_review: false,
+      automatic_release: true,
+      force: true,
+      run_precheck_before_submit: false,
+      metadata_path: File.expand_path("metadata", __dir__),
+      screenshots_path: File.expand_path("screenshots", __dir__)
+    )
+  end
+
   desc "查看 App Store 上目前的版本、語系與建置（只讀）"
   lane :inspect_store do
     asc_api_key
@@ -28,10 +49,6 @@ platform :ios do
         UI.message("  loc #{l.locale} keywords=#{l.keywords.inspect} support=#{l.support_url} marketing=#{l.marketing_url}")
         UI.message("  desc=#{l.description.to_s[0,300].inspect}")
       end
-    end
-    app.fetch_app_infos.each do |info|
-      UI.message("AppInfo state=#{info.app_store_state}")
-      info.get_app_info_localizations.each { |l| UI.message("  info loc #{l.locale} name=#{l.name} subtitle=#{l.subtitle.inspect} privacy=#{l.privacy_policy_url}") }
     end
     builds = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 3)
     builds.each { |b| UI.message("Build #{b.app_version} (#{b.version}) state=#{b.processing_state}") }

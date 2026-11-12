@@ -1,0 +1,6 @@
+This app records classes and lectures. No login required.
+1. Tap "開始上課" (Start class) to start recording. The screen can be dimmed to save battery while recording.
+2. While recording: tap once to take a photo, double-tap to stop, swipe left/right to switch between the dimmed screen and the camera view.
+3. Videos are saved locally in the app (side menu → 課程相簿 / Course Library).
+Camera and microphone are used only while recording. No data is uploaded to any server.
+In-app purchases are not included in this version.
