@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage(MediaPreferences.saveToPhotosKey) private var saveToPhotosLibrary = false
+    @AppStorage(MediaPreferences.saveToPhotosKey) private var saveToPhotosLibrary = true
     @AppStorage(CameraFacing.storageKey) private var preferredCameraFacing = CameraFacing.back.rawValue
     @AppStorage(AppLanguage.storageKey) private var appLanguageRaw = AppLanguage.traditionalChinese.rawValue
     @State private var showingLanguageOptions = false
