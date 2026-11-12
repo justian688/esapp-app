@@ -16,7 +16,7 @@ nonisolated enum CaptureResolution: String, CaseIterable, Identifiable {
 
     static let storageKey = "captureResolution"
     /// 預設錄影畫質
-    static let defaultResolution: CaptureResolution = .uhd4K
+    static let defaultResolution: CaptureResolution = .hd1080
 
     var id: String { rawValue }
 

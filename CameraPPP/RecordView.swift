@@ -57,17 +57,20 @@ struct RecordView: View {
                 Spacer()
                 
                 Button(action: startRecordingIfNeeded) {
-                    HStack(spacing: 10) {
-                        Image(systemName: "graduationcap.fill")
-                            .font(.system(size: 18, weight: .semibold))
+                    // 粉筆框線風格：透明底＋細黃框，左邊小紅點代表錄影
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(Color(red: 0.72, green: 0.26, blue: 0.24))
+                            .frame(width: 8, height: 8)
                         Text("開始上課")
-                            .font(.system(size: 19, weight: .bold))
+                            .font(.system(size: 15, weight: .semibold))
                             .tracking(2)
                     }
-                    .foregroundColor(Color(red: 0.95, green: 0.91, blue: 0.90))
-                    .frame(width: 200, height: 60)
-                    .background(Color(red: 0.56, green: 0.12, blue: 0.10))
-                    .clipShape(Capsule())
+                    .foregroundColor(Color(red: 0.85, green: 0.81, blue: 0.71))
+                    .padding(.horizontal, 22)
+                    .frame(height: 42)
+                    .overlay(Capsule().stroke(Theme.chalkYellow.opacity(0.8), lineWidth: 1.2))
+                    .contentShape(Capsule())
                 }
                 .accessibilityHint("開始錄影")
                 .disabled(cameraManager.isRecording)
