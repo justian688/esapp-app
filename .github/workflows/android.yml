@@ -1,0 +1,116 @@
+name: Android Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'flutter_app/**'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: flutter_app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create Android platform files (first time)
+        run: |
+          if [ ! -d android ]; then
+            flutter create --platforms=android --org com.lin --project-name esapp .
+            rm -rf test
+          fi
+          GRADLE=$(ls android/app/build.gradle* | head -1)
+          sed -i 's/applicationId = "com.lin.esapp"/applicationId = "com.lin.energysaving"/; s/applicationId "com.lin.esapp"/applicationId "com.lin.energysaving"/' "$GRADLE"
+          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 24/' "$GRADLE"
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i 's/android:label="esapp"/android:label="es省電王"/' $M
+          grep -q 'android.permission.CAMERA' $M || sed -i 's#<application#<uses-permission android:name="android.permission.CAMERA"/>\n    <uses-permission android:name="android.permission.RECORD_AUDIO"/>\n    <application#' $M
+          cat $M | head -20
+          grep -n "applicationId\|minSdk" "$GRADLE"
+
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos --no-fatal-warnings || true
+      - run: flutter build apk --release --split-per-abi
+
+      - name: Collect APKs
+        run: |
+          mkdir -p ../out
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk ../out/esapp-android.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk ../out/esapp-x86_64.apk
+          ls -la ../out
+
+      - name: Enable KVM
+        working-directory: .
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Emulator screenshots
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_7
+          disable-animations: true
+          working-directory: .
+          script: |
+            mkdir -p out/shots
+            adb install -r out/esapp-x86_64.apk
+            adb shell pm grant com.lin.energysaving android.permission.CAMERA
+            adb shell pm grant com.lin.energysaving android.permission.RECORD_AUDIO
+            adb shell am start -n com.lin.energysaving/.MainActivity
+            sleep 12
+            adb exec-out screencap -p > out/shots/01_home.png
+            adb shell input tap 60 190
+            sleep 3
+            adb exec-out screencap -p > out/shots/02_menu.png
+            adb shell input keyevent 4
+            sleep 2
+            adb shell input tap 540 2050
+            sleep 4
+            adb exec-out screencap -p > out/shots/03_recording.png
+            sleep 8
+            adb exec-out screencap -p > out/shots/04_recording_black.png
+            adb shell input tap 540 1200
+            sleep 0.15
+            adb shell input tap 540 1200
+            sleep 5
+            adb exec-out screencap -p > out/shots/05_after_stop.png
+            adb logcat -d -s flutter > out/shots/flutter_log.txt || true
+
+      - name: Push build to android-build branch
+        if: always()
+        working-directory: .
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@users.noreply.github.com
+          rm -rf /tmp/pub && mkdir -p /tmp/pub
+          cp -r out /tmp/pub/ || true
+          cp -r flutter_app/android /tmp/pub/android-scaffold || true
+          git checkout --orphan android-build
+          git rm -rf --cached . >/dev/null
+          git clean -fdx >/dev/null
+          cp -r /tmp/pub/* .
+          git add -f out android-scaffold
+          git commit -m "android build ${{ github.run_number }}"
+          git push -f origin android-build

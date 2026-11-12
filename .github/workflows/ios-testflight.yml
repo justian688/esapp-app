@@ -3,6 +3,9 @@ name: iOS TestFlight
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'flutter_app/**'
+      - '.github/workflows/android.yml'
   workflow_dispatch:
 
 concurrency:
