@@ -12,70 +12,57 @@ import AVKit
 
 struct CurrentCourseCard: View {
     @State private var store = CourseStore.shared
-    @State private var notesStore = CourseNotesStore.shared
-    @AppStorage(RecordingPreferences.segmentMinutesKey) private var segmentMinutes = RecordingPreferences.defaultSegmentMinutes
     @State private var showPicker = false
+    @State private var newCourse: Course?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
+        Button {
+            if store.courses.isEmpty {
+                newCourse = Course(name: "")
+            } else {
+                showPicker = true
+            }
+        } label: {
+            HStack(spacing: 10) {
                 Image(systemName: "graduationcap.fill")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(Theme.chalkYellow)
                 Text("目前課程")
-                    .font(.system(size: 12, weight: .bold))
-                    .tracking(2)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(Theme.chalkYellow)
+                Text(title)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(store.currentCourse == nil ? .gray : Theme.chalkWhite)
+                    .lineLimit(1)
+                Spacer(minLength: 4)
+                Image(systemName: store.courses.isEmpty ? "plus.circle.fill" : "chevron.down")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.gray)
             }
-            .foregroundColor(Theme.chalkYellow)
-
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(store.currentCourse?.name ?? "未選擇課程")
-                        .font(.system(size: 24, weight: .heavy))
-                        .foregroundColor(Theme.chalkWhite)
-                        .lineLimit(1)
-                    Text(subtitle)
-                        .font(.system(size: 14))
-                        .foregroundColor(.gray)
-                        .lineLimit(1)
-                }
-                Spacer(minLength: 8)
-                Button {
-                    showPicker = true
-                } label: {
-                    Text(store.currentCourse == nil ? "選擇課程" : "換一堂")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Theme.chalkWhite)
-                        .padding(.horizontal, 14)
-                        .frame(minHeight: 44)
-                        .background(Theme.chalkboard)
-                        .overlay(Capsule().stroke(Theme.chalkLine, lineWidth: 1))
-                        .clipShape(Capsule())
-                }
-            }
-
-            HStack(spacing: 8) {
-                if let course = store.currentCourse {
-                    CourseChip(text: "已錄 \(store.videoCount(courseId: course.id)) 段")
-                    CourseChip(text: "筆記 \(notesStore.count(courseId: course.id)) 則")
-                }
-                CourseChip(text: segmentMinutes > 0 ? "每 \(RecordingPreferences.durationLabel(segmentMinutes)) 自動存檔" : "不分段")
-            }
+            .padding(.horizontal, 16)
+            .frame(minHeight: 52)
+            .background(Theme.chalkboard)
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.chalkLine, lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .contentShape(Rectangle())
         }
-        .padding(18)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.chalkboard)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.chalkLine, lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .buttonStyle(.plain)
+        .accessibilityHint("選擇或新增課程")
         .sheet(isPresented: $showPicker) {
             CoursePickerSheet()
         }
+        .sheet(item: $newCourse) { course in
+            CourseEditor(course: course) { saved in
+                store.currentCourseId = saved.id
+            }
+        }
     }
 
-    private var subtitle: String {
+    private var title: String {
         if let course = store.currentCourse {
-            return course.detailLine.isEmpty ? "錄好的影片會放進這堂課" : course.detailLine
+            return course.schedule.isEmpty ? course.name : "\(course.name)．\(course.schedule)"
         }
-        return "錄好的影片會放在「未分類」"
+        return store.courses.isEmpty ? "點這裡新增課程" : "未選擇"
     }
 }
 

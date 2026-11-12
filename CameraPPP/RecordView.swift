@@ -56,28 +56,23 @@ struct RecordView: View {
                 
                 Spacer()
                 
-                VStack(spacing: 12) {
-                    Button(action: startRecordingIfNeeded) {
-                        HStack(spacing: 10) {
-                            Image(systemName: "record.circle.fill")
-                                .font(.title3)
-                            Text(CourseStore.shared.currentCourse == nil ? "開始錄影" : "開始錄這堂課")
-                                .font(.system(size: 18, weight: .bold))
-                        }
-                        .foregroundColor(Color(red: 0.95, green: 0.91, blue: 0.90))
-                        .frame(maxWidth: .infinity, minHeight: 64)
-                        .background(Color(red: 0.56, green: 0.12, blue: 0.10))
-                        .clipShape(Capsule())
+                Button(action: startRecordingIfNeeded) {
+                    ZStack {
+                        Circle()
+                            .fill(Color(red: 0.56, green: 0.12, blue: 0.10).opacity(0.25))
+                            .frame(width: 86, height: 86)
+                        Circle()
+                            .fill(Color(red: 0.56, green: 0.12, blue: 0.10))
+                            .frame(width: 64, height: 64)
+                        Image(systemName: "video.fill")
+                            .font(.title2)
+                            .foregroundColor(Color(red: 0.95, green: 0.91, blue: 0.90))
                     }
-                    .disabled(cameraManager.isRecording)
-                    .opacity(cameraManager.isRecording ? 0.45 : 1.0)
-
-                    Text("錄影時螢幕全黑省電．點兩下結束")
-                        .font(.system(size: 12))
-                        .foregroundColor(.gray)
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 40)
+                .accessibilityLabel(CourseStore.shared.currentCourse == nil ? "開始錄影" : "開始錄這堂課")
+                .disabled(cameraManager.isRecording)
+                .opacity(cameraManager.isRecording ? 0.45 : 1.0)
+                .padding(.bottom, 50)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
