@@ -83,10 +83,8 @@ final class CameraManager: NSObject, Sendable {
         self.cameraFacing = initialCameraFacing
         super.init()
         observeSessionInterruptions()
-        // 第一次使用時由介紹頁按「開始使用」才詢問權限；之後打開 App 直接啟動相機
-        if OnboardingState.isCompleted {
-            requestPermissionsAndStart()
-        }
+        // 打開 App 直接啟動相機（第一次會詢問相機與麥克風權限）
+        requestPermissionsAndStart()
     }
 
     /// 詢問相機與麥克風權限並啟動相機（介紹頁按「開始使用」時呼叫）

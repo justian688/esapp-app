@@ -20,7 +20,6 @@ struct MainContainerView: View {
     @State private var trialCheckTimer: Timer?
     
     @State private var cameraManager: CameraManager
-    @AppStorage(OnboardingState.storageKey) private var hasCompletedOnboarding = false
     
     init() {
         let savedFacing = CameraFacing(rawValue: UserDefaults.standard.integer(forKey: CameraFacing.storageKey)) ?? .back
@@ -132,15 +131,6 @@ struct MainContainerView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
             ScreenController.restoreBrightness()
-        }
-        .overlay {
-            if !hasCompletedOnboarding {
-                OnboardingView {
-                    hasCompletedOnboarding = true
-                    cameraManager.requestPermissionsAndStart()
-                }
-                .transition(.opacity)
-            }
         }
         .onOpenURL { url in
             if AppAction.isRecordURL(url) {
