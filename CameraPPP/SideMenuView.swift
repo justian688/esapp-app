@@ -117,7 +117,10 @@ struct MenuRow: View {
     var action: () -> Void
     
     var body: some View {
-        Button(action: action) {
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            action()
+        } label: {
             HStack(spacing: 20) {
                 Image(systemName: icon)
                     .font(.title3)
@@ -141,10 +144,20 @@ struct MenuRow: View {
 
 struct MenuButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
+        // 點下去：文字變黃、左側亮起黃色邊條、底色亮起並輕微縮小（加上手機輕震）
         configuration.label
             .foregroundColor(configuration.isPressed ? Theme.chalkYellow : Theme.chalkWhite)
-            .background(configuration.isPressed ? Theme.chalkboard : Color.clear)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+            .background(
+                HStack(spacing: 0) {
+                    Rectangle()
+                        .fill(Theme.chalkYellow)
+                        .frame(width: configuration.isPressed ? 4 : 0)
+                    Theme.chalkYellow.opacity(configuration.isPressed ? 0.14 : 0)
+                }
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .scaleEffect(configuration.isPressed ? 0.96 : 1, anchor: .leading)
+            .animation(.spring(response: 0.25, dampingFraction: 0.6), value: configuration.isPressed)
     }
 }
 

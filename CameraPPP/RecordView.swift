@@ -18,8 +18,8 @@ struct RecordView: View {
     
     private var recordingPrompt: String {
         AppLanguage.current.localized(
-            "It is recommended to mute your device.\nTap: take photo\nDouble-tap: end\nSwipe left/right: change background",
-            "建議將裝置轉為靜音。\n點擊：拍照\n雙擊：結束\n左右滑動：切換背景"
+            "Tap: take photo\nDouble-tap: end\nSwipe left/right: change background",
+            "點擊：拍照\n雙擊：結束\n左右滑動：切換背景"
         )
     }
     
@@ -152,8 +152,8 @@ struct RecordingOverlayView: View {
     
     private var recordingPrompt: String {
         AppLanguage.current.localized(
-            "It is recommended to mute your device.\nTap: take photo\nDouble-tap: end\nSwipe left/right: change background",
-            "建議將裝置轉為靜音。\n點擊：拍照\n雙擊：結束\n左右滑動：切換背景"
+            "Tap: take photo\nDouble-tap: end\nSwipe left/right: change background",
+            "點擊：拍照\n雙擊：結束\n左右滑動：切換背景"
         )
     }
     
@@ -356,64 +356,57 @@ private final class GestureCaptureView: UIView {
 }
 
 
-/// 錄影黑屏時的操作說明：圖示＋文字，一看就懂
+/// 錄影黑屏時的操作說明：彩色圖示＋文字，一看就懂
 private struct RecordingGestureGuide: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            GuideRow(icon: "hand.tap.fill", badge: nil, title: "點一下", detail: "拍照（不中斷錄影）")
-            GuideRow(icon: "hand.tap.fill", badge: "2", title: "點兩下", detail: "結束錄影")
-            GuideRow(icon: "hand.draw.fill", badge: nil, title: "左右滑動", detail: "切換黑屏／鏡頭畫面")
-            Divider().background(Color.white.opacity(0.3))
-            HStack(spacing: 14) {
-                Image(systemName: "speaker.slash.fill")
-                    .font(.system(size: 18))
-                    .frame(width: 48)
-                Text("建議先將手機轉為靜音")
-                    .font(.system(size: 15, weight: .medium))
-            }
-            .foregroundColor(Color(white: 0.85))
+        VStack(alignment: .leading, spacing: 14) {
+            GuideRow(icon: "camera.fill", color: Color(red: 0.95, green: 0.75, blue: 0.25), badge: nil, title: "點一下", detail: "拍照（不中斷錄影）")
+            GuideRow(icon: "stop.fill", color: Color(red: 0.90, green: 0.32, blue: 0.30), badge: "2", title: "點兩下", detail: "結束錄影")
+            GuideRow(icon: "arrow.left.and.right", color: Color(red: 0.35, green: 0.65, blue: 0.95), badge: nil, title: "左右滑動", detail: "切換黑屏／鏡頭畫面")
         }
-        .padding(26)
+        .padding(18)
         .fixedSize(horizontal: true, vertical: false)
         .background(Color(white: 0.16))
-        .overlay(RoundedRectangle(cornerRadius: 22).stroke(Color.white.opacity(0.3), lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 22))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.25), lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 18))
         .frame(maxWidth: .infinity)
     }
 }
 
 private struct GuideRow: View {
     let icon: String
+    let color: Color
     let badge: String?
     let title: String
     let detail: String
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .foregroundColor(.white)
-                    .frame(width: 48, height: 48)
-                    .background(Color(white: 0.28))
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundColor(color)
+                    .frame(width: 38, height: 38)
+                    .background(color.opacity(0.18))
+                    .overlay(Circle().stroke(color.opacity(0.6), lineWidth: 1))
                     .clipShape(Circle())
                 if let badge {
                     Text(badge)
-                        .font(.system(size: 11, weight: .heavy))
+                        .font(.system(size: 10, weight: .heavy))
                         .foregroundColor(.black)
-                        .frame(width: 18, height: 18)
-                        .background(Theme.chalkYellow)
+                        .frame(width: 16, height: 16)
+                        .background(color)
                         .clipShape(Circle())
                         .offset(x: 4, y: -4)
                 }
             }
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 1) {
                 Text(title)
-                    .font(.system(size: 19, weight: .bold))
+                    .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
                 Text(detail)
-                    .font(.system(size: 15))
-                    .foregroundColor(Color(white: 0.85))
+                    .font(.system(size: 13))
+                    .foregroundColor(Color(white: 0.8))
             }
         }
     }
