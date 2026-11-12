@@ -92,6 +92,8 @@ final class CameraManager: NSObject, Sendable {
     var recordingErrorMessage: String?
     /// 只在 sessionQueue 上讀寫：使用者主動結束錄影時為 true，用來區分「時長到了」和「手動結束」
     @ObservationIgnored private var userRequestedStop = false
+    /// 只在 sessionQueue 上讀寫：正在上課錄影、相機應該開著時為 true
+    @ObservationIgnored private var wantsSessionRunning = false
     var isAuthorized = false
     
     init(initialCameraFacing: CameraFacing = .back) {
@@ -111,10 +113,9 @@ final class CameraManager: NSObject, Sendable {
             }
             if isAuthorized {
                 sessionQueue.async {
+                    // 只先設定好相機，不啟動；按下「開始上課」才打開相機（避免沒錄影時一直亮綠燈、耗電）
                     if self.session.inputs.isEmpty {
                         self.configureSession()
-                    } else if !self.session.isRunning {
-                        self.session.startRunning()
                     }
                 }
             } else {
@@ -138,6 +139,7 @@ final class CameraManager: NSObject, Sendable {
         sessionQueue.async {
             guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized,
                   !self.session.inputs.isEmpty,
+                  self.wantsSessionRunning,
                   !self.session.isRunning else { return }
             self.session.startRunning()
         }
@@ -173,7 +175,13 @@ final class CameraManager: NSObject, Sendable {
         
         session.commitConfiguration()
         updateMaxPhotoDimensions()
-        session.startRunning()
+    }
+
+    /// 沒在錄影時關掉相機，iPhone 上方的綠燈就會熄滅。必須在 sessionQueue 上呼叫。
+    private func stopSessionIfIdle() {
+        guard !fileOutput.isRecording else { return }
+        wantsSessionRunning = false
+        if session.isRunning { session.stopRunning() }
     }
 
     /// 套用「錄影與拍照解析度」設定（錄影中不會變更，下次開始錄影前生效）
@@ -203,7 +211,7 @@ final class CameraManager: NSObject, Sendable {
         cameraFacing = facing
         
         sessionQueue.async {
-            guard self.session.isRunning, !self.fileOutput.isRecording else { return }
+            guard !self.session.inputs.isEmpty, !self.fileOutput.isRecording else { return }
             self.session.beginConfiguration()
             self.installCameraInput()
             self.session.commitConfiguration()
@@ -247,7 +255,7 @@ final class CameraManager: NSObject, Sendable {
     /// 從 Siri 捷徑、小工具開啟 App 時使用：等相機準備好再開始錄影（最多等約 6 秒）
     func startRecordingWhenReady(attempt: Int = 0) {
         sessionQueue.async {
-            if self.session.isRunning {
+            if !self.session.inputs.isEmpty {
                 self.userRequestedStop = false
                 self.beginRecordingSegment()
             } else if attempt < 20 {
@@ -267,14 +275,15 @@ final class CameraManager: NSObject, Sendable {
             reportRecordingError("沒有相機權限。請到「設定」→「es省電王」打開相機權限後再試一次。")
             return
         }
+        if session.inputs.isEmpty || session.outputs.isEmpty {
+            configureSession()
+        }
+        wantsSessionRunning = true
         if !session.isRunning {
-            if session.inputs.isEmpty || session.outputs.isEmpty {
-                configureSession()
-            } else {
-                session.startRunning()
-            }
+            session.startRunning()
         }
         guard session.isRunning, fileOutput.connection(with: .video) != nil else {
+            stopSessionIfIdle()
             reportRecordingError("相機還沒準備好，請稍等一下再按錄影。如果一直出現，請把 App 完全關掉再打開。")
             return
         }
@@ -307,7 +316,10 @@ final class CameraManager: NSObject, Sendable {
 
     /// 一段錄影結束後決定要不要自動接著錄。必須在 sessionQueue 上呼叫。
     private func handleSegmentFinished(error: Error?) {
-        guard !userRequestedStop else { return }
+        guard !userRequestedStop else {
+            stopSessionIfIdle()
+            return
+        }
 
         let nsError = error as NSError?
         let reachedDurationLimit = nsError?.code == AVError.Code.maximumDurationReached.rawValue
@@ -315,7 +327,8 @@ final class CameraManager: NSObject, Sendable {
         if reachedDurationLimit, RecordingPreferences.isRepeatRecordingEnabled, session.isRunning {
             beginRecordingSegment()
         } else {
-            // 時長到了但沒開重複錄影，或錄影因其他原因中斷：讓畫面回到未錄影狀態
+            // 時長到了但沒開重複錄影，或錄影因其他原因中斷：讓畫面回到未錄影狀態，並關掉相機
+            stopSessionIfIdle()
             Task { @MainActor in self.isRecording = false }
             if let nsError, !reachedDurationLimit,
                (nsError.userInfo[AVErrorRecordingSuccessfullyFinishedKey] as? Bool) != true {
