@@ -65,7 +65,7 @@ struct SupportView: View {
                                     .foregroundColor(.green)
                                 Text(AppLanguage.current.localized(
                                     "Premium Active",
-                                    "已啟用進階版"
+                                    "已啟用完整版"
                                 ))
                                 .font(.system(size: 15, weight: .medium))
                                 .foregroundColor(.white)

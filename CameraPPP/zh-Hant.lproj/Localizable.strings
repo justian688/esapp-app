@@ -102,5 +102,5 @@
 "Notification permission error: %@" = "通知權限錯誤：%@";
 "Failed to schedule notification: %@" = "排程通知失敗：%@";
 "Notification scheduled for: %@" = "通知已排定於：%@";
-"Upgrade Premium" = "升級進階版";
-"Premium Active" = "進階版已啟用";
+"Upgrade Premium" = "升級完整版";
+"Premium Active" = "完整版已啟用";

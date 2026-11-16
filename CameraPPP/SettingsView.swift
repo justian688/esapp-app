@@ -129,7 +129,7 @@ struct SettingsView: View {
                         }
                         Button("取消", role: .cancel) { }
                     } message: {
-                        Text(SubscriptionConfig.paymentsEnabled ? "畫質越高越清楚，但越耗電、檔案越大。4K 需要進階版。" : "畫質越高越清楚，但越耗電、檔案越大。")
+                        Text(SubscriptionConfig.paymentsEnabled ? "畫質越高越清楚，但越耗電、檔案越大。4K 需要完整版。" : "畫質越高越清楚，但越耗電、檔案越大。")
                     }
                     
                     SettingsMenuRow(
@@ -239,7 +239,7 @@ struct SettingsView: View {
     private var currentResolutionTitle: String {
         let saved = CaptureResolution(rawValue: resolutionRaw) ?? .defaultResolution
         if saved.requiresPremium && !hasFullAccess {
-            return CaptureResolution.hd1080.title + "（4K 需進階版）"
+            return CaptureResolution.hd1080.title + "（4K 需完整版）"
         }
         return saved.title
     }

@@ -159,7 +159,7 @@ struct PaywallView: View {
                 } else {
                     Text(AppLanguage.current.localized(
                         "Your 7-day free trial has ended. Subscribe, or keep using the free version.",
-                        "7 天免費試用已結束。可以訂閱進階版，或繼續使用免費版。"
+                        "7 天免費試用已結束。可以訂閱完整版，或繼續使用免費版。"
                     ))
                     .foregroundColor(.white.opacity(0.6))
                 }
@@ -169,7 +169,7 @@ struct PaywallView: View {
         }
     }
 
-    // MARK: - 免費版 vs 進階版 對照表
+    // MARK: - 免費版 vs 完整版 對照表
 
     private var featureSection: some View {
         VStack(spacing: 0) {
@@ -180,7 +180,7 @@ struct PaywallView: View {
                     .frame(width: 80)
                 HStack(spacing: 3) {
                     Image(systemName: "crown.fill").font(.system(size: 10))
-                    Text(AppLanguage.current.localized("Premium", "進階版"))
+                    Text(AppLanguage.current.localized("Premium", "完整版"))
                 }
                 .foregroundColor(Self.gold)
                 .frame(width: 80)
@@ -206,7 +206,7 @@ struct PaywallView: View {
         }
         .background(RoundedRectangle(cornerRadius: 18).fill(Self.card))
         .overlay(
-            // 進階版那一欄的金色外框
+            // 完整版那一欄的金色外框
             HStack {
                 Spacer()
                 RoundedRectangle(cornerRadius: 14)
@@ -244,7 +244,7 @@ struct PaywallView: View {
         switch value {
         case .text(let t):
             if isPremium {
-                // 進階版優勢：暗金底、金字標籤（不刺眼）
+                // 完整版優勢：暗金底、金字標籤（不刺眼）
                 Text(t)
                     .font(.system(size: 13, weight: .heavy))
                     .foregroundColor(Self.gold.opacity(0.92))
@@ -436,7 +436,7 @@ private enum PaywallPlan {
 }
 
 
-/// 進階版欄位：金色漸層底＋發光外框＋流動光澤
+/// 完整版欄位：金色漸層底＋發光外框＋流動光澤
 private struct PremiumColumnGlow: View {
     let gold: Color
     @State private var glow = false

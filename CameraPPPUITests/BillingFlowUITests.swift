@@ -154,7 +154,7 @@ final class BillingFlowUITests: XCTestCase {
         let upTitle = app.staticTexts["upsell_title"]
         step("到期時正在用 4K → 小彈窗「4K 已改為 1080p」", upTitle.waitForExistence(timeout: 6) && upTitle.label.contains("1080p"))
         pause(2)
-        step("小彈窗有「升級進階版」／「用 1080p 繼續」／「查看所有方案」",
+        step("小彈窗有「升級完整版」／「用 1080p 繼續」／「查看所有方案」",
              app.buttons["upsell_subscribe"].exists && app.buttons["upsell_close"].exists && app.buttons["upsell_seeAll"].exists)
         tapIfExists(app.buttons["upsell_close"])
         pause(3)
@@ -167,7 +167,7 @@ final class BillingFlowUITests: XCTestCase {
         step("免費版：4K 選項上鎖（\(opt.label)）", opt.label.contains("🔒"))
         tapIfExists(opt)
         let up = app.staticTexts["upsell_title"]
-        step("點上鎖的 4K → 小彈窗「4K 是進階版功能」", up.waitForExistence(timeout: 6) && up.label.contains("4K"))
+        step("點上鎖的 4K → 小彈窗「4K 是完整版功能」", up.waitForExistence(timeout: 6) && up.label.contains("4K"))
         pause(2)
         tapIfExists(app.buttons["upsell_seeAll"])
         let close = app.buttons["paywall_close"]
@@ -190,7 +190,7 @@ final class BillingFlowUITests: XCTestCase {
         pause(6)
         app.buttons["menuButton"].tap()
         pause(2)
-        step("側邊欄出現「升級進階版」選項", app.buttons["menu_cart.fill"].exists)
+        step("側邊欄出現「升級完整版」選項", app.buttons["menu_cart.fill"].exists)
         tapIfExists(app.buttons["menu_cart.fill"])
         step("從側邊欄可以打開付費畫面", app.buttons["paywall_close"].waitForExistence(timeout: 6))
         pause(3)

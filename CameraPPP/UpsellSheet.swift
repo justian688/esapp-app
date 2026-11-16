@@ -3,7 +3,7 @@
 //  CameraPPP
 //
 //  碰到付費限制時，從下方滑上來的小彈窗（只講這一件事＋年方案價格）。
-//  完整的方案比較頁（PaywallView）只在側邊欄「升級進階版」、到期前一天「查看付費方案」時出現。
+//  完整的方案比較頁（PaywallView）只在側邊欄「升級完整版」、到期前一天「查看付費方案」時出現。
 //
 
 import SwiftUI
@@ -26,7 +26,7 @@ enum UpsellReason: Identifiable {
     var title: String {
         switch self {
         case .fourK:
-            return AppLanguage.current.localized("4K is a Premium feature", "4K 是進階版功能")
+            return AppLanguage.current.localized("4K is a Premium feature", "4K 是完整版功能")
         case .timeLimit:
             return AppLanguage.current.localized("30-minute limit reached", "已錄滿 30 分鐘")
         case .fourKDowngraded:
@@ -39,15 +39,15 @@ enum UpsellReason: Identifiable {
         case .fourK:
             return AppLanguage.current.localized(
                 "Subscribe to record in 4K — even small writing on the board stays sharp.",
-                "訂閱進階版就能用 4K 錄影，板書小字也清楚。")
+                "訂閱完整版就能用 4K 錄影，板書小字也清楚。")
         case .timeLimit:
             return AppLanguage.current.localized(
                 "This recording has been saved. Premium records a whole class without stopping.",
-                "這段影片已經保存。進階版不限時長，整堂課一次錄完。")
+                "這段影片已經保存。完整版不限時長，整堂課一次錄完。")
         case .fourKDowngraded:
             return AppLanguage.current.localized(
                 "Your free trial has ended, so recordings now use 1080p. Subscribe to keep 4K.",
-                "免費試用已結束，之後錄影會用 1080p。訂閱進階版即可繼續用 4K。")
+                "免費試用已結束，之後錄影會用 1080p。訂閱完整版即可繼續用 4K。")
         }
     }
 
@@ -105,7 +105,7 @@ struct UpsellSheet: View {
 
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(AppLanguage.current.localized("Premium · Yearly", "進階版 · 年訂閱"))
+                    Text(AppLanguage.current.localized("Premium · Yearly", "完整版 · 年訂閱"))
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(.white)
                     Text(AppLanguage.current.localized("About \(perMonth)/month · cancel anytime", "每月約 \(perMonth)，隨時可取消"))
@@ -124,7 +124,7 @@ struct UpsellSheet: View {
             Button {
                 Task { await purchaseYearly() }
             } label: {
-                Text(AppLanguage.current.localized("Upgrade to Premium", "升級進階版"))
+                Text(AppLanguage.current.localized("Upgrade to Premium", "升級完整版"))
                     .font(.headline)
                     .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
