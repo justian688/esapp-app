@@ -146,7 +146,7 @@ struct UpsellSheet: View {
         .padding(.top, 26)
         .padding(.bottom, 12)
         .frame(maxWidth: .infinity)
-        .background(Color(red: 0.07, green: 0.065, blue: 0.055).ignoresSafeArea())
+        .presentationBackground(Color(red: 0.07, green: 0.065, blue: 0.055))
         .presentationDetents([.height(380)])
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(24)
