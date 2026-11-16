@@ -86,6 +86,21 @@ final class BillingFlowUITests: XCTestCase {
         if e.waitForExistence(timeout: timeout) && e.isHittable { e.tap() }
     }
 
+    /// 插頁廣告出現就截圖並關掉；回傳有沒有出現
+    @discardableResult
+    private func closeAdIfShown(timeout: TimeInterval = 10) -> Bool {
+        let close = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'close' OR identifier CONTAINS[c] 'close'")).firstMatch
+        guard close.waitForExistence(timeout: timeout) else { return false }
+        pause(3)
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "廣告畫面"
+        shot.lifetime = .keepAlways
+        add(shot)
+        if close.isHittable { close.tap() }
+        pause(2)
+        return true
+    }
+
     private var status: String { app.staticTexts["test_status"].label }
 
     private func openSettings() {
@@ -154,10 +169,12 @@ final class BillingFlowUITests: XCTestCase {
         let upTitle = app.staticTexts["upsell_title"]
         step("到期時正在用 4K → 小彈窗「4K 已改為 1080p」", upTitle.waitForExistence(timeout: 6) && upTitle.label.contains("1080p"))
         pause(2)
-        step("小彈窗有「升級完整版」／「用 1080p 繼續」／「查看所有方案」",
+        step("小彈窗有「升級完整版」／「繼續使用免費版」／「查看所有方案」",
              app.buttons["upsell_subscribe"].exists && app.buttons["upsell_close"].exists && app.buttons["upsell_seeAll"].exists)
         tapIfExists(app.buttons["upsell_close"])
-        pause(3)
+        let adShown = closeAdIfShown()
+        print("INFO 選「繼續使用免費版」後播放廣告：\(adShown ? "有" : "沒有（測試廣告可能還沒載入）")")
+        pause(2)
         step("到期後沒有其他自動跳出的付費畫面", !app.buttons["paywall_continueFree"].exists && !app.buttons["paywall_close"].exists && !app.alerts.firstMatch.exists)
         scrollTo(app.staticTexts["test_status"])
         step("狀態變成免費版：\(status)", status.contains("免費版") && status.contains("30 分鐘"))

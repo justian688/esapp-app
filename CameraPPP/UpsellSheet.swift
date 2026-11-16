@@ -34,29 +34,16 @@ enum UpsellReason: Identifiable {
         }
     }
 
-    var message: String {
+    /// 標題下的一小句（沒有就不顯示）
+    var message: String? {
         switch self {
-        case .fourK:
-            return AppLanguage.current.localized(
-                "Subscribe to record in 4K — even small writing on the board stays sharp.",
-                "訂閱完整版就能用 4K 錄影，板書小字也清楚。")
-        case .timeLimit:
-            return AppLanguage.current.localized(
-                "This recording has been saved. Premium records a whole class without stopping.",
-                "這段影片已經保存。完整版不限時長，整堂課一次錄完。")
-        case .fourKDowngraded:
-            return AppLanguage.current.localized(
-                "Your free trial has ended, so recordings now use 1080p. Subscribe to keep 4K.",
-                "免費試用已結束，之後錄影會用 1080p。訂閱完整版即可繼續用 4K。")
+        case .timeLimit: return AppLanguage.current.localized("Your recording has been saved.", "影片已保存")
+        default: return nil
         }
     }
 
     var dismissTitle: String {
-        switch self {
-        case .fourK: return AppLanguage.current.localized("Not now", "先不用")
-        case .timeLimit: return AppLanguage.current.localized("OK", "好")
-        case .fourKDowngraded: return AppLanguage.current.localized("Use 1080p", "用 1080p 繼續")
-        }
+        AppLanguage.current.localized("Continue with Free", "繼續使用免費版")
     }
 }
 
@@ -99,7 +86,7 @@ struct UpsellSheet: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            HStack(alignment: .top, spacing: 14) {
+            HStack(alignment: .center, spacing: 14) {
                 Image(systemName: reason.icon)
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundColor(Self.gold.opacity(0.9))
@@ -110,10 +97,11 @@ struct UpsellSheet: View {
                         .font(.title3.bold())
                         .foregroundColor(.white)
                         .accessibilityIdentifier("upsell_title")
-                    Text(reason.message)
-                        .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.65))
-                        .fixedSize(horizontal: false, vertical: true)
+                    if let message = reason.message {
+                        Text(message)
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.65))
+                    }
                 }
                 Spacer(minLength: 0)
             }
@@ -157,7 +145,13 @@ struct UpsellSheet: View {
             .accessibilityIdentifier("upsell_subscribe")
 
             HStack(spacing: 28) {
-                Button(reason.dismissTitle) { onClose() }
+                Button(reason.dismissTitle) {
+                    // 繼續使用免費版：關掉彈窗後播一則廣告
+                    onClose()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                        AdsManager.shared.showInterstitial(ignoringInterval: true)
+                    }
+                }
                     .accessibilityIdentifier("upsell_close")
                 Button(AppLanguage.current.localized("See all plans", "查看所有方案")) { onSeeAllPlans() }
                     .accessibilityIdentifier("upsell_seeAll")
@@ -170,7 +164,7 @@ struct UpsellSheet: View {
         .padding(.bottom, 12)
         .frame(maxWidth: .infinity)
         .presentationBackground(Color(red: 0.07, green: 0.065, blue: 0.055))
-        .presentationDetents([.height(520)])
+        .presentationDetents([.height(470)])
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(24)
         .task { await subscriptionManager.loadProducts() }

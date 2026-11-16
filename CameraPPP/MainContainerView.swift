@@ -205,13 +205,7 @@ struct MainContainerView: View {
             ))
         }
         // 碰到限制：從下方滑上來的小彈窗
-        .sheet(item: $upsellReason, onDismiss: {
-            if lastUpsell == .timeLimit {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    AdsManager.shared.showInterstitialAfterRecording()
-                }
-            }
-        }) { reason in
+        .sheet(item: $upsellReason) { reason in
             UpsellSheet(reason: reason, onClose: {
                 upsellReason = nil
             }, onSeeAllPlans: {

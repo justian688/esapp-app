@@ -62,9 +62,14 @@ final class AdsManager: NSObject, ObservableObject, FullScreenContentDelegate {
 
     /// 停止錄影後呼叫：免費版且距離上一則夠久才播
     func showInterstitialAfterRecording() {
+        showInterstitial(ignoringInterval: false)
+    }
+
+    /// 播一則插頁廣告（免費版才播）；ignoringInterval = 使用者剛選「繼續使用免費版」，不受 3 分鐘間隔限制
+    func showInterstitial(ignoringInterval: Bool) {
         guard Self.shouldShowAds else { return }
         startIfNeeded()
-        if let last = lastInterstitialAt, Date().timeIntervalSince(last) < AdConfig.interstitialMinInterval { return }
+        if !ignoringInterval, let last = lastInterstitialAt, Date().timeIntervalSince(last) < AdConfig.interstitialMinInterval { return }
         guard let ad = interstitial, let root = Self.topViewController() else {
             loadInterstitial()
             return
