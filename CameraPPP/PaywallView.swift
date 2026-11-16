@@ -177,7 +177,7 @@ struct PaywallView: View {
                 Text(AppLanguage.current.localized("Feature", "功能"))
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Text(AppLanguage.current.localized("Free", "免費版"))
-                    .frame(width: 72)
+                    .frame(width: 80)
                 HStack(spacing: 3) {
                     Image(systemName: "crown.fill").font(.system(size: 10))
                     Text(AppLanguage.current.localized("Premium", "進階版"))
@@ -211,7 +211,7 @@ struct PaywallView: View {
                 Spacer()
                 RoundedRectangle(cornerRadius: 14)
                     .stroke(Self.gold.opacity(0.6), lineWidth: 1.5)
-                    .frame(width: 72)
+                    .frame(width: 80)
                     .padding(.vertical, 4)
             }
             .padding(.horizontal, 16)
@@ -231,8 +231,8 @@ struct PaywallView: View {
                     .font(.system(size: 15, weight: highlight ? .semibold : .regular))
                     .foregroundColor(.white.opacity(highlight ? 1 : 0.8))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                compareCell(free, isPremium: false).frame(width: 72)
-                compareCell(premium, isPremium: true).frame(width: 72)
+                compareCell(free, isPremium: false).frame(width: 80)
+                compareCell(premium, isPremium: true).frame(width: 80)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 11)
@@ -243,9 +243,23 @@ struct PaywallView: View {
     private func compareCell(_ value: CompareValue, isPremium: Bool) -> some View {
         switch value {
         case .text(let t):
-            Text(t)
-                .font(.system(size: 14, weight: isPremium ? .bold : .regular))
-                .foregroundColor(isPremium ? Self.gold : .white.opacity(0.55))
+            if isPremium {
+                // 進階版優勢：金色發光標籤
+                Text(t)
+                    .font(.system(size: 14, weight: .heavy))
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule().fill(LinearGradient(colors: [Self.gold, Color(red: 0.90, green: 0.66, blue: 0.22)], startPoint: .top, endPoint: .bottom))
+                    )
+                    .shadow(color: Self.gold.opacity(0.7), radius: 6)
+            } else {
+                Text(t)
+                    .font(.system(size: 14))
+                    .foregroundColor(.white.opacity(0.45))
+                    .strikethrough(false)
+            }
         case .check:
             Image(systemName: "checkmark")
                 .font(.system(size: 13, weight: .bold))
