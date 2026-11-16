@@ -71,6 +71,21 @@ final class BillingFlowUITests: XCTestCase {
         b.tap()
     }
 
+    /// 關掉選單：有「取消」就按，沒有（iOS 26）就點畫面上方空白處
+    private func dismissDialog() {
+        let cancel = app.buttons["取消"]
+        if cancel.exists && cancel.isHittable {
+            cancel.tap()
+        } else {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.12)).tap()
+        }
+        pause(1)
+    }
+
+    private func tapIfExists(_ e: XCUIElement, timeout: TimeInterval = 4) {
+        if e.waitForExistence(timeout: timeout) && e.isHittable { e.tap() }
+    }
+
     private var status: String { app.staticTexts["test_status"].label }
 
     private func openSettings() {
@@ -114,8 +129,7 @@ final class BillingFlowUITests: XCTestCase {
         // 2. 試用中 4K 可用
         var opt = open4KOption()
         step("試用中：4K 選項沒有上鎖（\(opt.label)）", opt.exists && !opt.label.contains("🔒"))
-        app.buttons["取消"].tap()
-        pause(1)
+        dismissDialog()
 
         // 3. 快轉到剩 23 小時 → 明天到期提醒
         tapTool("test_23h")
@@ -124,7 +138,7 @@ final class BillingFlowUITests: XCTestCase {
         pause(2)
         step("提醒有兩個選擇：查看付費方案／到期後用免費版",
              reminder.buttons["查看付費方案"].exists && reminder.buttons["到期後用免費版"].exists)
-        reminder.buttons["到期後用免費版"].tap()
+        tapIfExists(reminder.buttons["到期後用免費版"])
         pause(3)
         step("選「到期後用免費版」後不會再跳提醒", !app.alerts["免費試用明天到期"].exists)
 
@@ -134,7 +148,7 @@ final class BillingFlowUITests: XCTestCase {
         step("到期 → 跳出付費畫面（有月訂閱／年訂閱）", freeBtn.waitForExistence(timeout: 6))
         pause(3)
         step("付費畫面有「繼續使用免費版」按鈕", freeBtn.exists)
-        freeBtn.tap()
+        tapIfExists(freeBtn)
         pause(3)
         step("選免費版後付費畫面關閉、不會再跳", !app.buttons["paywall_continueFree"].exists)
         scrollTo(app.staticTexts["test_status"])
@@ -143,11 +157,11 @@ final class BillingFlowUITests: XCTestCase {
         // 5. 免費版 4K 上鎖
         opt = open4KOption()
         step("免費版：4K 選項上鎖（\(opt.label)）", opt.label.contains("🔒"))
-        opt.tap()
+        tapIfExists(opt)
         let close = app.buttons["paywall_close"]
         step("點上鎖的 4K → 跳出付費畫面", close.waitForExistence(timeout: 6))
         pause(2)
-        close.tap()
+        tapIfExists(close)
         pause(2)
         step("付費畫面可以關掉", !app.buttons["paywall_close"].exists)
 
@@ -158,15 +172,15 @@ final class BillingFlowUITests: XCTestCase {
         setSwitch("test_shortLimit", on: false)
 
         // 7. 側邊欄出現升級選項
-        app.buttons["settings_back"].tap()
+        tapIfExists(app.buttons["settings_back"])
         pause(2)
         app.buttons["menuButton"].tap()
         pause(2)
         step("側邊欄出現「升級進階版」選項", app.buttons["menu_cart.fill"].exists)
-        app.buttons["menu_cart.fill"].tap()
+        tapIfExists(app.buttons["menu_cart.fill"])
         step("從側邊欄可以打開付費畫面", app.buttons["paywall_close"].waitForExistence(timeout: 6))
         pause(3)
-        app.buttons["paywall_close"].tap()
+        tapIfExists(app.buttons["paywall_close"])
         pause(2)
 
         // 8. 試用重新開始 → 回到全開
