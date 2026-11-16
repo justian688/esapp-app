@@ -2,11 +2,13 @@
 //  TrialManager.swift
 //  CameraPPP
 //
-//  新下載 1 個月（30 天）試用期管理
+//  新下載 7 天試用期管理
+//  開始日期存在 Keychain：刪掉 App 重裝也不會重新計算（防止一直重裝白用）
 //
 
 import Foundation
 import Combine
+import Security
 
 @MainActor
 final class TrialManager: ObservableObject {
@@ -15,18 +17,52 @@ final class TrialManager: ObservableObject {
 
     init() {
         let installDate: Date
-        if let savedDate = UserDefaults.standard.object(forKey: SubscriptionConfig.firstInstallDateKey) as? Date {
+        if let keychainDate = Self.loadFromKeychain() {
+            installDate = keychainDate
+        } else if let savedDate = UserDefaults.standard.object(forKey: SubscriptionConfig.firstInstallDateKey) as? Date {
+            // 舊版存在 UserDefaults 的日期，搬到 Keychain
             installDate = savedDate
+            Self.saveToKeychain(savedDate)
         } else {
-            let now = Date()
-            installDate = now
-            UserDefaults.standard.set(now, forKey: SubscriptionConfig.firstInstallDateKey)
+            installDate = Date()
+            Self.saveToKeychain(installDate)
         }
+        UserDefaults.standard.set(installDate, forKey: SubscriptionConfig.firstInstallDateKey)
         firstInstallDate = installDate
         isTrialActive = Date().timeIntervalSince(installDate) < SubscriptionConfig.trialDuration
     }
 
-    /// 更新試用狀態（試用滿 30 天時觸發付費牆）
+    // MARK: - Keychain（App 刪除後仍保留）
+
+    private static let keychainService = "com.lin.energysaving.trial"
+
+    private static func baseQuery() -> [String: Any] {
+        [kSecClass as String: kSecClassGenericPassword,
+         kSecAttrService as String: keychainService,
+         kSecAttrAccount as String: SubscriptionConfig.firstInstallDateKey]
+    }
+
+    private static func loadFromKeychain() -> Date? {
+        var q = baseQuery()
+        q[kSecReturnData as String] = true
+        q[kSecMatchLimit as String] = kSecMatchLimitOne
+        var out: AnyObject?
+        guard SecItemCopyMatching(q as CFDictionary, &out) == errSecSuccess,
+              let data = out as? Data,
+              let t = Double(String(decoding: data, as: UTF8.self)) else { return nil }
+        return Date(timeIntervalSince1970: t)
+    }
+
+    private static func saveToKeychain(_ date: Date) {
+        let data = Data(String(date.timeIntervalSince1970).utf8)
+        SecItemDelete(baseQuery() as CFDictionary)
+        var q = baseQuery()
+        q[kSecValueData as String] = data
+        q[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+        SecItemAdd(q as CFDictionary, nil)
+    }
+
+    /// 更新試用狀態（試用滿 7 天時觸發付費牆）
     func refreshTrialStatus() {
         let active = Date().timeIntervalSince(firstInstallDate) < SubscriptionConfig.trialDuration
         if isTrialActive != active {
