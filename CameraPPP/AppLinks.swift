@@ -17,10 +17,17 @@ enum AppLinks {
 
     /// 跳出系統分享選單，分享 App Store 連結
     @MainActor
-    static func shareApp() {
+    static func shareApp(attempt: Int = 0) {
         let text = AppLanguage.current.localized("es省電王 – record a whole class with the screen off", "es省電王：黑畫面省電錄整堂課")
+        // 最上層畫面還在關閉動畫中時，present 會被 iOS 忽略 → 稍後重試（最多 5 次）
+        guard let top = AdsManager.topViewController(),
+              !top.isBeingDismissed, !top.isBeingPresented, top.view.window != nil else {
+            if attempt < 5 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { shareApp(attempt: attempt + 1) }
+            }
+            return
+        }
         let vc = UIActivityViewController(activityItems: [text, appStoreURL], applicationActivities: nil)
-        guard let top = AdsManager.topViewController() else { return }
         vc.popoverPresentationController?.sourceView = top.view
         vc.popoverPresentationController?.sourceRect = CGRect(x: top.view.bounds.midX, y: top.view.bounds.midY, width: 1, height: 1)
         top.present(vc, animated: true)

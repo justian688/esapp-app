@@ -172,8 +172,11 @@ final class AllFeaturesUITests: XCTestCase {
         // 10. 分享 App（側邊欄）
         relaunch()
         _ = openMenu("menu_square.and.arrow.up")
-        pause(2)
-        let shareSheet = app.otherElements["ActivityListView"].exists || app.navigationBars["UIActivityContentView"].exists || app.buttons["Close"].exists || app.buttons["關閉"].exists
+        var shareSheet = false
+        for _ in 0..<6 where !shareSheet {   // 最多等 6 秒
+            pause(1)
+            shareSheet = app.otherElements["ActivityListView"].exists || app.navigationBars["UIActivityContentView"].exists || app.buttons["Close"].exists || app.buttons["關閉"].exists
+        }
         check("側邊欄 → 分享這個 App：跳出分享選單", shareSheet)
         if app.buttons["Close"].exists { app.buttons["Close"].tap() } else if app.buttons["關閉"].exists { app.buttons["關閉"].tap() }
         pause(1)
