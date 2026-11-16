@@ -90,8 +90,13 @@ final class BillingFlowUITests: XCTestCase {
 
     private func openSettings() {
         app.buttons["menuButton"].tap()
+        let settings = app.buttons["menu_gearshape.fill"]
+        if !settings.waitForExistence(timeout: 5) {
+            app.buttons["menuButton"].tap()   // 第一次沒打開選單就再按一次
+            _ = settings.waitForExistence(timeout: 5)
+        }
         pause(1)
-        app.buttons["menu_gearshape.fill"].tap()
+        settings.tap()
         pause(2)
     }
 
