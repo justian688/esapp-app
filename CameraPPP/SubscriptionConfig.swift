@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum SubscriptionConfig {
+nonisolated enum SubscriptionConfig {
     /// 付費功能總開關：false = 暫時隱藏所有付費畫面、選單與限制（測試期間）
     static let paymentsEnabledInRelease = false
 
@@ -69,7 +69,7 @@ enum SubscriptionConfig {
 }
 
 /// 目前能不能使用完整功能：付費功能關閉、已訂閱、或還在 7 天試用內 → 全開
-enum FeatureAccess {
+nonisolated enum FeatureAccess {
     static var hasFullAccess: Bool {
         guard SubscriptionConfig.paymentsEnabled else { return true }
         if UserDefaults.standard.bool(forKey: SubscriptionConfig.premiumStatusKey) { return true }
