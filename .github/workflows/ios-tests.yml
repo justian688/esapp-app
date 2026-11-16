@@ -60,6 +60,8 @@ jobs:
   ui-video:
     name: 畫面操作測試＋錄影
     runs-on: macos-latest
+    permissions:
+      contents: write
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -116,3 +118,9 @@ jobs:
             test-video.mov
             steps.txt
             shots/
+      - name: 報告推到 ui-test-report 分支
+        run: |
+          mkdir rep && cp test-video.mov steps.txt rep/ && (cp -r shots rep/ || true)
+          cd rep && git init -q && git checkout -q -b ui-test-report && git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "UI 測試報告 ${{ github.sha }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ui-test-report
