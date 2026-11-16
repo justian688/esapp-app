@@ -14,6 +14,7 @@ struct MainContainerView: View {
     @State private var selectedTab = 0
     @AppStorage(CameraFacing.storageKey) private var preferredCameraFacingRaw = CameraFacing.defaultFacing.rawValue
     @AppStorage(CaptureResolution.storageKey) private var captureResolutionRaw = CaptureResolution.defaultResolution.rawValue
+    @AppStorage(CaptureFrameRate.storageKey) private var captureFrameRateRaw = CaptureFrameRate.defaultRate.rawValue
     @State private var navigationPath: [SideMenuDestination] = []
     @State private var showPaywall = false
     @State private var allowPaywallDismiss = true
@@ -124,6 +125,9 @@ struct MainContainerView: View {
         }
         .onChange(of: captureResolutionRaw) { _, _ in
             cameraManager.applyCaptureResolution()
+        }
+        .onChange(of: captureFrameRateRaw) { _, _ in
+            cameraManager.applyFrameRateSetting()
         }
         .alert(
             "無法錄影",

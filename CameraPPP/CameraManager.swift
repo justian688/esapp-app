@@ -184,6 +184,7 @@ final class CameraManager: NSObject, Sendable {
         
         session.commitConfiguration()
         updateMaxPhotoDimensions()
+        applyFrameRate()
     }
 
     /// 沒在錄影時關掉相機，iPhone 上方的綠燈就會熄滅。必須在 sessionQueue 上呼叫。
@@ -203,6 +204,50 @@ final class CameraManager: NSObject, Sendable {
             self.session.sessionPreset = preset
             self.session.commitConfiguration()
             self.updateMaxPhotoDimensions()
+            self.applyFrameRate()
+        }
+    }
+
+    /// 套用「錄影幀數」設定（錄影中不會變更，下次開始錄影前生效）
+    func applyFrameRateSetting() {
+        sessionQueue.async {
+            guard !self.fileOutput.isRecording, !self.session.inputs.isEmpty else { return }
+            self.applyFrameRate()
+        }
+    }
+
+    /// 設定幀數：目前格式不支援時，找同解析度、支援該幀數的格式；
+    /// 手機完全不支援（例如舊機沒有 4K 60fps）就用支援的最高幀數，不會出錯。必須在 sessionQueue 上呼叫。
+    private func applyFrameRate() {
+        guard let device = session.inputs.compactMap({ ($0 as? AVCaptureDeviceInput)?.device }).first(where: { $0.hasMediaType(.video) }) else { return }
+        let want = Double(CaptureFrameRate.current.rawValue)
+        func maxRate(_ f: AVCaptureDevice.Format) -> Double {
+            f.videoSupportedFrameRateRanges.map(\.maxFrameRate).max() ?? 30
+        }
+        let current = device.activeFormat
+        let dims = CMVideoFormatDescriptionGetDimensions(current.formatDescription)
+        var format = current
+        if maxRate(current) < want {
+            let subtype = CMFormatDescriptionGetMediaSubType(current.formatDescription)
+            let candidates = device.formats.filter {
+                let d = CMVideoFormatDescriptionGetDimensions($0.formatDescription)
+                return d.width == dims.width && d.height == dims.height && maxRate($0) >= want
+            }
+            if let better = candidates.first(where: { CMFormatDescriptionGetMediaSubType($0.formatDescription) == subtype }) ?? candidates.first {
+                format = better
+            }
+        }
+        let actual = Int(min(want, maxRate(format)).rounded(.down))
+        do {
+            try device.lockForConfiguration()
+            if format != current { device.activeFormat = format }
+            let duration = CMTime(value: 1, timescale: CMTimeScale(actual))
+            device.activeVideoMinFrameDuration = duration
+            device.activeVideoMaxFrameDuration = duration
+            device.unlockForConfiguration()
+            UserDefaults.standard.set(actual, forKey: CaptureFrameRate.actualKey)
+        } catch {
+            print("設定幀數失敗：\(error.localizedDescription)")
         }
     }
 
@@ -225,6 +270,7 @@ final class CameraManager: NSObject, Sendable {
             self.installCameraInput()
             self.session.commitConfiguration()
             self.updateMaxPhotoDimensions()
+            self.applyFrameRate()
         }
     }
 

@@ -8,6 +8,32 @@
 @preconcurrency import AVFoundation
 import Foundation
 
+/// 錄影幀數。預設 60 fps；手機或目前解析度不支援時，自動改用支援的最高幀數
+nonisolated enum CaptureFrameRate: Int, CaseIterable, Identifiable {
+    case fps24 = 24
+    case fps30 = 30
+    case fps60 = 60
+
+    static let storageKey = "captureFrameRate"
+    /// 實際套用到相機的幀數（手機不支援時會比設定低）
+    static let actualKey = "captureFrameRateActual"
+    static let defaultRate: CaptureFrameRate = .fps60
+
+    var id: Int { rawValue }
+
+    var title: String {
+        switch self {
+        case .fps24: return "24 fps（電影感、最省空間）"
+        case .fps30: return "30 fps（一般、省電）"
+        case .fps60: return "60 fps（最流暢）"
+        }
+    }
+
+    static var current: CaptureFrameRate {
+        CaptureFrameRate(rawValue: UserDefaults.standard.object(forKey: storageKey) as? Int ?? 0) ?? defaultRate
+    }
+}
+
 /// 錄影與拍照解析度（會同時影響錄影畫質、照片大小與耗電）
 nonisolated enum CaptureResolution: String, CaseIterable, Identifiable {
     case hd720

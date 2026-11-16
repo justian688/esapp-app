@@ -11,6 +11,7 @@
 import SwiftUI
 import UIKit
 import GoogleMobileAds
+import Combine
 
 enum AdConfig {
     /// ⚠️ 上架前換成自己的 AdMob ID（Info.plist 的 GADApplicationIdentifier 也要換）

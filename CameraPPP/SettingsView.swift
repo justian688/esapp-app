@@ -19,6 +19,8 @@ struct SettingsView: View {
     @AppStorage(SubscriptionConfig.testForcePaymentsKey) private var testForcePayments = false
     @AppStorage(SubscriptionConfig.testShortFreeLimitKey) private var testShortFreeLimit = false
     @State private var showingResolutionOptions = false
+    @AppStorage(CaptureFrameRate.storageKey) private var frameRateRaw = CaptureFrameRate.defaultRate.rawValue
+    @State private var showingFrameRateOptions = false
     @State private var showPaywall = false
     
     @Environment(\.dismiss) var dismiss
@@ -129,6 +131,22 @@ struct SettingsView: View {
                         Text(SubscriptionConfig.paymentsEnabled ? "畫質越高越清楚，但越耗電、檔案越大。4K 需要進階版。" : "畫質越高越清楚，但越耗電、檔案越大。")
                     }
                     
+                    SettingsMenuRow(
+                        icon: "speedometer",
+                        title: "錄影幀數",
+                        subtitle: frameRateSubtitle
+                    ) {
+                        showingFrameRateOptions = true
+                    }
+                    .confirmationDialog("錄影幀數", isPresented: $showingFrameRateOptions, titleVisibility: .visible) {
+                        ForEach(CaptureFrameRate.allCases) { option in
+                            Button(option.title) { frameRateRaw = option.rawValue }
+                        }
+                        Button("取消", role: .cancel) { }
+                    } message: {
+                        Text("幀數越高畫面越流暢，但越耗電、檔案越大。手機或目前畫質不支援時，會自動改用支援的最高幀數。")
+                    }
+
                     if SubscriptionConfig.isTestBuild {
                         testToolsSection
                     }
@@ -197,6 +215,15 @@ struct SettingsView: View {
             status = "免費版（每次錄影最多 \(Int(SubscriptionConfig.freeRecordingLimit / 60)) 分鐘、最高 1080p）"
         }
         return "目前狀態：" + status
+    }
+
+    private var frameRateSubtitle: String {
+        let chosen = CaptureFrameRate(rawValue: frameRateRaw) ?? .defaultRate
+        let actual = UserDefaults.standard.integer(forKey: CaptureFrameRate.actualKey)
+        if actual > 0 && actual < chosen.rawValue {
+            return chosen.title + "（這支手機目前畫質最高 \(actual) fps，會自動使用 \(actual) fps）"
+        }
+        return chosen.title
     }
 
     private var currentResolutionTitle: String {
