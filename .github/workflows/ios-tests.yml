@@ -120,7 +120,11 @@ jobs:
             shots/
       - name: 報告推到 ui-test-report 分支
         run: |
-          mkdir rep && cp test-video.mov steps.txt rep/ && (cp -r shots rep/ || true)
+          mkdir rep && cp steps.txt rep/ && (cp -r shots rep/ || true)
+          # 影片壓縮到 GitHub 單檔 100MB 以內（macOS 內建 avconvert）
+          avconvert --preset PresetMediumQuality --source test-video.mov --output rep/test-video.mov --replace >/dev/null 2>&1 || cp test-video.mov rep/test-video.mov
+          SIZE=$(stat -f%z rep/test-video.mov); echo "影片大小：$SIZE"
+          if [ "$SIZE" -gt 95000000 ]; then rm rep/test-video.mov; echo "影片太大，略過上傳"; fi
           cd rep && git init -q && git checkout -q -b ui-test-report && git add -A
           git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "UI 測試報告 ${{ github.sha }}"
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ui-test-report
