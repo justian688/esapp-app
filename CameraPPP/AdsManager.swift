@@ -5,7 +5,7 @@
 //  免費版廣告（Google AdMob）：7 天試用結束、還沒訂閱 → 顯示廣告；訂閱後全部關閉。
 //  - 首頁下方橫幅廣告（錄影中不顯示）
 //  - 每次停止錄影後一則插頁廣告（間隔至少 3 分鐘）
-//  目前用的是 Google 官方「測試廣告」ID，上架前要換成自己 AdMob 帳號的 ID（見 AdConfig）。
+//  App Store 正式版用自己的 AdMob 廣告；TestFlight／Xcode 測試版自動改用 Google 測試廣告。
 //
 
 import SwiftUI
@@ -14,9 +14,15 @@ import GoogleMobileAds
 import Combine
 
 enum AdConfig {
-    /// ⚠️ 上架前換成自己的 AdMob ID（Info.plist 的 GADApplicationIdentifier 也要換）
-    static let bannerUnitID = "ca-app-pub-3940256099942544/2435281174"        // Google 測試橫幅
-    static let interstitialUnitID = "ca-app-pub-3940256099942544/4411468910"  // Google 測試插頁
+    /// 正式廣告版位（AdMob 帳號 pub-9802042309810483，App「es省電王」）
+    private static let prodBanner = "ca-app-pub-9802042309810483/5273038127"        // 首頁橫幅
+    private static let prodInterstitial = "ca-app-pub-9802042309810483/3768384769"  // 錄影結束插頁
+    /// Google 官方測試版位：TestFlight／Xcode 測試版一律用測試廣告，避免自己點到正式廣告被 AdMob 停權
+    private static let testBanner = "ca-app-pub-3940256099942544/2435281174"
+    private static let testInterstitial = "ca-app-pub-3940256099942544/4411468910"
+
+    static var bannerUnitID: String { SubscriptionConfig.isTestBuild ? testBanner : prodBanner }
+    static var interstitialUnitID: String { SubscriptionConfig.isTestBuild ? testInterstitial : prodInterstitial }
     /// 兩則插頁廣告之間至少隔多久
     static let interstitialMinInterval: TimeInterval = 3 * 60
 }
