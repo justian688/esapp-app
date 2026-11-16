@@ -120,10 +120,13 @@ struct UpsellSheet: View {
 
             // 完整版三大優勢（濃縮版對照）
             HStack(spacing: 8) {
-                highlight(AppLanguage.current.localized("Unlimited", "不限時長"), free: AppLanguage.current.localized("Free: 30 min", "免費 30 分"))
-                highlight("4K", free: AppLanguage.current.localized("Free: 1080p", "免費 1080p"))
+                highlight(icon: "infinity", AppLanguage.current.localized("Unlimited", "不限時長"),
+                          free: AppLanguage.current.localized("Free: 30 min", "免費版：30 分鐘"))
+                highlight(icon: "4k.tv", AppLanguage.current.localized("4K quality", "4K 畫質"),
+                          free: AppLanguage.current.localized("Free: 1080p", "免費版：1080p"))
                 if AdConfig.adsEnabled {
-                    highlight(AppLanguage.current.localized("No ads", "無廣告"), free: AppLanguage.current.localized("Free: ads", "免費有廣告"))
+                    highlight(icon: "nosign", AppLanguage.current.localized("No ads", "無廣告"),
+                              free: AppLanguage.current.localized("Free: has ads", "免費版：有廣告"))
                 }
             }
 
@@ -167,7 +170,7 @@ struct UpsellSheet: View {
         .padding(.bottom, 12)
         .frame(maxWidth: .infinity)
         .presentationBackground(Color(red: 0.07, green: 0.065, blue: 0.055))
-        .presentationDetents([.height(500)])
+        .presentationDetents([.height(520)])
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(24)
         .task { await subscriptionManager.loadProducts() }
@@ -176,21 +179,25 @@ struct UpsellSheet: View {
         }
     }
 
-    private func highlight(_ title: String, free: String) -> some View {
-        VStack(spacing: 4) {
+    private func highlight(icon: String, _ title: String, free: String) -> some View {
+        VStack(spacing: 5) {
+            Image(systemName: icon)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundColor(Self.gold.opacity(0.9))
+                .frame(height: 20)
             Text(title)
-                .font(.system(size: 14, weight: .heavy))
+                .font(.system(size: 14, weight: .bold))
                 .foregroundColor(Self.gold.opacity(0.95))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(Capsule().fill(Self.gold.opacity(0.12)))
-                .overlay(Capsule().stroke(Self.gold.opacity(0.35), lineWidth: 1))
             Text(free)
-                .font(.caption2)
+                .font(.system(size: 10.5))
                 .foregroundColor(.white.opacity(0.4))
-                .strikethrough(true, color: .white.opacity(0.3))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Self.gold.opacity(0.06)))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Self.gold.opacity(0.22), lineWidth: 1))
     }
 
     private func planRow(_ p: UpsellPlan, title: String, badge: String?, sub: String, price: String, period: String) -> some View {
