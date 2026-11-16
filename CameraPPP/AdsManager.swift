@@ -14,6 +14,9 @@ import GoogleMobileAds
 import Combine
 
 enum AdConfig {
+    /// 廣告總開關：false = 完全不顯示廣告、不啟動廣告 SDK（2026-11 決定先不做廣告）
+    static let adsEnabled = false
+
     /// 正式廣告版位（AdMob 帳號 pub-9802042309810483，App「es省電王」）
     private static let prodBanner = "ca-app-pub-9802042309810483/5273038127"        // 首頁橫幅
     private static let prodInterstitial = "ca-app-pub-9802042309810483/3768384769"  // 錄影結束插頁
@@ -36,7 +39,7 @@ final class AdsManager: NSObject, ObservableObject, FullScreenContentDelegate {
     private var lastInterstitialAt: Date?
 
     /// 現在要不要顯示廣告：付費功能開啟、沒訂閱、試用已結束
-    static var shouldShowAds: Bool { !FeatureAccess.hasFullAccess }
+    static var shouldShowAds: Bool { AdConfig.adsEnabled && !FeatureAccess.hasFullAccess }
 
     func startIfNeeded() {
         guard Self.shouldShowAds, !started else { return }

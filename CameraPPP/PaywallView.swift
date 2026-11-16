@@ -114,10 +114,12 @@ struct PaywallView: View {
                 "Unlimited recording length (free: 30 min)",
                 "錄影不限時長（免費版每次 30 分鐘）"
             ))
-            paywallFeature(icon: "nosign", text: AppLanguage.current.localized(
-                "No ads",
-                "移除所有廣告"
-            ))
+            if AdConfig.adsEnabled {
+                paywallFeature(icon: "nosign", text: AppLanguage.current.localized(
+                    "No ads",
+                    "移除所有廣告"
+                ))
+            }
             paywallFeature(icon: "4k.tv", text: AppLanguage.current.localized(
                 "4K recording",
                 "4K 超高畫質錄影"

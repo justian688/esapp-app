@@ -176,8 +176,8 @@ final class BillingFlowUITests: XCTestCase {
         // 7. 側邊欄出現升級選項
         tapIfExists(app.buttons["settings_back"])
         let banner = app.descendants(matching: .any)["adBanner"]
-        step("免費版：首頁下方出現廣告", banner.waitForExistence(timeout: 8))
-        pause(6)   // 讓測試廣告載入，錄影裡看得到
+        pause(4)
+        step("廣告已關閉：免費版首頁也沒有廣告", !banner.exists)
         app.buttons["menuButton"].tap()
         pause(2)
         step("側邊欄出現「升級進階版」選項", app.buttons["menu_cart.fill"].exists)

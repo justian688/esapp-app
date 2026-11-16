@@ -31,7 +31,7 @@ struct MainContainerView: View {
     
     /// 免費版（付費功能開啟、試用結束、未訂閱）→ 顯示廣告
     private var showAds: Bool {
-        SubscriptionConfig.paymentsEnabled && !subscriptionManager.isPremium && !trialManager.isTrialActive
+        AdConfig.adsEnabled && SubscriptionConfig.paymentsEnabled && !subscriptionManager.isPremium && !trialManager.isTrialActive
     }
 
     private var preferredCameraFacing: CameraFacing {
