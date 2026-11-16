@@ -15,10 +15,6 @@ struct RecordView: View {
     @State private var timer: Timer? = nil
     @State private var showRecordingPrompt = false
     @State private var recordingPromptTask: Task<Void, Never>? = nil
-    /// 免費版快錄滿時的提前提醒文字（nil = 不顯示）
-    @State private var limitWarning: String?
-    @State private var warnedMinutes: Set<Int> = []
-    @State private var limitWarningTask: Task<Void, Never>? = nil
     
     private var recordingPrompt: String {
         AppLanguage.current.localized(
@@ -156,6 +152,10 @@ struct RecordingOverlayView: View {
     @State private var selectedBackground: RecordingDisplayMode = .black
     @State private var showRecordingPrompt = false
     @State private var recordingPromptTask: Task<Void, Never>? = nil
+    /// 免費版快錄滿時的提前提醒文字（nil = 不顯示）
+    @State private var limitWarning: String?
+    @State private var warnedMinutes: Set<Int> = []
+    @State private var limitWarningTask: Task<Void, Never>? = nil
     
     private var recordingPrompt: String {
         AppLanguage.current.localized(
