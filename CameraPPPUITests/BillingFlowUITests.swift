@@ -96,8 +96,13 @@ final class BillingFlowUITests: XCTestCase {
         shot.name = "廣告畫面"
         shot.lifetime = .keepAlways
         add(shot)
-        if close.isHittable { close.tap() }
-        pause(2)
+        // 廣告前幾秒有倒數，關閉鈕要等倒數完才按得到
+        for _ in 0..<20 {
+            if close.exists && close.isHittable { close.tap(); sleep(2) }
+            if !close.exists { break }
+            sleep(1)
+        }
+        pause(1)
         return true
     }
 
