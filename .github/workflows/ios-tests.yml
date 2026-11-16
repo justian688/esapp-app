@@ -101,11 +101,11 @@ jobs:
           set +e
           xcodebuild test-without-building -project CameraPPP.xcodeproj -scheme CameraPPP \
             -destination "id=$UDID" -derivedDataPath build \
-            -only-testing:CameraPPPUITests/BillingFlowUITests -resultBundlePath ui.xcresult 2>&1 | tee ui.log | grep -E "STEP|error|Executed|TEST "
+            -only-testing:CameraPPPUITests/BillingFlowUITests -only-testing:CameraPPPUITests/AllFeaturesUITests -resultBundlePath ui.xcresult 2>&1 | tee ui.log | grep -E "STEP|FEAT|error|Executed|TEST "
           CODE=${PIPESTATUS[0]}
           sleep 2
           kill -INT $REC; wait $REC
-          grep -E "^STEP|STEP [0-9]" ui.log | sed 's/.*\(STEP\)/\1/' > steps.txt
+          grep -E "STEP [0-9]|FEAT [0-9]" ui.log | sed -E 's/.*((STEP|FEAT) [0-9])/\1/' > steps.txt
           cat steps.txt
           mkdir -p shots
           xcrun xcresulttool export attachments --path ui.xcresult --output-path shots >/dev/null 2>&1 || true

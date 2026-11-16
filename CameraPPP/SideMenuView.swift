@@ -86,8 +86,8 @@ struct SideMenuView: View {
                     
                     MenuRow(icon: "square.and.arrow.up", title: "Share this app") {
                         withAnimation { isMenuOpen = false }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            // shareApp() // 呼叫你的分享邏輯
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                            AppLinks.shareApp()
                         }
                     }
                 }

@@ -148,6 +148,30 @@ struct SettingsView: View {
                         Text("幀數越高畫面越流暢，但越耗電、檔案越大。手機或目前畫質不支援時，會自動改用支援的最高幀數。")
                     }
 
+                    NavigationLink(value: SideMenuDestination.photoSettings) {
+                        HStack(alignment: .center, spacing: 20) {
+                            Image(systemName: "camera.badge.ellipsis")
+                                .font(.system(size: 22))
+                                .foregroundColor(.white)
+                                .frame(width: 24)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("拍照與快速開始")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.white)
+                                Text("拍照模式、Siri 捷徑、主畫面小工具")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.gray)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right").foregroundColor(.gray)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("settings_photoSettings")
+
                     if SubscriptionConfig.isTestBuild {
                         testToolsSection
                     }

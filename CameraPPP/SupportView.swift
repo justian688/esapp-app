@@ -81,25 +81,31 @@ struct SupportView: View {
                                 icon: subscriptionManager.isPremium ? "crown.fill" : "cart.fill",
                                 title: subscriptionManager.isPremium ? "Manage Premium" : "Upgrade to Premium"
                             ) {
-                                showPaywall = true
+                                if subscriptionManager.isPremium {
+                                    AppLinks.open(AppLinks.manageSubscriptionsURL)
+                                } else {
+                                    showPaywall = true
+                                }
                             }
                             }
                             
                             SupportMenuRow(icon: "calendar", title: "Change log") {
-                                // 顯示更新日誌
+                                // App Store 頁面上有每個版本的更新內容
+                                AppLinks.open(AppLinks.appStoreURL)
                             }
                             
                             SupportMenuRow(icon: "square.and.arrow.up", title: "Share this app") {
-                                shareApp()
+                                AppLinks.shareApp()
                             }
                             
                             SupportMenuRow(icon: "star.fill", title: "Review this app") {
                                 // 跳轉到 App Store 評分頁面
-                                rateApp()
+                                AppLinks.open(AppLinks.reviewURL)
                             }
                             
                             SupportMenuRow(icon: "bag.fill", title: "More apps by me!") {
                                 // 跳轉到開發者的 App Store 頁面
+                                AppLinks.open(AppLinks.developerURL)
                             }
                         }
                         .padding(.bottom, 20)
@@ -126,23 +132,6 @@ struct SupportView: View {
     // MARK: - 輔助功能實作
     
     // 分享 App 功能
-    private func shareApp() {
-        let appLink = "https://apps.apple.com/app/idYOUR_APP_ID" // 替換成你的 App Store 連結
-        let activityVC = UIActivityViewController(activityItems: [appLink], applicationActivities: nil)
-        
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootVC = windowScene.windows.first?.rootViewController {
-            activityVC.popoverPresentationController?.sourceView = rootVC.view
-            rootVC.present(activityVC, animated: true)
-        }
-    }
-    
-    private func rateApp() {
-        let appStoreReviewURL = "https://apps.apple.com/app/idYOUR_APP_ID?action=write-review"
-        if let url = URL(string: appStoreReviewURL) {
-            UIApplication.shared.open(url)
-        }
-    }
 }
 
 // MARK: - Support 專用選單列元件

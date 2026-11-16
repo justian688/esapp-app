@@ -32,6 +32,7 @@ struct CustomTopAppBar: View {
                         .foregroundColor(selectedTab == 0 ? Theme.chalkWhite : .gray)
                         .frame(maxWidth: .infinity)
                 }
+                .accessibilityIdentifier("tab_record")
                 
                 Button(action: { withAnimation { selectedTab = 1 } }) {
                     Image(systemName: "pencil")
@@ -39,6 +40,7 @@ struct CustomTopAppBar: View {
                         .foregroundColor(selectedTab == 1 ? Theme.chalkWhite : .gray)
                         .frame(maxWidth: .infinity)
                 }
+                .accessibilityIdentifier("tab_schedule")
             }
             .frame(height: 56)
             .background(Color.black)
