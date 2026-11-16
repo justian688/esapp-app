@@ -167,7 +167,7 @@ struct UpsellSheet: View {
         .padding(.bottom, 12)
         .frame(maxWidth: .infinity)
         .presentationBackground(Color(red: 0.07, green: 0.065, blue: 0.055))
-        .presentationDetents([.height(AdConfig.adsEnabled ? 560 : 540)])
+        .presentationDetents([.height(500)])
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(24)
         .task { await subscriptionManager.loadProducts() }
