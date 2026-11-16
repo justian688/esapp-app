@@ -37,6 +37,8 @@ final class AdsManager: NSObject, ObservableObject, FullScreenContentDelegate {
     private var started = false
     private var interstitial: InterstitialAd?
     private var lastInterstitialAt: Date?
+    /// 要求播廣告時還沒載好：記下時間，載好後 10 秒內就補播
+    private var pendingShowRequestedAt: Date?
 
     /// 現在要不要顯示廣告：付費功能開啟、沒訂閱、試用已結束
     static var shouldShowAds: Bool { AdConfig.adsEnabled && !FeatureAccess.hasFullAccess }
@@ -54,6 +56,10 @@ final class AdsManager: NSObject, ObservableObject, FullScreenContentDelegate {
                 let ad = try await InterstitialAd.load(with: AdConfig.interstitialUnitID, request: Request())
                 ad.fullScreenContentDelegate = self
                 self.interstitial = ad
+                if let asked = self.pendingShowRequestedAt, Date().timeIntervalSince(asked) < 10 {
+                    self.pendingShowRequestedAt = nil
+                    self.presentNow()
+                }
             } catch {
                 print("插頁廣告載入失敗：\(error.localizedDescription)")
             }
@@ -70,10 +76,17 @@ final class AdsManager: NSObject, ObservableObject, FullScreenContentDelegate {
         guard Self.shouldShowAds else { return }
         startIfNeeded()
         if !ignoringInterval, let last = lastInterstitialAt, Date().timeIntervalSince(last) < AdConfig.interstitialMinInterval { return }
-        guard let ad = interstitial, let root = Self.topViewController() else {
+        guard interstitial != nil else {
+            // 還沒載好：載好後再補播
+            pendingShowRequestedAt = Date()
             loadInterstitial()
             return
         }
+        presentNow()
+    }
+
+    private func presentNow() {
+        guard let ad = interstitial, let root = Self.topViewController() else { return }
         lastInterstitialAt = Date()
         ad.present(from: root)
     }

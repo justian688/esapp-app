@@ -167,7 +167,10 @@ struct UpsellSheet: View {
         .presentationDetents([.height(470)])
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(24)
-        .task { await subscriptionManager.loadProducts() }
+        .task {
+            AdsManager.shared.startIfNeeded()   // 免費版：先在背景載好廣告，選「繼續使用免費版」時才播得出來
+            await subscriptionManager.loadProducts()
+        }
         .onChange(of: subscriptionManager.isPremium) { _, isPremium in
             if isPremium { onClose() }
         }
