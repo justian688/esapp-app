@@ -195,6 +195,7 @@ struct ScheduleView: View {
     private var timeString: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "hh:mm a"
+        formatter.locale = Locale(identifier: Translations.isEnglish ? "en_US" : "zh_Hant_TW")
         return formatter.string(from: targetDate)
     }
 

@@ -741,7 +741,7 @@ struct CourseDetailView: View {
                                     HStack(spacing: 0) {
                                         Rectangle().fill(Color.red.opacity(0.3)).frame(width: 3)
                                         VStack(alignment: .leading, spacing: 4) {
-                                            Text(note.title.isEmpty ? "未命名筆記" : note.title)
+                                            Text(note.title.isEmpty ? tr("未命名筆記") : note.title)
                                                 .font(.system(size: 15, weight: .bold))
                                                 .foregroundColor(Theme.chalkWhite)
                                             if !note.body.isEmpty {

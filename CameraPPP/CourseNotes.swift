@@ -119,7 +119,7 @@ struct CourseNotesSection: View {
                                 .foregroundColor(.white)
                                 .padding(.top, 2)
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(note.title.isEmpty ? "未命名課程" : note.title)
+                                Text(note.title.isEmpty ? tr("未命名課程") : note.title)
                                     .font(.system(size: 15, weight: .bold))
                                     .foregroundColor(.white)
                                     .lineLimit(1)
@@ -129,7 +129,7 @@ struct CourseNotesSection: View {
                                         .foregroundColor(.gray)
                                         .lineLimit(2)
                                 }
-                                Text([CourseStore.shared.course(id: note.courseId)?.name, Self.dateFormatter.string(from: note.updatedAt)].compactMap { $0 }.joined(separator: "．"))
+                                Text([CourseStore.shared.course(id: note.courseId).map { tr($0.name) }, Self.dateFormatter.string(from: note.updatedAt)].compactMap { $0 }.joined(separator: "．"))
                                     .font(.system(size: 11))
                                     .foregroundColor(.gray.opacity(0.8))
                             }
@@ -189,7 +189,7 @@ struct CourseNoteEditor: View {
                         Picker("課程", selection: $note.courseId) {
                             Text("不指定").tag(UUID?.none)
                             ForEach(CourseStore.shared.courses) { course in
-                                Text(course.name).tag(Optional(course.id))
+                                Text(tr(course.name)).tag(Optional(course.id))
                             }
                         }
                         .pickerStyle(.menu)
