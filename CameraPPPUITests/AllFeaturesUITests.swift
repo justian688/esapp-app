@@ -214,13 +214,36 @@ final class AllFeaturesUITests: XCTestCase {
             pause(1)
             if !tapIfExists(button("英文"), timeout: 2) { _ = tapIfExists(button("English"), timeout: 2) }
             pause(2)
-            check("設定：切換成英文後畫面變英文", text("Settings").exists || text("Language").exists)
-            if tapIfExists(text("Language")) || tapIfExists(text("語言")) {
+            check("英文：設定頁標題、語言、錄影畫質、幀數都變英文",
+                  text("Settings").exists && text("Language").exists && text("Video quality").exists && text("Frame rate").exists)
+            check("英文：設定頁沒有殘留中文（錄影畫質／錄影幀數）", !text("錄影畫質").exists && !text("錄影幀數").exists)
+            // 側邊欄
+            relaunch()
+            _ = tapIfExists(app.buttons["menuButton"])
+            pause(2)
+            check("英文：側邊欄變英文（Course Library／Course Notes）", text("Course Library").exists && text("Course Notes").exists)
+            app.swipeLeft()
+            pause(1)
+            // 首頁按鈕
+            relaunch()
+            check("英文：首頁「Start Class」", button("Start Class").exists || text("Start Class").exists)
+            // 排程頁
+            _ = tapIfExists(app.buttons["tab_schedule"])
+            pause(2)
+            check("英文：排程錄影頁變英文（Scheduled Recording／Duration）", text("Scheduled Recording").exists && text("Duration").exists)
+            // 課程資訊表
+            relaunch()
+            _ = openMenu("menu_tablecells")
+            check("英文：課程資訊表變英文（Course List）", text("Course List").waitForExistence(timeout: 4))
+            // 切回中文
+            relaunch()
+            _ = openMenu("menu_gearshape.fill")
+            if tapIfExists(text("Language")) {
                 pause(1)
-                _ = tapIfExists(app.buttons["中文"])
+                _ = tapIfExists(button("中文"))
                 pause(2)
             }
-            check("設定：再切回中文", text("設定").exists)
+            check("切回中文：設定頁恢復中文", text("設定").exists && text("錄影畫質").exists)
         } else {
             check("設定：找得到「語言」", false)
         }

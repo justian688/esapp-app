@@ -246,18 +246,23 @@ enum CourseFormat {
         return f
     }()
 
-    static let headerDate: DateFormatter = {
+    static var headerDate: DateFormatter {
         let f = DateFormatter()
-        f.locale = Locale(identifier: "zh_Hant_TW")
-        f.dateFormat = "M月d日 EEEE"
+        if Translations.isEnglish {
+            f.locale = Locale(identifier: "en_US")
+            f.dateFormat = "EEEE, MMM d"
+        } else {
+            f.locale = Locale(identifier: "zh_Hant_TW")
+            f.dateFormat = "M月d日 EEEE"
+        }
         return f
-    }()
+    }
 
     static func relative(_ date: Date?) -> String {
-        guard let date else { return "尚未錄影" }
+        guard let date else { return tr("尚未錄影") }
         let cal = Calendar.current
-        if cal.isDateInToday(date) { return "今天" }
-        if cal.isDateInYesterday(date) { return "昨天" }
+        if cal.isDateInToday(date) { return tr("今天") }
+        if cal.isDateInYesterday(date) { return tr("昨天") }
         return shortDate.string(from: date)
     }
 }

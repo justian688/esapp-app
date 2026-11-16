@@ -1,0 +1,119 @@
+# es省電王 中文 → 英文對照表（用來產生 en.lproj/Localizable.strings）
+# key = App 裡的中文字（LocalizedStringKey 或 tr() 用的原文）；value = 英文
+# 含 %lld / %@ 的是 SwiftUI 內插字串的鍵
+EN = {
+    # 共用
+    "取消": "Cancel", "儲存": "Save", "刪除": "Delete", "關閉": "Close", "完成": "Done", "好": "OK",
+    "建立": "Create", "編輯": "Edit", "開啟": "On", "返回": "Back", "未分類": "Uncategorized",
+    "今天": "Today", "昨天": "Yesterday", "不限": "Unlimited",
+    "前置鏡頭": "Front camera", "後置鏡頭": "Back camera", "相機鏡頭": "Camera",
+    "中文": "中文",
+    # 首頁、錄影
+    "開始上課": "Start Class", "開始錄影": "Start recording", "目前課程": "Current course",
+    "選擇或編輯課程": "Choose or edit course", "未選擇": "None",
+    "點一下": "Tap", "點兩下": "Double-tap", "左右滑動": "Swipe left/right",
+    "拍照（不中斷錄影）": "Take a photo (keeps recording)", "結束錄影": "Stop recording",
+    "切換黑屏／鏡頭畫面": "Switch black screen / camera view",
+    "無法錄影": "Can't record",
+    "沒有相機權限。請到「設定」→「es省電王」打開相機權限後再試一次。":
+        "No camera access. Go to Settings → es省電王, allow Camera, then try again.",
+    "相機還沒準備好，請稍等一下再按錄影。如果一直出現，請把 App 完全關掉再打開。":
+        "The camera isn't ready yet. Wait a moment and try again. If this keeps happening, fully close and reopen the app.",
+    # 側邊欄
+    "課堂錄影．課程筆記": "Class recording · Course notes",
+    "課程相簿": "Course Library", "課程資訊表": "Course List", "課程剪輯": "Trim Video", "課程筆記": "Course Notes",
+    # 排程
+    "排程錄影": "Scheduled Recording", "時長": "Duration", "重複錄影": "Repeat recording",
+    # 課程選擇／編輯
+    "不指定課程": "No course", "影片放在「未分類」": "Videos go to “Uncategorized”",
+    "新增課程": "Add course", "編輯課程": "Edit course",
+    "課程或演講名稱，例如：經濟學": "Course or talk name, e.g. Economics",
+    "老師／講者": "Teacher / speaker", "時間，例如：週四 09:10": "Time, e.g. Thu 09:10",
+    "地點，例如：B203": "Room, e.g. B203", "分類": "Category", "刪除這堂課": "Delete this course",
+    "刪除課程不會刪掉影片和照片，它們會移到「未分類」。":
+        "Deleting a course keeps its videos and photos; they move to “Uncategorized”.",
+    "確定要刪除「%@」嗎？": "Delete “%@”?", "編輯 %@": "Edit %@",
+    # 相簿
+    "建立分類": "New category", "全部": "All",
+    "還沒有影片。到錄影頁按下錄影，錄好的課程都會出現在這裡。":
+        "No videos yet. Start a recording and your classes will show up here.",
+    "例如：學校課程、演講": "e.g. School, Talks",
+    "建立後，新增或編輯課程時可以選這個分類，相簿上方也能用分類篩選。":
+        "You can pick this category when adding or editing a course, and filter the library by it.",
+    "刪除分類（課程移回一般課程）": "Delete category (courses move back to General)",
+    "歸到課程": "Assign to course", "移到其他課程": "Move to another course",
+    "刪除影片": "Delete video", "刪除照片": "Delete photo",
+    # 課程資訊表
+    "還沒有課程或演講。按右上角「新增」，填名稱、老師或講者、時間和地點。":
+        "No courses yet. Tap Add at the top right and fill in the name, teacher, time and room.",
+    "名稱": "Name", "時間": "Time", "地點": "Room", "錄影": "Videos",
+    "%lld 段": "%lld clips", "第 %lld 段": "Clip %lld",
+    "點一列可以編輯。分類可在「課程相簿」右上角建立。":
+        "Tap a row to edit. Create categories at the top right of Course Library.",
+    # 課程詳情
+    "課堂錄影": "Class videos", "這堂課還沒有錄影。": "No videos for this course yet.",
+    "板書與投影片": "Board & slides", "錄影時點一下畫面就能拍照，會放在這裡。":
+        "Tap the screen while recording to take photos; they'll appear here.",
+    "＋ 新增筆記": "+ Add note", "還沒有這堂課的筆記。": "No notes for this course yet.",
+    "未命名筆記": "Untitled note", "未命名課程": "Untitled course",
+    # 課程資料
+    "尚未錄影": "Not recorded yet", "一般分類": "General", "一般課程": "General",
+    # 筆記
+    "新增筆記": "Add note", "編輯筆記": "Edit note",
+    "還沒有筆記。上課時按「新增筆記」，記下課程名稱和重點，課後搭配錄影一起複習。":
+        "No notes yet. Tap “Add note” in class to jot down key points, then review them with your recordings.",
+    "課程名稱，例如：經濟學 第 5 週": "Course name, e.g. Economics week 5",
+    "課程": "Course", "不指定": "None",
+    "課堂重點、老師提到的考試範圍、待複習的地方…": "Key points, exam topics, things to review…",
+    "刪除這則筆記": "Delete this note", "確定要刪除這則筆記嗎？": "Delete this note?",
+    # 設定
+    "設定": "Settings", "語言": "Language",
+    "錄完自動存到「照片」App": "Save to Photos automatically",
+    "影片和照片會另存一份到 iPhone 的「照片」，方便分享與 iCloud 備份":
+        "Also save a copy of videos and photos to the Photos app for sharing and iCloud backup",
+    "錄影畫質": "Video quality",
+    "畫質越高越清楚，但越耗電、檔案越大。4K 需要完整版。":
+        "Higher quality is sharper but uses more battery and storage. 4K requires the Full Version.",
+    "畫質越高越清楚，但越耗電、檔案越大。": "Higher quality is sharper but uses more battery and storage.",
+    "錄影幀數": "Frame rate",
+    "幀數越高畫面越流暢，但越耗電、檔案越大。手機或目前畫質不支援時，會自動改用支援的最高幀數。":
+        "Higher frame rates are smoother but use more battery and storage. If your phone or the current quality doesn't support it, the highest supported rate is used.",
+    "拍照與快速開始": "Photos & Quick Start", "拍照模式、Siri 捷徑、主畫面小工具": "Photo mode, Siri Shortcuts, Home Screen widget",
+    "（4K 需完整版）": " (4K requires Full Version)",
+    "（這支手機目前畫質最高 %lld fps，會自動使用 %lld fps）": " (this phone supports up to %lld fps at this quality, so %lld fps is used)",
+    "24 fps（電影感、最省空間）": "24 fps (cinematic, smallest files)",
+    "30 fps（一般、省電）": "30 fps (standard, saves battery)",
+    "60 fps（最流暢）": "60 fps (smoothest)",
+    "720p（最省電）": "720p (saves the most battery)", "1080p（清晰）": "1080p (sharp)",
+    "4K（完整版，最清晰、較耗電佔空間）": "4K (Full Version, sharpest, more battery & storage)",
+    "4K（最清晰、較耗電佔空間）": "4K (sharpest, more battery & storage)",
+    # 測試工具
+    "🧪 測試工具（只有測試版看得到）": "🧪 Test tools (test builds only)",
+    "模擬付費功能開啟": "Simulate paid features", "免費版上限改成 1 分鐘": "Free limit = 1 minute",
+    "試用重新開始（剩 7 天）": "Restart trial (7 days)",
+    "快轉到剩 23 小時（會跳「明天到期」提醒）": "Jump to 23 hours left (shows “ends tomorrow”)",
+    "快轉到剩 1 分鐘（看到期畫面）": "Jump to 1 minute left", "立刻到期（變免費版）": "Expire now (Free version)",
+    "改完回到錄影首頁，約 1 秒內就會跳出對應的提醒或付費畫面。":
+        "Go back to the record screen; the matching reminder or paywall appears within about a second.",
+    "目前狀態：": "Status: ", "付費功能關閉中（全部免費）": "Payments off (everything free)",
+    "已訂閱": "Subscribed", "試用中，": "Trial, ",
+    "免費版（每次錄影最多 %lld 分鐘、最高 1080p）": "Free (up to %lld min per recording, up to 1080p)",
+    # 拍照與快速開始頁
+    "拍照與畫質設定": "Photos & Quality", "畫質": "Quality", "拍照模式": "Photo mode",
+    "錄影與拍照解析度": "Video & photo resolution",
+    "%@。錄影中變更會在下次錄影時生效": "%@. Changes made while recording apply next time",
+    "快速開始錄影": "Quick start", "Siri 與捷徑": "Siri & Shortcuts",
+    "對 Siri 說「用 es省電王 開始錄影」，或在「捷徑」App 加入主畫面":
+        "Say “Start recording with es省電王” to Siri, or add it to your Home Screen from the Shortcuts app",
+    "主畫面小工具與控制中心": "Home Screen widget & Control Center",
+    "長按主畫面空白處 → 左上角「編輯」→「加入小工具」→ 搜尋 es省電王":
+        "Touch and hold the Home Screen → Edit (top left) → Add Widget → search es省電王",
+    "畫質優先": "Quality first", "平衡": "Balanced", "速度優先": "Speed first",
+    "照片最清楚，連拍時稍慢": "Sharpest photos, slightly slower bursts",
+    "畫質與速度兼顧": "Balances quality and speed",
+    "拍照最快，適合快速連拍投影片": "Fastest, good for snapping slides quickly",
+    # 時長
+    "%lld 小時": "%lld hr", "%lld 分鐘": "%lld min", "%lld 小時 %lld 分鐘": "%lld hr %lld min",
+    # Siri / 小工具
+    "打開 es省電王 並立即開始省電錄影": "Open es省電王 and start power-saving recording right away",
+}

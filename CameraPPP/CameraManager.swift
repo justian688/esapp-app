@@ -36,9 +36,9 @@ enum CameraFacing: Int, CaseIterable, Identifiable {
     var settingsDisplayName: String {
         switch self {
         case .back:
-            return "後置鏡頭"
+            return tr("後置鏡頭")
         case .front:
-            return "前置鏡頭"
+            return tr("前置鏡頭")
         }
     }
     
@@ -62,10 +62,10 @@ nonisolated enum RecordingPreferences {
     static let durationOptions = [3, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 0]
 
     static func durationLabel(_ minutes: Int) -> String {
-        if minutes == 0 { return "不限" }
-        if minutes % 60 == 0 { return "\(minutes / 60) 小時" }
-        if minutes > 60 { return "\(minutes / 60) 小時 \(minutes % 60) 分鐘" }
-        return "\(minutes) 分鐘"
+        if minutes == 0 { return tr("不限") }
+        if minutes % 60 == 0 { return trf("%lld 小時", minutes / 60) }
+        if minutes > 60 { return trf("%lld 小時 %lld 分鐘", minutes / 60, minutes % 60) }
+        return trf("%lld 分鐘", minutes)
     }
 
     static var isRepeatRecordingEnabled: Bool {
@@ -329,7 +329,7 @@ final class CameraManager: NSObject, Sendable {
         guard !fileOutput.isRecording else { return }
 
         guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
-            reportRecordingError("沒有相機權限。請到「設定」→「es省電王」打開相機權限後再試一次。")
+            reportRecordingError(tr("沒有相機權限。請到「設定」→「es省電王」打開相機權限後再試一次。"))
             return
         }
         if session.inputs.isEmpty || session.outputs.isEmpty {
@@ -341,7 +341,7 @@ final class CameraManager: NSObject, Sendable {
         }
         guard session.isRunning, fileOutput.connection(with: .video) != nil else {
             stopSessionIfIdle()
-            reportRecordingError("相機還沒準備好，請稍等一下再按錄影。如果一直出現，請把 App 完全關掉再打開。")
+            reportRecordingError(tr("相機還沒準備好，請稍等一下再按錄影。如果一直出現，請把 App 完全關掉再打開。"))
             return
         }
 
@@ -418,7 +418,7 @@ final class CameraManager: NSObject, Sendable {
             Task { @MainActor in self.isRecording = false }
             if let nsError, !reachedDurationLimit,
                (nsError.userInfo[AVErrorRecordingSuccessfullyFinishedKey] as? Bool) != true {
-                reportRecordingError("錄影中斷了（\(nsError.localizedDescription)，代碼 \(nsError.code)）。請截圖回報。")
+                reportRecordingError(AppLanguage.current.localized("Recording was interrupted (\(nsError.localizedDescription), code \(nsError.code)). Please send us a screenshot.", "錄影中斷了（\(nsError.localizedDescription)，代碼 \(nsError.code)）。請截圖回報。"))
             }
         }
     }

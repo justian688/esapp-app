@@ -129,7 +129,7 @@ struct SettingsView: View {
                         }
                         Button("取消", role: .cancel) { }
                     } message: {
-                        Text(SubscriptionConfig.paymentsEnabled ? "畫質越高越清楚，但越耗電、檔案越大。4K 需要完整版。" : "畫質越高越清楚，但越耗電、檔案越大。")
+                        Text(SubscriptionConfig.paymentsEnabled ? tr("畫質越高越清楚，但越耗電、檔案越大。4K 需要完整版。") : tr("畫質越高越清楚，但越耗電、檔案越大。"))
                     }
                     
                     SettingsMenuRow(
@@ -240,22 +240,22 @@ struct SettingsView: View {
     private var testStatusText: String {
         let status: String
         if !SubscriptionConfig.paymentsEnabled {
-            status = "付費功能關閉中（全部免費）"
+            status = tr("付費功能關閉中（全部免費）")
         } else if subscriptionManager.isPremium {
-            status = "已訂閱"
+            status = tr("已訂閱")
         } else if trialManager.isTrialActive {
-            status = "試用中，" + trialManager.remainingTrialText
+            status = tr("試用中，") + trialManager.remainingTrialText
         } else {
-            status = "免費版（每次錄影最多 \(Int(SubscriptionConfig.freeRecordingLimit / 60)) 分鐘、最高 1080p）"
+            status = trf("免費版（每次錄影最多 %lld 分鐘、最高 1080p）", Int(SubscriptionConfig.freeRecordingLimit / 60))
         }
-        return "目前狀態：" + status
+        return tr("目前狀態：") + status
     }
 
     private var frameRateSubtitle: String {
         let chosen = CaptureFrameRate(rawValue: frameRateRaw) ?? .defaultRate
         let actual = UserDefaults.standard.integer(forKey: CaptureFrameRate.actualKey)
         if actual > 0 && actual < chosen.rawValue {
-            return chosen.title + "（這支手機目前畫質最高 \(actual) fps，會自動使用 \(actual) fps）"
+            return chosen.title + trf("（這支手機目前畫質最高 %lld fps，會自動使用 %lld fps）", actual, actual)
         }
         return chosen.title
     }
@@ -263,17 +263,17 @@ struct SettingsView: View {
     private var currentResolutionTitle: String {
         let saved = CaptureResolution(rawValue: resolutionRaw) ?? .defaultResolution
         if saved.requiresPremium && !hasFullAccess {
-            return CaptureResolution.hd1080.title + "（4K 需完整版）"
+            return CaptureResolution.hd1080.title + tr("（4K 需完整版）")
         }
         return saved.title
     }
 
     private var selectedLanguageName: String {
-        AppLanguage(rawValue: appLanguageRaw)?.displayName ?? "中文"
+        AppLanguage(rawValue: appLanguageRaw)?.displayName ?? tr("中文")
     }
 
     private var selectedCameraFacingName: String {
-        CameraFacing(rawValue: preferredCameraFacing)?.settingsDisplayName ?? "後置鏡頭"
+        CameraFacing(rawValue: preferredCameraFacing)?.settingsDisplayName ?? tr("後置鏡頭")
     }
 }
 
@@ -376,7 +376,7 @@ struct SettingsMenuRow: View {
                         .font(.system(size: 16, weight: .regular))
                         .foregroundColor(.white)
 
-                    Text(subtitle)
+                    Text(tr(subtitle))
                         .font(.system(size: 13))
                         .foregroundColor(.gray)
                         .lineLimit(2)

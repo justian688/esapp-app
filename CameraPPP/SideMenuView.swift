@@ -207,7 +207,7 @@ struct ScheduleView: View {
     }
 
     private var repeatRecording: String {
-        isRepeatRecordingEnabled ? "開啟" : "關閉"
+        isRepeatRecordingEnabled ? tr("開啟") : tr("關閉")
     }
 
     
@@ -371,7 +371,7 @@ struct ScheduleRow: View {
                 Spacer()
                 
                 if !value.isEmpty {
-                    Text(value)
+                    Text(tr(value))
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.gray)
                 }
@@ -398,7 +398,7 @@ struct WheelPickerSheet<Content: View>: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text(title)
+                Text(tr(title))
                     .font(.headline)
                     .foregroundColor(.white)
                 Spacer()

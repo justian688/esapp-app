@@ -12,6 +12,7 @@ import AVKit
 
 struct CurrentCourseCard: View {
     @State private var store = CourseStore.shared
+    @AppStorage(AppLanguage.storageKey) private var appLanguageRaw = AppLanguage.traditionalChinese.rawValue
     @State private var showPicker = false
 
     var body: some View {
@@ -58,8 +59,8 @@ struct CurrentCourseCard: View {
     }
 
     private var title: String {
-        guard let course = store.currentCourse else { return "未選擇" }
-        return course.schedule.isEmpty ? course.name : "\(course.name)．\(course.schedule)"
+        guard let course = store.currentCourse else { return tr("未選擇") }
+        return course.schedule.isEmpty ? tr(course.name) : "\(tr(course.name))．\(course.schedule)"
     }
 }
 
@@ -152,11 +153,11 @@ private struct CoursePickRow: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 3) {
-                Text(title)
+                Text(tr(title))
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(Theme.chalkWhite)
                 if !subtitle.isEmpty {
-                    Text(subtitle)
+                    Text(tr(subtitle))
                         .font(.system(size: 13))
                         .foregroundColor(.gray)
                 }
@@ -209,7 +210,7 @@ struct CourseEditor: View {
             }
             .scrollContentBackground(.hidden)
             .background(Color.black)
-            .navigationTitle(isExisting ? "編輯課程" : "新增課程")
+            .navigationTitle(isExisting ? tr("編輯課程") : tr("新增課程"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -359,7 +360,7 @@ struct CourseLibraryView: View {
         return Button {
             selectedCategory = value
         } label: {
-            Text(title)
+            Text(tr(title))
                 .font(.system(size: 13, weight: selected ? .bold : .regular))
                 .foregroundColor(selected ? .black : .gray)
                 .padding(.horizontal, 14)
@@ -421,7 +422,7 @@ struct CourseLibraryView: View {
                 store.forget(fileURL: item.url)
                 items.removeAll { $0.url == item.url }
             } label: {
-                Label(item.kind == .video ? "刪除影片" : "刪除照片", systemImage: "trash")
+                Label(item.kind == .video ? tr("刪除影片") : tr("刪除照片"), systemImage: "trash")
             }
         }
     }
@@ -447,8 +448,8 @@ struct CourseLibraryView: View {
 
     private func dayTitle(_ day: Date) -> String {
         let cal = Calendar.current
-        if cal.isDateInToday(day) { return "今天" }
-        if cal.isDateInYesterday(day) { return "昨天" }
+        if cal.isDateInToday(day) { return tr("今天") }
+        if cal.isDateInYesterday(day) { return tr("昨天") }
         return CourseFormat.headerDate.string(from: day)
     }
 
@@ -541,7 +542,7 @@ struct CourseInfoTableView: View {
                                     cell(course.teacher, width: 110)
                                     cell(course.schedule, width: 110)
                                     cell(course.room, width: 90)
-                                    cell("\(store.videoCount(courseId: course.id)) 段", width: 60)
+                                    cell(trf("%lld 段", store.videoCount(courseId: course.id)), width: 60)
                                 }
                                 .contentShape(Rectangle())
                                 .onTapGesture { editingCourse = course }
@@ -567,7 +568,7 @@ struct CourseInfoTableView: View {
     }
 
     private func headerCell(_ text: String, width: CGFloat) -> some View {
-        Text(text)
+        Text(tr(text))
             .font(.system(size: 12, weight: .bold))
             .foregroundColor(Theme.chalkYellow)
             .frame(width: width, alignment: .leading)
@@ -577,7 +578,7 @@ struct CourseInfoTableView: View {
     }
 
     private func cell(_ text: String, width: CGFloat, bold: Bool = false) -> some View {
-        Text(text.isEmpty ? "—" : text)
+        Text(text.isEmpty ? "—" : tr(text))
             .font(.system(size: 13, weight: bold ? .bold : .regular))
             .foregroundColor(text.isEmpty ? .gray : Theme.chalkWhite)
             .lineLimit(2)
@@ -662,7 +663,7 @@ struct CourseDetailView: View {
                 }
                 .accessibilityLabel("返回")
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(course?.name ?? "未分類")
+                    Text(course?.name ?? tr("未分類"))
                         .font(.title3.weight(.bold))
                         .foregroundColor(Theme.chalkWhite)
                     if let line = course?.detailLine, !line.isEmpty {
@@ -799,7 +800,7 @@ struct CourseDetailView: View {
             store.forget(fileURL: url)
             Task { await reload() }
         } label: {
-            Label(kind == .video ? "刪除影片" : "刪除照片", systemImage: "trash")
+            Label(kind == .video ? tr("刪除影片") : tr("刪除照片"), systemImage: "trash")
         }
     }
 
@@ -816,14 +817,14 @@ struct CourseDetailView: View {
     }
 
     private func sectionTitle(_ text: String) -> some View {
-        Text(text)
+        Text(tr(text))
             .font(.system(size: 12, weight: .bold))
             .tracking(2)
             .foregroundColor(Theme.chalkYellow)
     }
 
     private func emptyText(_ text: String) -> some View {
-        Text(text)
+        Text(tr(text))
             .font(.system(size: 13))
             .foregroundColor(.gray)
     }

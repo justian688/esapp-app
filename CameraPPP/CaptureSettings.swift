@@ -23,9 +23,9 @@ nonisolated enum CaptureFrameRate: Int, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .fps24: return "24 fps（電影感、最省空間）"
-        case .fps30: return "30 fps（一般、省電）"
-        case .fps60: return "60 fps（最流暢）"
+        case .fps24: return tr("24 fps（電影感、最省空間）")
+        case .fps30: return tr("30 fps（一般、省電）")
+        case .fps60: return tr("60 fps（最流暢）")
         }
     }
 
@@ -48,9 +48,9 @@ nonisolated enum CaptureResolution: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .hd720: return "720p（最省電）"
-        case .hd1080: return "1080p（清晰）"
-        case .uhd4K: return SubscriptionConfig.paymentsEnabled ? "4K（完整版，最清晰、較耗電佔空間）" : "4K（最清晰、較耗電佔空間）"
+        case .hd720: return tr("720p（最省電）")
+        case .hd1080: return tr("1080p（清晰）")
+        case .uhd4K: return SubscriptionConfig.paymentsEnabled ? tr("4K（完整版，最清晰、較耗電佔空間）") : tr("4K（最清晰、較耗電佔空間）")
         }
     }
 
@@ -87,17 +87,17 @@ nonisolated enum PhotoCaptureMode: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .quality: return "畫質優先"
-        case .balanced: return "平衡"
-        case .speed: return "速度優先"
+        case .quality: return tr("畫質優先")
+        case .balanced: return tr("平衡")
+        case .speed: return tr("速度優先")
         }
     }
 
     var subtitle: String {
         switch self {
-        case .quality: return "照片最清楚，連拍時稍慢"
-        case .balanced: return "畫質與速度兼顧"
-        case .speed: return "拍照最快，適合快速連拍投影片"
+        case .quality: return tr("照片最清楚，連拍時稍慢")
+        case .balanced: return tr("畫質與速度兼顧")
+        case .speed: return tr("拍照最快，適合快速連拍投影片")
         }
     }
 

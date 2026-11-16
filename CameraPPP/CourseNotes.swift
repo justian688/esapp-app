@@ -226,7 +226,7 @@ struct CourseNoteEditor: View {
             }
             .padding()
             .background(Color.black.ignoresSafeArea())
-            .navigationTitle(isExisting ? "編輯筆記" : "新增筆記")
+            .navigationTitle(isExisting ? tr("編輯筆記") : tr("新增筆記"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

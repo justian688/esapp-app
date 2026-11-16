@@ -9,6 +9,7 @@ import SwiftUI
 import UIKit
 
 struct RecordView: View {
+    @AppStorage(AppLanguage.storageKey) private var appLanguageRaw = AppLanguage.traditionalChinese.rawValue
     var cameraManager: CameraManager
     
     @State private var timeElapsed = 0
@@ -460,10 +461,10 @@ private struct GuideRow: View {
                 }
             }
             VStack(alignment: .leading, spacing: 1) {
-                Text(title)
+                Text(tr(title))
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
-                Text(detail)
+                Text(tr(detail))
                     .font(.system(size: 13))
                     .foregroundColor(Color(white: 0.8))
             }
