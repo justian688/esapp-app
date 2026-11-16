@@ -22,6 +22,7 @@ struct CustomTopAppBar: View {
                         .foregroundColor(.white)
                         .padding()
                 }
+                .accessibilityIdentifier("menuButton")
                 
                 Spacer()
                 

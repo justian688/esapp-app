@@ -77,6 +77,7 @@ struct PaywallView: View {
                             .font(.title2)
                             .foregroundColor(.gray)
                     }
+                    .accessibilityIdentifier("paywall_close")
                 }
             }
 
@@ -193,6 +194,7 @@ struct PaywallView: View {
                         .foregroundColor(.gray)
                         .underline()
                 }
+                .accessibilityIdentifier("paywall_continueFree")
             }
         }
     }

@@ -139,6 +139,7 @@ struct MenuRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(MenuButtonStyle())
+        .accessibilityIdentifier("menu_" + icon)
     }
 }
 

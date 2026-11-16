@@ -32,6 +32,7 @@ struct SettingsView: View {
                         .font(.title3)
                         .foregroundColor(.white)
                 }
+                .accessibilityIdentifier("settings_back")
                 
                 Text("設定")
                     .font(.title2)
@@ -156,17 +157,18 @@ struct SettingsView: View {
                 .foregroundColor(.orange)
 
             Text(testStatusText)
+                .accessibilityIdentifier("test_status")
                 .font(.subheadline)
                 .foregroundColor(.white)
 
-            Toggle("模擬付費功能開啟", isOn: $testForcePayments)
-            Toggle("免費版上限改成 1 分鐘", isOn: $testShortFreeLimit)
+            Toggle("模擬付費功能開啟", isOn: $testForcePayments).accessibilityIdentifier("test_forcePayments")
+            Toggle("免費版上限改成 1 分鐘", isOn: $testShortFreeLimit).accessibilityIdentifier("test_shortLimit")
 
             Group {
-                Button("試用重新開始（剩 7 天）") { trialManager.testSetRemaining(SubscriptionConfig.trialDuration) }
-                Button("快轉到剩 23 小時（會跳「明天到期」提醒）") { trialManager.testSetRemaining(23 * 3600) }
-                Button("快轉到剩 1 分鐘（看到期畫面）") { trialManager.testSetRemaining(60) }
-                Button("立刻到期（變免費版）") { trialManager.testSetRemaining(0) }
+                Button("試用重新開始（剩 7 天）") { trialManager.testSetRemaining(SubscriptionConfig.trialDuration) }.accessibilityIdentifier("test_restart")
+                Button("快轉到剩 23 小時（會跳「明天到期」提醒）") { trialManager.testSetRemaining(23 * 3600) }.accessibilityIdentifier("test_23h")
+                Button("快轉到剩 1 分鐘（看到期畫面）") { trialManager.testSetRemaining(60) }.accessibilityIdentifier("test_1min")
+                Button("立刻到期（變免費版）") { trialManager.testSetRemaining(0) }.accessibilityIdentifier("test_expire")
             }
             .foregroundColor(Theme.chalkYellow)
 

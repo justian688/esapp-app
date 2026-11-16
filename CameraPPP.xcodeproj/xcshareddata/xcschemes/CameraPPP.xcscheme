@@ -41,6 +41,17 @@
                ReferencedContainer = "container:CameraPPP.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "455FD0792FBF45C000D15C85"
+               BuildableName = "CameraPPPUITests.xctest"
+               BlueprintName = "CameraPPPUITests"
+               ReferencedContainer = "container:CameraPPP.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
