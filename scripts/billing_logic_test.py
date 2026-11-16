@@ -68,6 +68,8 @@ class App:
         self.recording = False
         self.free_limit_alert = False
         self.events = []
+        self.saved_res = "1080p"
+        self.show_4k_notice = False
 
     # TrialManager
     def remaining(self):
@@ -86,13 +88,14 @@ class App:
         self.p.ud["premiumFirstInstallDate"] = start
         self.p.ud.pop("trialEndingReminderShown", None)
         self.p.ud.pop("trialEndedNoticeShown", None)
+        self.p.ud.pop("fourKDowngradeNoticeShown", None)
         self.first = start
 
     # MainContainerView.evaluatePaywallPresentation（每秒 timer 呼叫）
     def tick(self):
         if not self.p.payments_enabled or self.is_premium:
             return
-        if self.recording or self.show_paywall or self.show_reminder:
+        if self.recording or self.show_paywall or self.show_reminder or self.show_4k_notice:
             return
         ud = self.p.ud
         if self.ending_soon() and not ud.get("trialEndingReminderShown"):
@@ -100,11 +103,11 @@ class App:
             self.show_reminder = True
             self.events.append("提醒：明天到期")
             return
-        if (not self.is_premium and not self.trial_active()) and not ud.get("trialEndedNoticeShown"):
-            ud["trialEndedNoticeShown"] = True
-            self.allow_dismiss = True
-            self.show_paywall = True
-            self.events.append("付費畫面：試用結束")
+        if not self.trial_active() and self.saved_res == "4K" and not ud.get("fourKDowngradeNoticeShown"):
+            ud["fourKDowngradeNoticeShown"] = True
+            self.show_4k_notice = True
+            self.events.append("提醒：4K 改 1080p")
+        # 其他情況到期後不自動跳付費畫面
 
     # PaywallView：「繼續使用免費版」按鈕是否出現
     def free_button_visible(self):
@@ -127,6 +130,7 @@ class App:
         self.recording = True
         self.free_limit_alert = False
         session_start = self.p.now
+        self.warnings = []
         recorded, segments = 0.0, []
         while True:
             max_s = segment_min * 60 if segment_min > 0 else None
@@ -139,6 +143,12 @@ class App:
                     break
                 if max_s is None or rem < max_s:
                     max_s, capped = rem, True
+                # 錄影畫面：剩 5 分鐘、剩 1 分鐘時提前提醒（RecordingOverlayView）
+                el = self.p.now - session_start
+                for m in (5, 1):
+                    at = self.p.free_limit - m * 60
+                    if at > 0 and el <= at <= el + max_s and m not in self.warnings:
+                        self.warnings.append(m)
             left = want_seconds - recorded
             seg = left if max_s is None else min(left, max_s)
             self.p.now += seg
@@ -201,22 +211,25 @@ def full_flow(round_no, segment_min, repeat, short_limit):
     a.show_reminder = False  # 使用者按「到期後用免費版」
     a.tick(); a.tick()
     ok &= check(a.events.count("提醒：明天到期") == 1, "提醒只跳一次", log)
-    # 4. 到期
+    # 4. 到期：試用中選了 4K → 只跳「4K 改 1080p」，其他不跳
+    a.saved_res = "4K"
     ph.now += a.remaining() + 1
-    a.tick()
-    ok &= check(a.show_paywall and a.allow_dismiss, "到期跳付費畫面，而且可以關掉", log)
-    ok &= check(a.free_button_visible(), "付費畫面有「繼續使用免費版」按鈕", log)
-    a.show_paywall = False
     for _ in range(5):
         a.tick()
-    ok &= check(a.events.count("付費畫面：試用結束") == 1, "選免費版後不會一直跳", log)
+    ok &= check(a.events.count("提醒：4K 改 1080p") == 1 and not a.show_paywall, "到期時正在用 4K → 只提醒一次「4K 改 1080p」，不跳付費畫面", log)
+    a.show_4k_notice = False
+    for _ in range(5):
+        a.tick()
+    ok &= check(a.events.count("提醒：4K 改 1080p") == 1 and not ph.full_access(), "之後安靜用免費版，不再跳任何提醒", log)
     # 5. 免費版限制
     ok &= check(a.resolution("4K") == "1080p", "免費版 4K 自動降成 1080p", log)
     r, segs = a.record(3 * 3600, segment_min, repeat)
     expect = limit if not (segment_min and not repeat and segment_min * 60 < limit) else segment_min * 60
     ok &= check(r == expect, f"免費版錄 3 小時 → 只錄 {r} 秒（上限 {limit} 秒，分段 {segs}）", log)
     if r == limit:
-        ok &= check(a.free_limit_alert, "錄滿跳「已錄滿免費版 30 分鐘」並提示升級", log)
+        if limit > 300:
+            ok &= check(a.warnings == [5, 1], f"錄影中提前提醒：剩 5 分鐘、剩 1 分鐘（{a.warnings}）", log)
+        ok &= check(a.free_limit_alert, "錄滿停止後告訴他「已錄滿 30 分鐘，影片已保存」", log)
     r2, _ = a.record(10 * 60, segment_min, repeat)
     ok &= check(r2 == min(600, limit, segment_min * 60 if segment_min else 10**9),
                 f"免費版錄短的（10 分）正常結束（實錄 {r2} 秒）", log)

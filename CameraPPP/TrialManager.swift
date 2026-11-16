@@ -112,6 +112,7 @@ final class TrialManager: ObservableObject {
         UserDefaults.standard.set(start, forKey: SubscriptionConfig.firstInstallDateKey)
         UserDefaults.standard.removeObject(forKey: SubscriptionConfig.trialReminderShownKey)
         UserDefaults.standard.removeObject(forKey: SubscriptionConfig.trialEndedNoticeShownKey)
+        UserDefaults.standard.removeObject(forKey: SubscriptionConfig.fourKDowngradeNoticeShownKey)
         firstInstallDate = start
         isTrialActive = Date().timeIntervalSince(start) < SubscriptionConfig.trialDuration
     }

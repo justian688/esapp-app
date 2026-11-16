@@ -15,6 +15,10 @@ struct RecordView: View {
     @State private var timer: Timer? = nil
     @State private var showRecordingPrompt = false
     @State private var recordingPromptTask: Task<Void, Never>? = nil
+    /// 免費版快錄滿時的提前提醒文字（nil = 不顯示）
+    @State private var limitWarning: String?
+    @State private var warnedMinutes: Set<Int> = []
+    @State private var limitWarningTask: Task<Void, Never>? = nil
     
     private var recordingPrompt: String {
         AppLanguage.current.localized(
@@ -178,12 +182,42 @@ struct RecordingOverlayView: View {
             }
             
 
+            if let limitWarning {
+                VStack {
+                    Text(limitWarning)
+                        .font(.headline)
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
+                        .background(Theme.chalkYellow, in: RoundedRectangle(cornerRadius: 16))
+                        .padding(.top, 70)
+                        .padding(.horizontal, 24)
+                    Spacer()
+                }
+                .allowsHitTesting(false)
+                .transition(.opacity)
+            }
+
             RecordingGestureOverlay(
                 onSingleTap: capturePhoto,
                 onDoubleTap: stopRecording,
                 onSwipeLeft: showNextBackground,
                 onSwipeRight: showPreviousBackground
             )
+        }
+        .task {
+            // 免費版：剩 5 分鐘、剩 1 分鐘時提前提醒
+            while !Task.isCancelled {
+                if let endsAt = cameraManager.freeLimitEndsAt {
+                    let left = endsAt.timeIntervalSinceNow
+                    for m in [5, 1] where left <= Double(m * 60) && left > Double(m * 60 - 30) && !warnedMinutes.contains(m) {
+                        warnedMinutes.insert(m)
+                        showLimitWarning(minutes: m)
+                    }
+                }
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+            }
         }
         .onAppear {
             selectedBackground = .black
@@ -203,6 +237,28 @@ struct RecordingOverlayView: View {
         }
     }
     
+    private func showLimitWarning(minutes: Int) {
+        limitWarningTask?.cancel()
+        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        ScreenController.restoreBrightness()
+        withAnimation {
+            limitWarning = AppLanguage.current.localized(
+                "Free version: \(minutes) min left.\nRecording stops and saves automatically at 30 min.",
+                "免費版還剩 \(minutes) 分鐘\n錄滿 30 分鐘會自動停止並保存"
+            )
+        }
+        limitWarningTask = Task {
+            try? await Task.sleep(nanoseconds: 8_000_000_000)
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                withAnimation { limitWarning = nil }
+                if selectedBackground == .black && !showRecordingPrompt {
+                    ScreenController.dimForBlackScreen()
+                }
+            }
+        }
+    }
+
     private func capturePhoto() {
         guard cameraManager.isRecording else { return }
         cameraManager.capturePhoto()

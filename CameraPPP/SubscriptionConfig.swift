@@ -59,6 +59,8 @@ nonisolated enum SubscriptionConfig {
     static let trialReminderLead: TimeInterval = 24 * 60 * 60
     static let trialReminderShownKey = "trialEndingReminderShown"
     static let trialEndedNoticeShownKey = "trialEndedNoticeShown"
+    /// 到期時正在用 4K → 告訴他已改成 1080p（只提醒一次）
+    static let fourKDowngradeNoticeShownKey = "fourKDowngradeNoticeShown"
 
     static let firstInstallDateKey = "premiumFirstInstallDate"
     static let premiumStatusKey = "isPremiumUnlocked"

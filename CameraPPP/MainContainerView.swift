@@ -19,6 +19,7 @@ struct MainContainerView: View {
     @State private var allowPaywallDismiss = true
     @State private var trialCheckTimer: Timer?
     @State private var showTrialEndingReminder = false
+    @State private var showFourKDowngradeNotice = false
     
     @State private var cameraManager: CameraManager
     
@@ -181,21 +182,35 @@ struct MainContainerView: View {
             ))
         }
         .alert(
-            AppLanguage.current.localized("30-minute free limit reached", "已錄滿免費版 30 分鐘"),
+            AppLanguage.current.localized("4K is now 1080p", "4K 已改為 1080p"),
+            isPresented: $showFourKDowngradeNotice
+        ) {
+            Button(AppLanguage.current.localized("Subscribe for 4K", "訂閱繼續用 4K")) {
+                openPaywallManually()
+            }
+            Button(AppLanguage.current.localized("Use 1080p", "用 1080p 繼續"), role: .cancel) { }
+        } message: {
+            Text(AppLanguage.current.localized(
+                "Your free trial has ended, so recordings now use 1080p. Subscribe to keep recording in 4K.",
+                "免費試用已結束，之後錄影會用 1080p。訂閱進階版即可繼續使用 4K。"
+            ))
+        }
+        .alert(
+            AppLanguage.current.localized("30-minute limit reached", "已錄滿 30 分鐘"),
             isPresented: Binding(
                 get: { cameraManager.freeLimitReached },
                 set: { if !$0 { cameraManager.freeLimitReached = false } }
             )
         ) {
-            Button(AppLanguage.current.localized("Upgrade", "升級進階版")) {
+            Button(AppLanguage.current.localized("Upgrade", "升級不限時長")) {
                 cameraManager.freeLimitReached = false
                 openPaywallManually()
             }
             Button(AppLanguage.current.localized("OK", "好"), role: .cancel) { }
         } message: {
             Text(AppLanguage.current.localized(
-                "This recording has been saved. Premium removes the time limit.",
-                "這段影片已經保存。升級進階版即可不限時長錄影。"
+                "The free version records up to 30 minutes at a time. This recording has been saved.",
+                "免費版每次最多錄 30 分鐘，這段影片已經保存。"
             ))
         }
         .fullScreenCover(isPresented: $showPaywall) {
@@ -256,7 +271,7 @@ struct MainContainerView: View {
         trialCheckTimer = timer
     }
 
-    /// 試用到期前 1 天提醒一次；到期當下再顯示一次付費方案（可關閉，關掉就是繼續用免費版）
+    /// 只在試用到期前 1 天提醒一次，讓使用者選擇付費或到期後用免費版
     private func evaluatePaywallPresentation() {
         guard SubscriptionConfig.paymentsEnabled, !subscriptionManager.isPremium else { return }
         guard !cameraManager.isRecording, !showPaywall, !showTrialEndingReminder else { return }
@@ -269,11 +284,13 @@ struct MainContainerView: View {
             return
         }
 
-        if trialManager.shouldShowPaywall(isPremium: subscriptionManager.isPremium),
-           !defaults.bool(forKey: SubscriptionConfig.trialEndedNoticeShownKey) {
-            defaults.set(true, forKey: SubscriptionConfig.trialEndedNoticeShownKey)
-            allowPaywallDismiss = true
-            showPaywall = true
+        // 到期時正在用 4K：告訴他已改成 1080p，可訂閱繼續用 4K（只一次）
+        if !trialManager.isTrialActive,
+           captureResolutionRaw == CaptureResolution.uhd4K.rawValue,
+           !defaults.bool(forKey: SubscriptionConfig.fourKDowngradeNoticeShownKey) {
+            defaults.set(true, forKey: SubscriptionConfig.fourKDowngradeNoticeShownKey)
+            showFourKDowngradeNotice = true
         }
+        // 其他情況到期後直接變免費版，不自動跳付費畫面
     }
 }

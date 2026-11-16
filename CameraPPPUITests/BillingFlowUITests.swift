@@ -3,7 +3,7 @@
 //  CameraPPPUITests
 //
 //  實際操作畫面的收費流程測試（CI 會同時錄下模擬器畫面）：
-//  試用中 → 4K 可用 → 快轉剩 23 小時跳「明天到期」→ 到期跳付費畫面 → 選免費版
+//  試用中 → 4K 可用 → 快轉剩 23 小時跳「明天到期」→ 到期時正在用 4K 才提醒改 1080p → 其他不跳畫面
 //  → 4K 上鎖、點了跳付費畫面 → 免費版上限 → 側邊欄有升級選項
 //
 
@@ -129,7 +129,9 @@ final class BillingFlowUITests: XCTestCase {
         // 2. 試用中 4K 可用
         var opt = open4KOption()
         step("試用中：4K 選項沒有上鎖（\(opt.label)）", opt.exists && !opt.label.contains("🔒"))
-        dismissDialog()
+        tapIfExists(opt)   // 試用中選 4K
+        pause(2)
+        step("試用中可以選 4K 錄影", app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH '4K'")).firstMatch.exists)
 
         // 3. 快轉到剩 23 小時 → 明天到期提醒
         tapTool("test_23h")
@@ -142,15 +144,15 @@ final class BillingFlowUITests: XCTestCase {
         pause(3)
         step("選「到期後用免費版」後不會再跳提醒", !app.alerts["免費試用明天到期"].exists)
 
-        // 4. 立刻到期 → 付費畫面，可選免費版
+        // 4. 立刻到期 → 不跳任何東西，直接變免費版
         tapTool("test_expire")
-        let freeBtn = app.buttons["paywall_continueFree"]
-        step("到期 → 跳出付費畫面（有月訂閱／年訂閱）", freeBtn.waitForExistence(timeout: 6))
+        let fourK = app.alerts["4K 已改為 1080p"]
+        step("到期時正在用 4K → 提醒「4K 已改為 1080p」", fourK.waitForExistence(timeout: 6))
+        pause(2)
+        step("提醒有「訂閱繼續用 4K」／「用 1080p 繼續」", fourK.buttons["訂閱繼續用 4K"].exists && fourK.buttons["用 1080p 繼續"].exists)
+        tapIfExists(fourK.buttons["用 1080p 繼續"])
         pause(3)
-        step("付費畫面有「繼續使用免費版」按鈕", freeBtn.exists)
-        tapIfExists(freeBtn)
-        pause(3)
-        step("選免費版後付費畫面關閉、不會再跳", !app.buttons["paywall_continueFree"].exists)
+        step("到期後沒有其他自動跳出的付費畫面", !app.buttons["paywall_continueFree"].exists && !app.buttons["paywall_close"].exists && !app.alerts.firstMatch.exists)
         scrollTo(app.staticTexts["test_status"])
         step("狀態變成免費版：\(status)", status.contains("免費版") && status.contains("30 分鐘"))
 
