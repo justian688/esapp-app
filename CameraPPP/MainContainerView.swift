@@ -28,6 +28,11 @@ struct MainContainerView: View {
         _cameraManager = State(initialValue: CameraManager(initialCameraFacing: savedFacing))
     }
     
+    /// 免費版（付費功能開啟、試用結束、未訂閱）→ 顯示廣告
+    private var showAds: Bool {
+        SubscriptionConfig.paymentsEnabled && !subscriptionManager.isPremium && !trialManager.isTrialActive
+    }
+
     private var preferredCameraFacing: CameraFacing {
         CameraFacing(rawValue: preferredCameraFacingRaw) ?? CameraFacing.defaultFacing
     }
@@ -52,6 +57,11 @@ struct MainContainerView: View {
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
                     .ignoresSafeArea(.container, edges: .bottom)
+
+                    // 免費版（試用結束、未訂閱）：首頁下方橫幅廣告，錄影中不顯示
+                    if showAds && !cameraManager.isRecording {
+                        FreeTierBanner()
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .opacity(cameraManager.isRecording ? 0 : 1)
@@ -139,6 +149,14 @@ struct MainContainerView: View {
         .persistentSystemOverlays(cameraManager.isRecording ? .hidden : .automatic)
         .onChange(of: cameraManager.isRecording) { _, isRecording in
             ScreenController.setRecordingActive(isRecording)
+            // 免費版：停止錄影後播一則插頁廣告（錄滿 30 分鐘的情況等提示關掉後再播）
+            if !isRecording && showAds {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    if !cameraManager.freeLimitReached && !showPaywall {
+                        AdsManager.shared.showInterstitialAfterRecording()
+                    }
+                }
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
             ScreenController.restoreBrightness()
@@ -206,7 +224,11 @@ struct MainContainerView: View {
                 cameraManager.freeLimitReached = false
                 openPaywallManually()
             }
-            Button(AppLanguage.current.localized("OK", "好"), role: .cancel) { }
+            Button(AppLanguage.current.localized("OK", "好"), role: .cancel) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    AdsManager.shared.showInterstitialAfterRecording()
+                }
+            }
         } message: {
             Text(AppLanguage.current.localized(
                 "The free version records up to 30 minutes at a time. This recording has been saved.",
