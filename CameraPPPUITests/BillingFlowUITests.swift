@@ -184,7 +184,7 @@ final class BillingFlowUITests: XCTestCase {
         step("免費版：4K 選項上鎖（\(opt.label)）", opt.label.contains("🔒"))
         tapIfExists(opt)
         let up = app.staticTexts["upsell_title"]
-        step("點上鎖的 4K → 小彈窗「4K 是完整版功能」", up.waitForExistence(timeout: 6) && up.label.contains("4K"))
+        step("點上鎖的 4K → 小彈窗「立即享受 4K 完整版功能」", up.waitForExistence(timeout: 6) && up.label.contains("4K"))
         pause(2)
         step("小彈窗有年訂閱、月訂閱兩個方案", app.buttons["upsell_yearly"].exists && app.buttons["upsell_monthly"].exists)
         tapIfExists(app.buttons["upsell_monthly"])

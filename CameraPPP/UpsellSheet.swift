@@ -26,7 +26,7 @@ enum UpsellReason: Identifiable {
     var title: String {
         switch self {
         case .fourK:
-            return AppLanguage.current.localized("4K is a Premium feature", "4K 是完整版功能")
+            return AppLanguage.current.localized("Enjoy 4K with the Full Version now", "立即享受 4K 完整版功能")
         case .timeLimit:
             return AppLanguage.current.localized("30-minute limit reached", "已錄滿 30 分鐘")
         case .fourKDowngraded:
