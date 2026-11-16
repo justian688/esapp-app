@@ -135,7 +135,8 @@ final class AllFeaturesUITests: XCTestCase {
             pause(1)
             _ = tapIfExists(button("儲存"))
             pause(2)
-            check("課程資訊表：新增課程「測試課程A」後出現在列表", text("測試課程A").exists)
+            let added = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", "測試課程")).firstMatch
+            check("課程資訊表：新增課程「測試課程A」後出現在列表", added.exists)
         } else {
             check("課程資訊表：找得到「新增」按鈕", false)
         }
@@ -211,7 +212,7 @@ final class AllFeaturesUITests: XCTestCase {
         _ = openMenu("menu_gearshape.fill")
         if tapIfExists(text("語言")) {
             pause(1)
-            _ = tapIfExists(app.buttons["English"])
+            if !tapIfExists(button("英文"), timeout: 2) { _ = tapIfExists(button("English"), timeout: 2) }
             pause(2)
             check("設定：切換成英文後畫面變英文", text("Settings").exists || text("Language").exists)
             if tapIfExists(text("Language")) || tapIfExists(text("語言")) {

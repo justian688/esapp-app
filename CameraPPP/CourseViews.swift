@@ -49,6 +49,9 @@ struct CurrentCourseCard: View {
         .background(Theme.chalkboard)
         .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.chalkLine, lineWidth: 1))
         .clipShape(RoundedRectangle(cornerRadius: 14))
+        // 整張卡片都能點，不用剛好點到右邊的小圖示
+        .contentShape(Rectangle())
+        .onTapGesture { showPicker = true }
         .sheet(isPresented: $showPicker) {
             CoursePickerSheet()
         }
