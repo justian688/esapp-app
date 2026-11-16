@@ -70,6 +70,21 @@ struct UpsellSheet: View {
 
     private static let gold = Color(red: 0.96, green: 0.80, blue: 0.36)
 
+    @State private var plan: UpsellPlan = .yearly
+
+    private enum UpsellPlan { case yearly, monthly }
+
+    private var monthlyPrice: String {
+        subscriptionManager.monthlyProduct?.displayPrice ?? SubscriptionConfig.fallbackMonthlyPrice
+    }
+
+    private var savings: Int {
+        let m = NSDecimalNumber(decimal: subscriptionManager.monthlyProduct?.price ?? SubscriptionConfig.fallbackMonthlyValue).doubleValue * 12
+        let y = NSDecimalNumber(decimal: subscriptionManager.yearlyProduct?.price ?? SubscriptionConfig.fallbackYearlyValue).doubleValue
+        guard m > 0, y < m else { return 0 }
+        return Int(((1 - y / m) * 100).rounded(.down))
+    }
+
     private var yearlyPrice: String {
         subscriptionManager.yearlyProduct?.displayPrice ?? SubscriptionConfig.fallbackYearlyPrice
     }
@@ -103,28 +118,33 @@ struct UpsellSheet: View {
                 Spacer(minLength: 0)
             }
 
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(AppLanguage.current.localized("Premium · Yearly", "完整版 · 年訂閱"))
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(.white)
-                    Text(AppLanguage.current.localized("About \(perMonth)/month · cancel anytime", "每月約 \(perMonth)，隨時可取消"))
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.5))
+            // 完整版三大優勢（濃縮版對照）
+            HStack(spacing: 8) {
+                highlight(AppLanguage.current.localized("Unlimited", "不限時長"), free: AppLanguage.current.localized("Free: 30 min", "免費 30 分"))
+                highlight("4K", free: AppLanguage.current.localized("Free: 1080p", "免費 1080p"))
+                if AdConfig.adsEnabled {
+                    highlight(AppLanguage.current.localized("No ads", "無廣告"), free: AppLanguage.current.localized("Free: ads", "免費有廣告"))
                 }
-                Spacer()
-                Text(yearlyPrice + AppLanguage.current.localized("/yr", "/年"))
-                    .font(.headline)
-                    .foregroundColor(Self.gold.opacity(0.95))
             }
-            .padding(14)
-            .background(RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.06)))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Self.gold.opacity(0.35), lineWidth: 1))
+
+            // 年／月方案
+            VStack(spacing: 8) {
+                planRow(.yearly,
+                        title: AppLanguage.current.localized("Yearly", "年訂閱"),
+                        badge: savings > 0 ? AppLanguage.current.localized("SAVE \(savings)%", "省 \(savings)%") : nil,
+                        sub: AppLanguage.current.localized("About \(perMonth)/month", "每月約 \(perMonth)"),
+                        price: yearlyPrice, period: AppLanguage.current.localized("/yr", "/年"))
+                planRow(.monthly,
+                        title: AppLanguage.current.localized("Monthly", "月訂閱"),
+                        badge: nil,
+                        sub: AppLanguage.current.localized("Cancel anytime", "隨時可取消"),
+                        price: monthlyPrice, period: AppLanguage.current.localized("/mo", "/月"))
+            }
 
             Button {
-                Task { await purchaseYearly() }
+                Task { await purchaseSelected() }
             } label: {
-                Text(AppLanguage.current.localized("Upgrade to Premium", "升級完整版"))
+                Text(AppLanguage.current.localized("Upgrade to Full Version", "升級完整版"))
                     .font(.headline)
                     .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
@@ -147,7 +167,7 @@ struct UpsellSheet: View {
         .padding(.bottom, 12)
         .frame(maxWidth: .infinity)
         .presentationBackground(Color(red: 0.07, green: 0.065, blue: 0.055))
-        .presentationDetents([.height(380)])
+        .presentationDetents([.height(AdConfig.adsEnabled ? 560 : 540)])
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(24)
         .task { await subscriptionManager.loadProducts() }
@@ -156,11 +176,66 @@ struct UpsellSheet: View {
         }
     }
 
-    private func purchaseYearly() async {
-        if subscriptionManager.yearlyProduct == nil {
+    private func highlight(_ title: String, free: String) -> some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.system(size: 14, weight: .heavy))
+                .foregroundColor(Self.gold.opacity(0.95))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(Capsule().fill(Self.gold.opacity(0.12)))
+                .overlay(Capsule().stroke(Self.gold.opacity(0.35), lineWidth: 1))
+            Text(free)
+                .font(.caption2)
+                .foregroundColor(.white.opacity(0.4))
+                .strikethrough(true, color: .white.opacity(0.3))
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func planRow(_ p: UpsellPlan, title: String, badge: String?, sub: String, price: String, period: String) -> some View {
+        let selected = plan == p
+        return Button {
+            withAnimation(.easeOut(duration: 0.15)) { plan = p }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 20))
+                    .foregroundColor(selected ? Self.gold : .white.opacity(0.3))
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(title).font(.subheadline.weight(.semibold)).foregroundColor(.white)
+                        if let badge {
+                            Text(badge)
+                                .font(.caption2.bold())
+                                .foregroundColor(Self.gold)
+                                .padding(.horizontal, 6).padding(.vertical, 2)
+                                .background(Capsule().fill(Self.gold.opacity(0.15)))
+                        }
+                    }
+                    Text(sub).font(.caption).foregroundColor(.white.opacity(0.5))
+                }
+                Spacer()
+                HStack(alignment: .firstTextBaseline, spacing: 1) {
+                    Text(price).font(.headline).foregroundColor(.white)
+                    Text(period).font(.caption).foregroundColor(.white.opacity(0.5))
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            .background(RoundedRectangle(cornerRadius: 14).fill(selected ? Self.gold.opacity(0.07) : Color.white.opacity(0.04)))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(selected ? Self.gold.opacity(0.7) : Color.white.opacity(0.08), lineWidth: selected ? 1.5 : 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(p == .yearly ? "upsell_yearly" : "upsell_monthly")
+    }
+
+    private func purchaseSelected() async {
+        if subscriptionManager.yearlyProduct == nil || subscriptionManager.monthlyProduct == nil {
             await subscriptionManager.loadProducts()
         }
-        guard let product = subscriptionManager.yearlyProduct else {
+        let product = plan == .yearly ? subscriptionManager.yearlyProduct : subscriptionManager.monthlyProduct
+        guard let product else {
             onSeeAllPlans()   // 商品還沒就緒：改開完整方案頁（那裡有錯誤提示與恢復購買）
             return
         }
