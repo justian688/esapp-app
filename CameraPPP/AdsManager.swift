@@ -14,8 +14,8 @@ import GoogleMobileAds
 import Combine
 
 enum AdConfig {
-    /// 廣告總開關：false = 完全不顯示廣告、不啟動廣告 SDK（2026-11 決定先不做廣告）
-    static let adsEnabled = false
+    /// 廣告總開關：true = 免費版（試用結束、未訂閱）顯示廣告；false = 完全不顯示廣告、不啟動廣告 SDK
+    static let adsEnabled = true
 
     /// 正式廣告版位（AdMob 帳號 pub-9802042309810483，App「es省電王」）
     private static let prodBanner = "ca-app-pub-9802042309810483/5273038127"        // 首頁橫幅

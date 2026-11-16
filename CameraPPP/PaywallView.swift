@@ -16,6 +16,7 @@ struct PaywallView: View {
     var allowDismiss: Bool = true
 
     @State private var selectedPlan: PaywallPlan = .yearly
+    @State private var crownPulse = false
 
     private var monthlyPriceText: String {
         subscriptionManager.monthlyProduct?.displayPrice ?? SubscriptionConfig.fallbackMonthlyPrice
@@ -138,6 +139,11 @@ struct PaywallView: View {
                 Image(systemName: "crown.fill")
                     .font(.system(size: 44))
                     .foregroundStyle(LinearGradient(colors: [Self.gold, Color(red: 0.85, green: 0.6, blue: 0.2)], startPoint: .top, endPoint: .bottom))
+                    .shadow(color: Self.gold.opacity(crownPulse ? 0.8 : 0.3), radius: crownPulse ? 18 : 8)
+                    .scaleEffect(crownPulse ? 1.06 : 1.0)
+            }
+            .onAppear {
+                withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) { crownPulse = true }
             }
             .padding(.top, allowDismiss ? -16 : 8)
 
@@ -172,9 +178,12 @@ struct PaywallView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Text(AppLanguage.current.localized("Free", "免費版"))
                     .frame(width: 72)
-                Text(AppLanguage.current.localized("Premium", "進階版"))
-                    .foregroundColor(Self.gold)
-                    .frame(width: 72)
+                HStack(spacing: 3) {
+                    Image(systemName: "crown.fill").font(.system(size: 10))
+                    Text(AppLanguage.current.localized("Premium", "進階版"))
+                }
+                .foregroundColor(Self.gold)
+                .frame(width: 80)
             }
             .font(.caption.bold())
             .foregroundColor(.white.opacity(0.5))
@@ -188,11 +197,10 @@ struct PaywallView: View {
                        free: .text("1080p"), premium: .text("4K"), highlight: true)
             if AdConfig.adsEnabled {
                 compareRow(AppLanguage.current.localized("Ads", "廣告"),
-                           free: .text(AppLanguage.current.localized("Yes", "有")),
-                           premium: .text(AppLanguage.current.localized("None", "無")), highlight: true)
+                           free: .text(AppLanguage.current.localized("Has ads", "有廣告")),
+                           premium: .text(AppLanguage.current.localized("Ad-free", "無廣告")), highlight: true)
             }
             compareRow(AppLanguage.current.localized("Up to 60 fps", "最高 60 fps"), free: .check, premium: .check)
-            compareRow(AppLanguage.current.localized("Black-screen power saving", "黑畫面省電錄影"), free: .check, premium: .check)
             compareRow(AppLanguage.current.localized("Scheduled recording", "排程錄影"), free: .check, premium: .check)
             compareRow(AppLanguage.current.localized("Trimming & course notes", "剪輯、課程筆記"), free: .check, premium: .check, isLast: true)
         }
@@ -333,6 +341,8 @@ struct PaywallView: View {
                         RoundedRectangle(cornerRadius: 16)
                             .fill(LinearGradient(colors: [Self.gold, Color(red: 0.90, green: 0.68, blue: 0.25)], startPoint: .leading, endPoint: .trailing))
                     )
+                    .overlay(ShimmerSweep().clipShape(RoundedRectangle(cornerRadius: 16)))
+                    .shadow(color: Self.gold.opacity(0.45), radius: 14, y: 4)
             }
             .accessibilityIdentifier("paywall_subscribe")
 
@@ -411,4 +421,46 @@ struct PaywallView: View {
 private enum PaywallPlan {
     case monthly
     case yearly
+}
+
+
+/// 進階版欄位：金色漸層底＋發光外框＋流動光澤
+private struct PremiumColumnGlow: View {
+    let gold: Color
+    @State private var glow = false
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 14)
+            .fill(LinearGradient(colors: [gold.opacity(0.22), gold.opacity(0.06)], startPoint: .top, endPoint: .bottom))
+            .overlay(ShimmerSweep(period: 3.2).clipShape(RoundedRectangle(cornerRadius: 14)))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(LinearGradient(colors: [gold, gold.opacity(0.4), gold], startPoint: .top, endPoint: .bottom), lineWidth: 1.5)
+            )
+            .shadow(color: gold.opacity(glow ? 0.55 : 0.2), radius: glow ? 14 : 6)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) { glow = true }
+            }
+            .allowsHitTesting(false)
+    }
+}
+
+/// 斜向掃過的一道光
+private struct ShimmerSweep: View {
+    var period: Double = 2.6
+    @State private var phase: CGFloat = -1
+
+    var body: some View {
+        GeometryReader { geo in
+            LinearGradient(colors: [.clear, .white.opacity(0.35), .clear], startPoint: .leading, endPoint: .trailing)
+                .frame(width: max(geo.size.width, geo.size.height) * 0.6)
+                .rotationEffect(.degrees(20))
+                .offset(x: phase * geo.size.width * 1.6)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .allowsHitTesting(false)
+        .onAppear {
+            withAnimation(.linear(duration: period).repeatForever(autoreverses: false)) { phase = 1 }
+        }
+    }
 }
