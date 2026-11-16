@@ -102,6 +102,20 @@ final class TrialManager: ObservableObject {
         )
     }
 
+    // MARK: - 測試工具（只在 TestFlight / Xcode 測試版使用）
+
+    /// 把試用剩餘時間直接設成指定秒數（0 = 立刻到期），並重設提醒，讓提醒可以再跳一次
+    func testSetRemaining(_ seconds: TimeInterval) {
+        guard SubscriptionConfig.isTestBuild else { return }
+        let start = Date().addingTimeInterval(seconds - SubscriptionConfig.trialDuration)
+        Self.saveToKeychain(start)
+        UserDefaults.standard.set(start, forKey: SubscriptionConfig.firstInstallDateKey)
+        UserDefaults.standard.removeObject(forKey: SubscriptionConfig.trialReminderShownKey)
+        UserDefaults.standard.removeObject(forKey: SubscriptionConfig.trialEndedNoticeShownKey)
+        firstInstallDate = start
+        isTrialActive = Date().timeIntervalSince(start) < SubscriptionConfig.trialDuration
+    }
+
     /// 試用剩不到 1 天（還沒到期）
     var isTrialEndingSoon: Bool {
         isTrialActive && remainingTrialSeconds <= SubscriptionConfig.trialReminderLead

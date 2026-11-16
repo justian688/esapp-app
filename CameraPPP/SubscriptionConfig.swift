@@ -9,7 +9,23 @@ import Foundation
 
 enum SubscriptionConfig {
     /// 付費功能總開關：false = 暫時隱藏所有付費畫面、選單與限制（測試期間）
-    static let paymentsEnabled = false
+    static let paymentsEnabledInRelease = false
+
+    /// 實際使用的開關：正式版看上面那行；TestFlight / Xcode 測試版可在「設定 → 測試工具」暫時打開
+    static var paymentsEnabled: Bool {
+        paymentsEnabledInRelease || (isTestBuild && UserDefaults.standard.bool(forKey: testForcePaymentsKey))
+    }
+
+    /// 是不是測試版（Xcode 直接安裝或 TestFlight）。App Store 正式版永遠是 false，測試工具不會出現
+    static var isTestBuild: Bool {
+        #if DEBUG
+        return true
+        #else
+        return Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+        #endif
+    }
+    static let testForcePaymentsKey = "test_forcePayments"
+    static let testShortFreeLimitKey = "test_shortFreeLimit"
 
     /// 月訂閱 Product ID（須與 App Store Connect 一致）
     static let monthlyProductID = "com.lin.energysaving.premium.monthly"
@@ -35,7 +51,10 @@ enum SubscriptionConfig {
     static let trialDuration: TimeInterval = 7 * 24 * 60 * 60
 
     /// 免費版每次錄影最長秒數（30 分鐘）；付費版與試用期間不限
-    static let freeRecordingLimit: TimeInterval = 30 * 60
+    /// 測試版可在測試工具改成 1 分鐘，方便確認會不會自動停
+    static var freeRecordingLimit: TimeInterval {
+        isTestBuild && UserDefaults.standard.bool(forKey: testShortFreeLimitKey) ? 60 : 30 * 60
+    }
     /// 試用到期前多久提醒（1 天）
     static let trialReminderLead: TimeInterval = 24 * 60 * 60
     static let trialReminderShownKey = "trialEndingReminderShown"

@@ -15,6 +15,9 @@ struct SettingsView: View {
     @State private var showingCameraOptions = false
     @AppStorage(CaptureResolution.storageKey) private var resolutionRaw = CaptureResolution.defaultResolution.rawValue
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
+    @EnvironmentObject private var trialManager: TrialManager
+    @AppStorage(SubscriptionConfig.testForcePaymentsKey) private var testForcePayments = false
+    @AppStorage(SubscriptionConfig.testShortFreeLimitKey) private var testShortFreeLimit = false
     @State private var showingResolutionOptions = false
     @State private var showPaywall = false
     
@@ -125,6 +128,10 @@ struct SettingsView: View {
                         Text(SubscriptionConfig.paymentsEnabled ? "畫質越高越清楚，但越耗電、檔案越大。4K 需要進階版。" : "畫質越高越清楚，但越耗電、檔案越大。")
                     }
                     
+                    if SubscriptionConfig.isTestBuild {
+                        testToolsSection
+                    }
+
                     Spacer(minLength: 40)
                 }
             }
@@ -139,6 +146,55 @@ struct SettingsView: View {
     /// 已訂閱或還在試用期 → 4K 可用
     private var hasFullAccess: Bool {
         subscriptionManager.isPremium || FeatureAccess.hasFullAccess
+    }
+
+    /// 測試工具：只在 TestFlight / Xcode 測試版出現，App Store 正式版看不到
+    private var testToolsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("🧪 測試工具（只有測試版看得到）")
+                .font(.headline)
+                .foregroundColor(.orange)
+
+            Text(testStatusText)
+                .font(.subheadline)
+                .foregroundColor(.white)
+
+            Toggle("模擬付費功能開啟", isOn: $testForcePayments)
+            Toggle("免費版上限改成 1 分鐘", isOn: $testShortFreeLimit)
+
+            Group {
+                Button("試用重新開始（剩 7 天）") { trialManager.testSetRemaining(SubscriptionConfig.trialDuration) }
+                Button("快轉到剩 23 小時（會跳「明天到期」提醒）") { trialManager.testSetRemaining(23 * 3600) }
+                Button("快轉到剩 1 分鐘（看到期畫面）") { trialManager.testSetRemaining(60) }
+                Button("立刻到期（變免費版）") { trialManager.testSetRemaining(0) }
+            }
+            .foregroundColor(Theme.chalkYellow)
+
+            Text("改完回到錄影首頁，約 1 秒內就會跳出對應的提醒或付費畫面。")
+                .font(.caption)
+                .foregroundColor(.gray)
+        }
+        .toggleStyle(SwitchToggleStyle(tint: .orange))
+        .foregroundColor(.white)
+        .padding(16)
+        .background(Color(white: 0.12))
+        .cornerRadius(14)
+        .padding(.horizontal)
+        .padding(.top, 24)
+    }
+
+    private var testStatusText: String {
+        let status: String
+        if !SubscriptionConfig.paymentsEnabled {
+            status = "付費功能關閉中（全部免費）"
+        } else if subscriptionManager.isPremium {
+            status = "已訂閱"
+        } else if trialManager.isTrialActive {
+            status = "試用中，" + trialManager.remainingTrialText
+        } else {
+            status = "免費版（每次錄影最多 \(Int(SubscriptionConfig.freeRecordingLimit / 60)) 分鐘、最高 1080p）"
+        }
+        return "目前狀態：" + status
     }
 
     private var currentResolutionTitle: String {
