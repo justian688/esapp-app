@@ -34,10 +34,27 @@ enum SubscriptionConfig {
     /// 新下載免費試用：7 天，之後才會跳出付費牆
     static let trialDuration: TimeInterval = 7 * 24 * 60 * 60
 
+    /// 免費版每次錄影最長秒數（30 分鐘）；付費版與試用期間不限
+    static let freeRecordingLimit: TimeInterval = 30 * 60
+    /// 試用到期前多久提醒（1 天）
+    static let trialReminderLead: TimeInterval = 24 * 60 * 60
+    static let trialReminderShownKey = "trialEndingReminderShown"
+    static let trialEndedNoticeShownKey = "trialEndedNoticeShown"
+
     static let firstInstallDateKey = "premiumFirstInstallDate"
     static let premiumStatusKey = "isPremiumUnlocked"
 
     /// 隱私權政策（esappok.com 官網）與服務條款（Apple 標準使用者授權合約）
     static let privacyPolicyURL = "https://esappok.com/privacy/"
     static let termsOfUseURL = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+}
+
+/// 目前能不能使用完整功能：付費功能關閉、已訂閱、或還在 7 天試用內 → 全開
+enum FeatureAccess {
+    static var hasFullAccess: Bool {
+        guard SubscriptionConfig.paymentsEnabled else { return true }
+        if UserDefaults.standard.bool(forKey: SubscriptionConfig.premiumStatusKey) { return true }
+        guard let start = UserDefaults.standard.object(forKey: SubscriptionConfig.firstInstallDateKey) as? Date else { return true }
+        return Date().timeIntervalSince(start) < SubscriptionConfig.trialDuration
+    }
 }

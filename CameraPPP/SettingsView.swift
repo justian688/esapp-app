@@ -112,8 +112,8 @@ struct SettingsView: View {
                     }
                     .confirmationDialog("錄影畫質", isPresented: $showingResolutionOptions, titleVisibility: .visible) {
                         ForEach(CaptureResolution.allCases) { option in
-                            Button(option.requiresPremium && !subscriptionManager.isPremium ? "🔒 " + option.title : option.title) {
-                                if option.requiresPremium && !subscriptionManager.isPremium {
+                            Button(option.requiresPremium && !hasFullAccess ? "🔒 " + option.title : option.title) {
+                                if option.requiresPremium && !hasFullAccess {
                                     showPaywall = true
                                 } else {
                                     resolutionRaw = option.rawValue
@@ -136,9 +136,14 @@ struct SettingsView: View {
         }
     }
 
+    /// 已訂閱或還在試用期 → 4K 可用
+    private var hasFullAccess: Bool {
+        subscriptionManager.isPremium || FeatureAccess.hasFullAccess
+    }
+
     private var currentResolutionTitle: String {
         let saved = CaptureResolution(rawValue: resolutionRaw) ?? .defaultResolution
-        if saved.requiresPremium && !subscriptionManager.isPremium {
+        if saved.requiresPremium && !hasFullAccess {
             return CaptureResolution.hd1080.title + "（4K 需進階版）"
         }
         return saved.title

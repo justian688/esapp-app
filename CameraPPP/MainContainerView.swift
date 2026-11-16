@@ -18,6 +18,7 @@ struct MainContainerView: View {
     @State private var showPaywall = false
     @State private var allowPaywallDismiss = true
     @State private var trialCheckTimer: Timer?
+    @State private var showTrialEndingReminder = false
     
     @State private var cameraManager: CameraManager
     
@@ -165,6 +166,38 @@ struct MainContainerView: View {
                 showPaywall = false
             }
         }
+        .alert(
+            AppLanguage.current.localized("Your free trial ends tomorrow", "免費試用明天到期"),
+            isPresented: $showTrialEndingReminder
+        ) {
+            Button(AppLanguage.current.localized("See Premium plans", "查看付費方案")) {
+                openPaywallManually()
+            }
+            Button(AppLanguage.current.localized("Continue with Free", "到期後用免費版"), role: .cancel) { }
+        } message: {
+            Text(AppLanguage.current.localized(
+                "After the trial you can subscribe to keep everything, or keep using the free version (recordings up to 30 minutes, up to 1080p).",
+                "試用結束後，你可以訂閱繼續使用完整功能，或改用免費版繼續錄影（每次最多 30 分鐘、最高 1080p）。"
+            ))
+        }
+        .alert(
+            AppLanguage.current.localized("30-minute free limit reached", "已錄滿免費版 30 分鐘"),
+            isPresented: Binding(
+                get: { cameraManager.freeLimitReached },
+                set: { if !$0 { cameraManager.freeLimitReached = false } }
+            )
+        ) {
+            Button(AppLanguage.current.localized("Upgrade", "升級進階版")) {
+                cameraManager.freeLimitReached = false
+                openPaywallManually()
+            }
+            Button(AppLanguage.current.localized("OK", "好"), role: .cancel) { }
+        } message: {
+            Text(AppLanguage.current.localized(
+                "This recording has been saved. Premium removes the time limit.",
+                "這段影片已經保存。升級進階版即可不限時長錄影。"
+            ))
+        }
         .fullScreenCover(isPresented: $showPaywall) {
             PaywallView(isPresented: $showPaywall, allowDismiss: allowPaywallDismiss)
                 .environmentObject(subscriptionManager)
@@ -223,11 +256,24 @@ struct MainContainerView: View {
         trialCheckTimer = timer
     }
 
-    /// 試用結束後自動顯示付費牆（不可關閉，直到訂閱）
+    /// 試用到期前 1 天提醒一次；到期當下再顯示一次付費方案（可關閉，關掉就是繼續用免費版）
     private func evaluatePaywallPresentation() {
-        guard SubscriptionConfig.paymentsEnabled else { return }
-        guard trialManager.shouldShowPaywall(isPremium: subscriptionManager.isPremium) else { return }
-        allowPaywallDismiss = false
-        showPaywall = true
+        guard SubscriptionConfig.paymentsEnabled, !subscriptionManager.isPremium else { return }
+        guard !cameraManager.isRecording, !showPaywall, !showTrialEndingReminder else { return }
+        let defaults = UserDefaults.standard
+
+        if trialManager.isTrialEndingSoon,
+           !defaults.bool(forKey: SubscriptionConfig.trialReminderShownKey) {
+            defaults.set(true, forKey: SubscriptionConfig.trialReminderShownKey)
+            showTrialEndingReminder = true
+            return
+        }
+
+        if trialManager.shouldShowPaywall(isPremium: subscriptionManager.isPremium),
+           !defaults.bool(forKey: SubscriptionConfig.trialEndedNoticeShownKey) {
+            defaults.set(true, forKey: SubscriptionConfig.trialEndedNoticeShownKey)
+            allowPaywallDismiss = true
+            showPaywall = true
+        }
     }
 }

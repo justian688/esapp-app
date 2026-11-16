@@ -36,13 +36,13 @@ nonisolated enum CaptureResolution: String, CaseIterable, Identifiable {
         }
     }
 
-    /// 4K 需要進階版
+    /// 4K 需要進階版（試用期間可用）
     var requiresPremium: Bool { SubscriptionConfig.paymentsEnabled && self == .uhd4K }
 
     static var current: CaptureResolution {
         let saved = CaptureResolution(rawValue: UserDefaults.standard.string(forKey: storageKey) ?? "") ?? .defaultResolution
         // 沒有進階版（例如訂閱過期）時，4K 自動降成 1080p
-        if saved.requiresPremium && !UserDefaults.standard.bool(forKey: SubscriptionConfig.premiumStatusKey) {
+        if saved.requiresPremium && !FeatureAccess.hasFullAccess {
             return .hd1080
         }
         return saved

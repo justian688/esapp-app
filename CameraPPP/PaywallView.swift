@@ -97,8 +97,8 @@ struct PaywallView: View {
                     .foregroundColor(.green)
             } else {
                 Text(AppLanguage.current.localized(
-                    "Your free trial has ended. Subscribe to continue.",
-                    "免費試用已結束（7 天），請訂閱以繼續使用。"
+                    "Your 7-day free trial has ended. Subscribe for full features, or keep using the free version.",
+                    "7 天免費試用已結束。訂閱可繼續使用完整功能，也可以繼續用免費版。"
                 ))
                 .font(.subheadline)
                 .foregroundColor(.gray)
@@ -110,8 +110,12 @@ struct PaywallView: View {
     private var featureSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             paywallFeature(icon: "video.fill", text: AppLanguage.current.localized(
-                "Unlimited video recording",
-                "無限制錄影"
+                "Unlimited recording length (free: 30 min)",
+                "錄影不限時長（免費版每次 30 分鐘）"
+            ))
+            paywallFeature(icon: "4k.tv", text: AppLanguage.current.localized(
+                "4K recording",
+                "4K 超高畫質錄影"
             ))
             paywallFeature(icon: "calendar", text: AppLanguage.current.localized(
                 "Scheduled recording",
@@ -178,6 +182,17 @@ struct PaywallView: View {
                 Text(AppLanguage.current.localized("Restore Purchases", "恢復購買"))
                     .font(.subheadline.weight(.medium))
                     .foregroundColor(.white.opacity(0.85))
+            }
+
+            if allowDismiss && !trialManager.isTrialActive && !subscriptionManager.isPremium {
+                Button {
+                    isPresented = false
+                } label: {
+                    Text(AppLanguage.current.localized("Continue with Free version", "繼續使用免費版"))
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .underline()
+                }
             }
         }
     }

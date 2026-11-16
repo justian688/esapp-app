@@ -102,6 +102,11 @@ final class TrialManager: ObservableObject {
         )
     }
 
+    /// 試用剩不到 1 天（還沒到期）
+    var isTrialEndingSoon: Bool {
+        isTrialActive && remainingTrialSeconds <= SubscriptionConfig.trialReminderLead
+    }
+
     /// 是否應顯示付費牆（試用結束且未訂閱）
     func shouldShowPaywall(isPremium: Bool) -> Bool {
         !isPremium && !isTrialActive

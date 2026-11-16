@@ -95,6 +95,12 @@ final class CameraManager: NSObject, Sendable {
     /// 只在 sessionQueue 上讀寫：正在上課錄影、相機應該開著時為 true
     @ObservationIgnored private var wantsSessionRunning = false
     var isAuthorized = false
+    /// 免費版錄滿 30 分鐘自動停止時為 true，畫面用來提示升級
+    var freeLimitReached = false
+    /// 只在 sessionQueue 上讀寫：這次錄影（含重複錄影的各段）開始的時間，用來算免費版 30 分鐘
+    @ObservationIgnored private var sessionStartedAt: Date?
+    /// 只在 sessionQueue 上讀寫：目前這段是不是被免費版 30 分鐘上限截斷
+    @ObservationIgnored private var segmentCappedByFreeLimit = false
     
     init(initialCameraFacing: CameraFacing = .back) {
         self.cameraFacing = initialCameraFacing
@@ -249,6 +255,7 @@ final class CameraManager: NSObject, Sendable {
     func startRecording() {
         sessionQueue.async {
             self.userRequestedStop = false
+            self.sessionStartedAt = nil
             self.beginRecordingSegment()
         }
     }
@@ -258,6 +265,7 @@ final class CameraManager: NSObject, Sendable {
         sessionQueue.async {
             if !self.session.inputs.isEmpty {
                 self.userRequestedStop = false
+                self.sessionStartedAt = nil
                 self.beginRecordingSegment()
             } else if attempt < 20 {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -290,9 +298,27 @@ final class CameraManager: NSObject, Sendable {
         }
 
         let minutes = RecordingPreferences.segmentMinutes
-        fileOutput.maxRecordedDuration = minutes > 0
-            ? CMTime(seconds: Double(minutes * 60), preferredTimescale: 600)
-            : .invalid
+        var maxSeconds: Double? = minutes > 0 ? Double(minutes * 60) : nil
+
+        // 免費版：整次錄影（含重複錄影）最多 30 分鐘
+        if sessionStartedAt == nil { sessionStartedAt = Date() }
+        segmentCappedByFreeLimit = false
+        if !FeatureAccess.hasFullAccess {
+            let remaining = SubscriptionConfig.freeRecordingLimit - Date().timeIntervalSince(sessionStartedAt ?? Date())
+            guard remaining > 1 else {
+                stopSessionIfIdle()
+                Task { @MainActor in
+                    self.isRecording = false
+                    self.freeLimitReached = true
+                }
+                return
+            }
+            if maxSeconds == nil || remaining < maxSeconds! {
+                maxSeconds = remaining
+                segmentCappedByFreeLimit = true
+            }
+        }
+        fileOutput.maxRecordedDuration = maxSeconds.map { CMTime(seconds: $0, preferredTimescale: 600) } ?? .invalid
 
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp4")
         fileOutput.startRecording(to: tempURL, recordingDelegate: self)
@@ -325,7 +351,14 @@ final class CameraManager: NSObject, Sendable {
         let nsError = error as NSError?
         let reachedDurationLimit = nsError?.code == AVError.Code.maximumDurationReached.rawValue
 
-        if reachedDurationLimit, RecordingPreferences.isRepeatRecordingEnabled, session.isRunning {
+        if reachedDurationLimit, segmentCappedByFreeLimit {
+            // 免費版錄滿 30 分鐘：停止並提示升級（影片照常保存）
+            stopSessionIfIdle()
+            Task { @MainActor in
+                self.isRecording = false
+                self.freeLimitReached = true
+            }
+        } else if reachedDurationLimit, RecordingPreferences.isRepeatRecordingEnabled, session.isRunning {
             beginRecordingSegment()
         } else {
             // 時長到了但沒開重複錄影，或錄影因其他原因中斷：讓畫面回到未錄影狀態，並關掉相機
