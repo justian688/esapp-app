@@ -40,6 +40,9 @@ nonisolated enum SubscriptionConfig {
     /// 預設顯示價格（台幣）；實際扣款金額以 App Store Connect 設定為準
     static let fallbackMonthlyPrice = "NT$299"
     static let fallbackYearlyPrice = "NT$899"
+    /// 預設價格數值（算「每月約多少」「省幾 %」用；實際以 App Store 為準）
+    static let fallbackMonthlyValue: Decimal = 299
+    static let fallbackYearlyValue: Decimal = 899
 
     /// App Store Connect 定價參考（台灣）
     /// - 方案 A（目前）：月 NT$299 / 年 NT$899（年付約省 75%）
