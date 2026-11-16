@@ -42,11 +42,14 @@ struct PaywallView: View {
                 .padding(.vertical, 32)
             }
 
+            // 讀取價格／購買中：只顯示小轉圈，不擋住按鈕（價格讀取卡住時仍可關閉付費畫面）
             if subscriptionManager.isLoading {
-                Color.black.opacity(0.45).ignoresSafeArea()
                 ProgressView()
                     .tint(.white)
                     .scaleEffect(1.2)
+                    .padding(18)
+                    .background(RoundedRectangle(cornerRadius: 14).fill(Color.black.opacity(0.6)))
+                    .allowsHitTesting(false)
             }
         }
         .interactiveDismissDisabled(!allowDismiss)
@@ -84,11 +87,11 @@ struct PaywallView: View {
 
     /// 年訂閱換算每月多少錢
     private var yearlyPerMonthText: String {
-        let perMonth = yearlyValue / 12
+        let perMonth = (NSDecimalNumber(decimal: yearlyValue).doubleValue / 12).rounded()
         if let product = subscriptionManager.yearlyProduct {
-            return perMonth.formatted(product.priceFormatStyle.precision(.fractionLength(0)))
+            return perMonth.formatted(.currency(code: product.priceFormatStyle.currencyCode).precision(.fractionLength(0)))
         }
-        return "NT$" + NSDecimalNumber(decimal: perMonth).intValue.formatted()
+        return "NT$\(Int(perMonth))"
     }
 
     /// 年訂閱比月訂閱省多少（%）
