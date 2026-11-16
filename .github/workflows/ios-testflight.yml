@@ -6,6 +6,8 @@ on:
     paths-ignore:
       - 'flutter_app/**'
       - '.github/workflows/android.yml'
+      - 'version.json'
+      - '.github/workflows/auto-force-update.yml'
   workflow_dispatch:
 
 concurrency:
