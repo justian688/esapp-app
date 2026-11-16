@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       lane:
-        description: "inspect_store 或 prepare_release"
+        description: "inspect_store、prepare_release（只準備）或 submit（準備並送審）"
         required: true
         default: inspect_store
 
@@ -24,4 +24,5 @@ jobs:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
           FASTLANE_SKIP_UPDATE_CHECK: "1"
-        run: fastlane ios ${{ github.event.inputs.lane }}
+        run: |
+          if [ "${{ github.event.inputs.lane }}" = "submit" ]; then fastlane ios prepare_release submit:true; else fastlane ios ${{ github.event.inputs.lane }}; fi

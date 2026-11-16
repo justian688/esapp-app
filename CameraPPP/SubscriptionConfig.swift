@@ -37,7 +37,7 @@ enum SubscriptionConfig {
     static let firstInstallDateKey = "premiumFirstInstallDate"
     static let premiumStatusKey = "isPremiumUnlocked"
 
-    /// 隱私權與服務條款（上架前請替換為正式網址）
-    static let privacyPolicyURL = "https://example.com/privacy"
-    static let termsOfUseURL = "https://example.com/terms"
+    /// 隱私權政策（esappok.com 官網）與服務條款（Apple 標準使用者授權合約）
+    static let privacyPolicyURL = "https://esappok.com/privacy/"
+    static let termsOfUseURL = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
 }
