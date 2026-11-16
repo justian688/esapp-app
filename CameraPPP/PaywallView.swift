@@ -28,7 +28,7 @@ struct PaywallView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(red: 0.10, green: 0.09, blue: 0.06), .black, .black], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [Color(red: 0.07, green: 0.06, blue: 0.045), .black, .black], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
 
             ScrollView {
@@ -134,12 +134,12 @@ struct PaywallView: View {
 
             ZStack {
                 Circle()
-                    .fill(RadialGradient(colors: [Self.gold.opacity(0.35), .clear], center: .center, startRadius: 4, endRadius: 60))
+                    .fill(RadialGradient(colors: [Self.gold.opacity(0.16), .clear], center: .center, startRadius: 4, endRadius: 60))
                     .frame(width: 120, height: 120)
                 Image(systemName: "crown.fill")
                     .font(.system(size: 44))
                     .foregroundStyle(LinearGradient(colors: [Self.gold, Color(red: 0.85, green: 0.6, blue: 0.2)], startPoint: .top, endPoint: .bottom))
-                    .shadow(color: Self.gold.opacity(crownPulse ? 0.8 : 0.3), radius: crownPulse ? 18 : 8)
+                    .shadow(color: Self.gold.opacity(crownPulse ? 0.35 : 0.12), radius: crownPulse ? 10 : 5)
                     .scaleEffect(crownPulse ? 1.06 : 1.0)
             }
             .onAppear {
@@ -244,16 +244,14 @@ struct PaywallView: View {
         switch value {
         case .text(let t):
             if isPremium {
-                // 進階版優勢：金色發光標籤
+                // 進階版優勢：暗金底、金字標籤（不刺眼）
                 Text(t)
-                    .font(.system(size: 14, weight: .heavy))
-                    .foregroundColor(.black)
+                    .font(.system(size: 13, weight: .heavy))
+                    .foregroundColor(Self.gold.opacity(0.92))
                     .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(
-                        Capsule().fill(LinearGradient(colors: [Self.gold, Color(red: 0.90, green: 0.66, blue: 0.22)], startPoint: .top, endPoint: .bottom))
-                    )
-                    .shadow(color: Self.gold.opacity(0.7), radius: 6)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(Self.gold.opacity(0.12)))
+                    .overlay(Capsule().stroke(Self.gold.opacity(0.35), lineWidth: 1))
             } else {
                 Text(t)
                     .font(.system(size: 14))
@@ -263,7 +261,7 @@ struct PaywallView: View {
         case .check:
             Image(systemName: "checkmark")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundColor(isPremium ? Self.gold : .white.opacity(0.45))
+                .foregroundColor(isPremium ? Self.gold.opacity(0.85) : .white.opacity(0.45))
         }
     }
 
@@ -356,7 +354,7 @@ struct PaywallView: View {
                             .fill(LinearGradient(colors: [Self.gold, Color(red: 0.90, green: 0.68, blue: 0.25)], startPoint: .leading, endPoint: .trailing))
                     )
                     .overlay(ShimmerSweep().clipShape(RoundedRectangle(cornerRadius: 16)))
-                    .shadow(color: Self.gold.opacity(0.45), radius: 14, y: 4)
+                    .shadow(color: Self.gold.opacity(0.15), radius: 8, y: 3)
             }
             .accessibilityIdentifier("paywall_subscribe")
 
@@ -445,13 +443,13 @@ private struct PremiumColumnGlow: View {
 
     var body: some View {
         RoundedRectangle(cornerRadius: 14)
-            .fill(LinearGradient(colors: [gold.opacity(0.22), gold.opacity(0.06)], startPoint: .top, endPoint: .bottom))
-            .overlay(ShimmerSweep(period: 3.2).clipShape(RoundedRectangle(cornerRadius: 14)))
+            .fill(LinearGradient(colors: [gold.opacity(0.10), gold.opacity(0.03)], startPoint: .top, endPoint: .bottom))
+            .overlay(ShimmerSweep(period: 4.0, strength: 0.10).clipShape(RoundedRectangle(cornerRadius: 14)))
             .overlay(
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(LinearGradient(colors: [gold, gold.opacity(0.4), gold], startPoint: .top, endPoint: .bottom), lineWidth: 1.5)
+                    .stroke(gold.opacity(0.45), lineWidth: 1)
             )
-            .shadow(color: gold.opacity(glow ? 0.55 : 0.2), radius: glow ? 14 : 6)
+            .shadow(color: gold.opacity(glow ? 0.18 : 0.06), radius: glow ? 8 : 4)
             .onAppear {
                 withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) { glow = true }
             }
@@ -462,11 +460,12 @@ private struct PremiumColumnGlow: View {
 /// 斜向掃過的一道光
 private struct ShimmerSweep: View {
     var period: Double = 2.6
+    var strength: Double = 0.18
     @State private var phase: CGFloat = -1
 
     var body: some View {
         GeometryReader { geo in
-            LinearGradient(colors: [.clear, .white.opacity(0.35), .clear], startPoint: .leading, endPoint: .trailing)
+            LinearGradient(colors: [.clear, .white.opacity(strength), .clear], startPoint: .leading, endPoint: .trailing)
                 .frame(width: max(geo.size.width, geo.size.height) * 0.6)
                 .rotationEffect(.degrees(20))
                 .offset(x: phase * geo.size.width * 1.6)
