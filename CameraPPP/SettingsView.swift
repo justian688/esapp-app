@@ -22,6 +22,7 @@ struct SettingsView: View {
     @AppStorage(CaptureFrameRate.storageKey) private var frameRateRaw = CaptureFrameRate.defaultRate.rawValue
     @State private var showingFrameRateOptions = false
     @State private var showPaywall = false
+    @State private var upsellReason: UpsellReason?
     
     @Environment(\.dismiss) var dismiss
     
@@ -120,7 +121,7 @@ struct SettingsView: View {
                         ForEach(CaptureResolution.allCases) { option in
                             Button(option.requiresPremium && !hasFullAccess ? "🔒 " + option.title : option.title) {
                                 if option.requiresPremium && !hasFullAccess {
-                                    showPaywall = true
+                                    upsellReason = .fourK
                                 } else {
                                     resolutionRaw = option.rawValue
                                 }
@@ -159,6 +160,15 @@ struct SettingsView: View {
         .navigationBarHidden(true)
         .sheet(isPresented: $showPaywall) {
             PaywallView(isPresented: $showPaywall, allowDismiss: true)
+        }
+        .sheet(item: $upsellReason) { reason in
+            UpsellSheet(reason: reason, onClose: {
+                upsellReason = nil
+            }, onSeeAllPlans: {
+                upsellReason = nil
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { showPaywall = true }
+            })
+            .environmentObject(subscriptionManager)
         }
     }
 

@@ -20,7 +20,8 @@ struct MainContainerView: View {
     @State private var allowPaywallDismiss = true
     @State private var trialCheckTimer: Timer?
     @State private var showTrialEndingReminder = false
-    @State private var showFourKDowngradeNotice = false
+    @State private var upsellReason: UpsellReason?
+    @State private var lastUpsell: UpsellReason?
     
     @State private var cameraManager: CameraManager
     
@@ -156,7 +157,7 @@ struct MainContainerView: View {
             // 免費版：停止錄影後播一則插頁廣告（錄滿 30 分鐘的情況等提示關掉後再播）
             if !isRecording && showAds {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    if !cameraManager.freeLimitReached && !showPaywall {
+                    if !cameraManager.freeLimitReached && !showPaywall && upsellReason == nil {
                         AdsManager.shared.showInterstitialAfterRecording()
                     }
                 }
@@ -203,41 +204,27 @@ struct MainContainerView: View {
                 "試用結束後，你可以訂閱繼續使用完整功能，或改用免費版繼續錄影（每次最多 30 分鐘、最高 1080p）。"
             ))
         }
-        .alert(
-            AppLanguage.current.localized("4K is now 1080p", "4K 已改為 1080p"),
-            isPresented: $showFourKDowngradeNotice
-        ) {
-            Button(AppLanguage.current.localized("Subscribe for 4K", "訂閱繼續用 4K")) {
-                openPaywallManually()
-            }
-            Button(AppLanguage.current.localized("Use 1080p", "用 1080p 繼續"), role: .cancel) { }
-        } message: {
-            Text(AppLanguage.current.localized(
-                "Your free trial has ended, so recordings now use 1080p. Subscribe to keep recording in 4K.",
-                "免費試用已結束，之後錄影會用 1080p。訂閱進階版即可繼續使用 4K。"
-            ))
-        }
-        .alert(
-            AppLanguage.current.localized("30-minute limit reached", "已錄滿 30 分鐘"),
-            isPresented: Binding(
-                get: { cameraManager.freeLimitReached },
-                set: { if !$0 { cameraManager.freeLimitReached = false } }
-            )
-        ) {
-            Button(AppLanguage.current.localized("Upgrade", "升級不限時長")) {
-                cameraManager.freeLimitReached = false
-                openPaywallManually()
-            }
-            Button(AppLanguage.current.localized("OK", "好"), role: .cancel) {
+        // 碰到限制：從下方滑上來的小彈窗
+        .sheet(item: $upsellReason, onDismiss: {
+            if lastUpsell == .timeLimit {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     AdsManager.shared.showInterstitialAfterRecording()
                 }
             }
-        } message: {
-            Text(AppLanguage.current.localized(
-                "The free version records up to 30 minutes at a time. This recording has been saved.",
-                "免費版每次最多錄 30 分鐘，這段影片已經保存。"
-            ))
+        }) { reason in
+            UpsellSheet(reason: reason, onClose: {
+                upsellReason = nil
+            }, onSeeAllPlans: {
+                upsellReason = nil
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { openPaywallManually() }
+            })
+            .environmentObject(subscriptionManager)
+        }
+        .onChange(of: cameraManager.freeLimitReached) { _, reached in
+            guard reached else { return }
+            cameraManager.freeLimitReached = false
+            lastUpsell = .timeLimit
+            upsellReason = .timeLimit
         }
         .fullScreenCover(isPresented: $showPaywall) {
             PaywallView(isPresented: $showPaywall, allowDismiss: allowPaywallDismiss)
@@ -300,7 +287,7 @@ struct MainContainerView: View {
     /// 只在試用到期前 1 天提醒一次，讓使用者選擇付費或到期後用免費版
     private func evaluatePaywallPresentation() {
         guard SubscriptionConfig.paymentsEnabled, !subscriptionManager.isPremium else { return }
-        guard !cameraManager.isRecording, !showPaywall, !showTrialEndingReminder else { return }
+        guard !cameraManager.isRecording, !showPaywall, !showTrialEndingReminder, upsellReason == nil else { return }
         let defaults = UserDefaults.standard
 
         if trialManager.isTrialEndingSoon,
@@ -315,7 +302,8 @@ struct MainContainerView: View {
            captureResolutionRaw == CaptureResolution.uhd4K.rawValue,
            !defaults.bool(forKey: SubscriptionConfig.fourKDowngradeNoticeShownKey) {
             defaults.set(true, forKey: SubscriptionConfig.fourKDowngradeNoticeShownKey)
-            showFourKDowngradeNotice = true
+            lastUpsell = .fourKDowngraded
+            upsellReason = .fourKDowngraded
         }
         // 其他情況到期後直接變免費版，不自動跳付費畫面
     }

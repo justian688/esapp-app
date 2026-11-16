@@ -151,11 +151,12 @@ final class BillingFlowUITests: XCTestCase {
 
         // 4. 立刻到期 → 不跳任何東西，直接變免費版
         tapTool("test_expire")
-        let fourK = app.alerts["4K 已改為 1080p"]
-        step("到期時正在用 4K → 提醒「4K 已改為 1080p」", fourK.waitForExistence(timeout: 6))
+        let upTitle = app.staticTexts["upsell_title"]
+        step("到期時正在用 4K → 小彈窗「4K 已改為 1080p」", upTitle.waitForExistence(timeout: 6) && upTitle.label.contains("1080p"))
         pause(2)
-        step("提醒有「訂閱繼續用 4K」／「用 1080p 繼續」", fourK.buttons["訂閱繼續用 4K"].exists && fourK.buttons["用 1080p 繼續"].exists)
-        tapIfExists(fourK.buttons["用 1080p 繼續"])
+        step("小彈窗有「升級進階版」／「用 1080p 繼續」／「查看所有方案」",
+             app.buttons["upsell_subscribe"].exists && app.buttons["upsell_close"].exists && app.buttons["upsell_seeAll"].exists)
+        tapIfExists(app.buttons["upsell_close"])
         pause(3)
         step("到期後沒有其他自動跳出的付費畫面", !app.buttons["paywall_continueFree"].exists && !app.buttons["paywall_close"].exists && !app.alerts.firstMatch.exists)
         scrollTo(app.staticTexts["test_status"])
@@ -165,12 +166,16 @@ final class BillingFlowUITests: XCTestCase {
         opt = open4KOption()
         step("免費版：4K 選項上鎖（\(opt.label)）", opt.label.contains("🔒"))
         tapIfExists(opt)
+        let up = app.staticTexts["upsell_title"]
+        step("點上鎖的 4K → 小彈窗「4K 是進階版功能」", up.waitForExistence(timeout: 6) && up.label.contains("4K"))
+        pause(2)
+        tapIfExists(app.buttons["upsell_seeAll"])
         let close = app.buttons["paywall_close"]
-        step("點上鎖的 4K → 跳出付費畫面", close.waitForExistence(timeout: 6))
+        step("小彈窗點「查看所有方案」→ 打開完整方案頁", close.waitForExistence(timeout: 6))
         pause(2)
         tapIfExists(close)
         pause(2)
-        step("付費畫面可以關掉", !app.buttons["paywall_close"].exists)
+        step("完整方案頁可以關掉", !app.buttons["paywall_close"].exists)
 
         // 6. 測試用 1 分鐘上限
         setSwitch("test_shortLimit", on: true)
