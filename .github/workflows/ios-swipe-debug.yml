@@ -1,6 +1,8 @@
 name: 只跑滑動測試（除錯用）
 
 on:
+  push:
+    branches: [swipe-debug]
   workflow_dispatch:
 
 jobs:

@@ -2,7 +2,7 @@ name: iOS 測試（編譯 + 收費流程單元測試 ×5）
 
 on:
   push:
-    branches-ignore: [main]
+    branches-ignore: [main, swipe-debug]
     paths-ignore:
       - 'flutter_app/**'
   workflow_dispatch:
