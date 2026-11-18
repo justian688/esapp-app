@@ -39,6 +39,16 @@ struct MainContainerView: View {
         CameraFacing(rawValue: preferredCameraFacingRaw) ?? CameraFacing.defaultFacing
     }
     
+    /// 側邊欄打開時，手指往左滑就關閉
+    private var closeMenuSwipe: some Gesture {
+        DragGesture(minimumDistance: 20)
+            .onEnded { v in
+                if v.translation.width < -50 && abs(v.translation.width) > abs(v.translation.height) {
+                    withAnimation { isMenuOpen = false }
+                }
+            }
+    }
+
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ZStack(alignment: .leading) {
@@ -73,6 +83,7 @@ struct MainContainerView: View {
                     Color.black.opacity(0.3)
                         .ignoresSafeArea()
                         .onTapGesture { withAnimation { isMenuOpen = false } }
+                        .gesture(closeMenuSwipe)
                         .zIndex(1)
                     
                     SideMenuView(
@@ -84,6 +95,7 @@ struct MainContainerView: View {
                     .environmentObject(trialManager)
                     .frame(width: min(UIScreen.main.bounds.width * 0.66, 300))
                     .transition(.move(edge: .leading))
+                    .simultaneousGesture(closeMenuSwipe)   // 往左滑關閉側邊欄（不影響裡面上下捲動）
                     .zIndex(2)
                 }
 

@@ -144,3 +144,4 @@
 "%lld 小時 %lld 分鐘" = "%lld hr %lld min";
 "打開 es省電王 並立即開始省電錄影" = "Open es省電王 and start power-saving recording right away";
 "%@：%@" = "%@: %@";
+"錄影頁" = "Record";

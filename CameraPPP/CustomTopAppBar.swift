@@ -33,6 +33,8 @@ struct CustomTopAppBar: View {
                         .frame(maxWidth: .infinity)
                 }
                 .accessibilityIdentifier("tab_record")
+                .accessibilityLabel(tr("錄影頁"))
+                .accessibilityAddTraits(selectedTab == 0 ? .isSelected : [])
                 
                 Button(action: { withAnimation { selectedTab = 1 } }) {
                     Image(systemName: "pencil")
@@ -41,6 +43,8 @@ struct CustomTopAppBar: View {
                         .frame(maxWidth: .infinity)
                 }
                 .accessibilityIdentifier("tab_schedule")
+                .accessibilityLabel(tr("排程錄影"))
+                .accessibilityAddTraits(selectedTab == 1 ? .isSelected : [])
             }
             .frame(height: 56)
             .background(Color.black)

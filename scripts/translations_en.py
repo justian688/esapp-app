@@ -23,7 +23,7 @@ EN = {
     "課堂錄影．課程筆記": "Class recording · Course notes",
     "課程相簿": "Course Library", "課程資訊表": "Course List", "課程剪輯": "Trim Video", "課程筆記": "Course Notes",
     # 排程
-    "排程錄影": "Scheduled Recording", "時長": "Duration", "重複錄影": "Repeat recording",
+    "排程錄影": "Scheduled Recording", "錄影頁": "Record", "時長": "Duration", "重複錄影": "Repeat recording",
     # 課程選擇／編輯
     "不指定課程": "No course", "影片放在「未分類」": "Videos go to “Uncategorized”",
     "新增課程": "Add course", "編輯課程": "Edit course",
