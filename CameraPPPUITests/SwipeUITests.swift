@@ -269,7 +269,10 @@ final class SwipeUITests: XCTestCase {
         // 還原：試用重新開始、關閉付費模擬
         openSettings()
         tapTool("test_restart")
+        let afterRestart = app.staticTexts["test_status"].label
+        check("試用重新開始 → 回到試用中：\(afterRestart)", afterRestart.contains("試用中"))
         setSwitch("test_forcePayments", on: false)
-        check("還原測試狀態（試用中、付費模擬關閉）", app.staticTexts["test_status"].label.contains("試用中"))
+        let restored = app.staticTexts["test_status"].label
+        check("還原測試狀態（付費模擬關閉）：\(restored)", restored.contains("付費功能關閉中"))
     }
 }

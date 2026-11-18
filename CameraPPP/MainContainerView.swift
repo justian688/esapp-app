@@ -241,8 +241,21 @@ struct MainContainerView: View {
             lastUpsell = .timeLimit
             upsellReason = .timeLimit
         }
-        .fullScreenCover(isPresented: $showPaywall) {
-            PaywallView(isPresented: $showPaywall, allowDismiss: allowPaywallDismiss)
+        // 手動打開（可關閉）→ 一般彈出頁，可以往下滑關閉，跟設定、支援頁一致
+        .sheet(isPresented: Binding(
+            get: { showPaywall && allowPaywallDismiss },
+            set: { if !$0 { showPaywall = false } }
+        )) {
+            PaywallView(isPresented: $showPaywall, allowDismiss: true)
+                .environmentObject(subscriptionManager)
+                .environmentObject(trialManager)
+        }
+        // 強制付費（不可關閉）→ 全螢幕
+        .fullScreenCover(isPresented: Binding(
+            get: { showPaywall && !allowPaywallDismiss },
+            set: { if !$0 { showPaywall = false } }
+        )) {
+            PaywallView(isPresented: $showPaywall, allowDismiss: false)
                 .environmentObject(subscriptionManager)
                 .environmentObject(trialManager)
         }
