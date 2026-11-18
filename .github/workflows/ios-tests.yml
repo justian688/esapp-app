@@ -97,7 +97,7 @@ jobs:
           xcodebuild test-without-building -project CameraPPP.xcodeproj -scheme CameraPPP \
             -destination "id=$UDID" -derivedDataPath build -test-iterations 3 \
             -only-testing:CameraPPPUITests/BillingFlowUITests -only-testing:CameraPPPUITests/AllFeaturesUITests -only-testing:CameraPPPUITests/SwipeUITests \
-            2>&1 | tee rep.log | grep -E "(STEP|FEAT|SWIPE) [0-9]+ FAIL|Test Case .*(passed|failed)|Executed|TEST "
+            2>&1 | tee rep.log | grep -E "(STEP|FEAT|SWIPE) [0-9]+ FAIL|UITests.swift:[0-9]+: error|Test Case .*(passed|failed)|Executed|TEST "
           echo "===== 總結 ====="
           for k in STEP FEAT SWIPE; do
             echo "$k：通過 $(grep -cE "$k [0-9]+ PASS" rep.log) 次、失敗 $(grep -cE "$k [0-9]+ FAIL" rep.log) 次"
