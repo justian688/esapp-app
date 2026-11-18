@@ -117,14 +117,13 @@ platform :ios do
     auth_args = "-allowProvisioningUpdates -authenticationKeyPath #{key_path} " \
                 "-authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id}"
 
-    build_app(
+    common = {
       project: "CameraPPP.xcodeproj",
       scheme: "CameraPPP",
       configuration: "Release",
       export_method: "app-store",
       output_directory: "./build",
       output_name: "CameraPPP.ipa",
-      clean: true,
       # 打包時先不簽章（避免每台雲端機器都產生一張新的開發憑證把額度用完），
       # 匯出時再用 Apple 雲端管理的發佈憑證簽章
       xcargs: "#{auth_args} DEVELOPMENT_TEAM=98S428Y7GT CODE_SIGN_STYLE=Automatic CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO",
@@ -135,7 +134,21 @@ platform :ios do
         uploadSymbols: true,
         manageAppVersionAndBuildNumber: false
       }
-    )
+    }
+
+    # 1) 只打包 archive
+    build_app(common.merge(clean: true, skip_package_ipa: true))
+    archive_path = lane_context[SharedValues::XCODEBUILD_ARCHIVE]
+
+    # 2) 第三方元件（Google 廣告等）被複製進 App 時，原本的簽名已失效、又沒被重簽，
+    #    Apple 會以 Invalid Signature 退件 → 先拿掉舊簽名，讓匯出時統一用發佈憑證重簽
+    Dir.glob(File.join(archive_path, "Products/Applications/*.app/Frameworks/*.framework")).each do |fw|
+      sh("codesign", "--remove-signature", fw)
+      UI.message("已移除舊簽名，匯出時重簽：#{File.basename(fw)}")
+    end
+
+    # 3) 匯出 ipa（重新簽名）
+    build_app(common.merge(skip_build_archive: true, archive_path: archive_path))
 
     upload_to_testflight(
       api_key: api_key,
