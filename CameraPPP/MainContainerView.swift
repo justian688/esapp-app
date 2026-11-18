@@ -42,7 +42,16 @@ struct MainContainerView: View {
     /// 側邊欄打開時，手指往左滑就關閉
     private var closeMenuSwipe: some Gesture {
         DragGesture(minimumDistance: 20)
+            .onChanged { v in
+                // 正在左右滑 → 記下時間，讓選單項目不要把這次滑動當成「點一下」
+                if abs(v.translation.width) > 15 && abs(v.translation.width) > abs(v.translation.height) {
+                    SideMenuGestureGate.lastHorizontalSwipe = Date()
+                }
+            }
             .onEnded { v in
+                if abs(v.translation.width) > abs(v.translation.height) {
+                    SideMenuGestureGate.lastHorizontalSwipe = Date()
+                }
                 if v.translation.width < -50 && abs(v.translation.width) > abs(v.translation.height) {
                     withAnimation { isMenuOpen = false }
                 }

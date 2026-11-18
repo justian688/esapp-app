@@ -111,6 +111,12 @@ struct SideMenuView: View {
 }
 
 // MARK: - 側邊欄選單列
+/// 側邊欄左右滑動時，避免手指放開被當成點到選單項目
+enum SideMenuGestureGate {
+    static var lastHorizontalSwipe = Date.distantPast
+    static var justSwiped: Bool { Date().timeIntervalSince(lastHorizontalSwipe) < 0.5 }
+}
+
 struct MenuRow: View {
     var icon: String
     var title: LocalizedStringKey
@@ -118,6 +124,8 @@ struct MenuRow: View {
     
     var body: some View {
         Button {
+            // 剛剛是在左右滑（想關掉側邊欄），不是點這一行 → 忽略
+            guard !SideMenuGestureGate.justSwiped else { return }
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             action()
         } label: {
