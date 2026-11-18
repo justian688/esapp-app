@@ -63,8 +63,8 @@ final class SwipeUITests: XCTestCase {
         pause(1)
     }
 
-    private var onRecordTab: Bool { app.buttons["tab_record"].isSelected }
-    private var onScheduleTab: Bool { app.buttons["tab_schedule"].isSelected }
+    private var onRecordTab: Bool { app.buttons["tab_record"].exists && app.buttons["tab_record"].isSelected }
+    private var onScheduleTab: Bool { app.buttons["tab_schedule"].exists && app.buttons["tab_schedule"].isSelected }
 
     /// 首頁分頁區中間的一點（避開頂部列與底部廣告）
     private var pageArea: XCUICoordinate { app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)) }
@@ -161,6 +161,11 @@ final class SwipeUITests: XCTestCase {
         start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: -220, dy: 0)))
         pause(1)
         check("側邊欄往左滑 → 側邊欄關閉", !menuOpen)
+        if !app.buttons["tab_record"].exists {
+            let ids = app.buttons.allElementsBoundByIndex.prefix(15).map { "\($0.identifier)|\($0.label)" }
+            let texts = app.staticTexts.allElementsBoundByIndex.prefix(10).map { $0.label }
+            print("DEBUG 滑動後畫面 buttons=\(ids) texts=\(texts)")
+        }
         check("滑掉側邊欄後 → 仍停在原本的錄影頁（沒誤切分頁）", onRecordTab)
 
         _ = openMenu()

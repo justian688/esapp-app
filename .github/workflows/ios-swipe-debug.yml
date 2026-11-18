@@ -45,5 +45,5 @@ jobs:
           set +e
           xcodebuild test-without-building -project CameraPPP.xcodeproj -scheme CameraPPP \
             -destination "id=$UDID" -derivedDataPath build -only-testing:CameraPPPUITests/SwipeUITests \
-            2>&1 | tee sw.log | grep -E "SWIPE [0-9]|error|Failed|failure|Test Case|Executed|TEST "
+            2>&1 | tee sw.log | grep -E "SWIPE [0-9]|DEBUG|error|Failed|failure|Test Case|Executed|TEST "
           exit 0
