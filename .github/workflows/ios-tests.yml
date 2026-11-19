@@ -96,13 +96,13 @@ jobs:
           set +e
           xcodebuild test-without-building -project CameraPPP.xcodeproj -scheme CameraPPP \
             -destination "id=$UDID" -derivedDataPath build -test-iterations 3 \
-            -only-testing:CameraPPPUITests/BillingFlowUITests -only-testing:CameraPPPUITests/AllFeaturesUITests -only-testing:CameraPPPUITests/SwipeUITests -only-testing:CameraPPPUITests/AlbumLockUITests \
-            2>&1 | tee rep.log | grep -E "(STEP|FEAT|SWIPE|LOCK) [0-9]+ FAIL|UITests.swift:[0-9]+: error|Test Case .*(passed|failed)|Executed|TEST "
+            -only-testing:CameraPPPUITests/BillingFlowUITests -only-testing:CameraPPPUITests/AllFeaturesUITests -only-testing:CameraPPPUITests/SwipeUITests -only-testing:CameraPPPUITests/AlbumLockUITests -only-testing:CameraPPPUITests/MonkeyUITests \
+            2>&1 | tee rep.log | grep -E "(STEP|FEAT|SWIPE|LOCK|MONKEY) [0-9]+ FAIL|UITests.swift:[0-9]+: error|Test Case .*(passed|failed)|Executed|TEST "
           echo "===== 總結 ====="
-          for k in STEP FEAT SWIPE LOCK; do
+          for k in STEP FEAT SWIPE LOCK MONKEY; do
             echo "$k：通過 $(grep -cE "$k [0-9]+ PASS" rep.log) 次、失敗 $(grep -cE "$k [0-9]+ FAIL" rep.log) 次"
           done
-          grep -E "(STEP|FEAT|SWIPE|LOCK) [0-9]+ FAIL" rep.log | sed -E 's/.*((STEP|FEAT|SWIPE|LOCK) [0-9])/\1/' | sort | uniq -c || true
+          grep -E "(STEP|FEAT|SWIPE|LOCK|MONKEY) [0-9]+ FAIL" rep.log | sed -E 's/.*((STEP|FEAT|SWIPE|LOCK|MONKEY) [0-9])/\1/' | sort | uniq -c || true
           exit 0
 
   ui-video:
@@ -149,11 +149,11 @@ jobs:
           set +e
           xcodebuild test-without-building -project CameraPPP.xcodeproj -scheme CameraPPP \
             -destination "id=$UDID" -derivedDataPath build \
-            -only-testing:CameraPPPUITests/BillingFlowUITests -only-testing:CameraPPPUITests/AllFeaturesUITests -only-testing:CameraPPPUITests/SwipeUITests -only-testing:CameraPPPUITests/AlbumLockUITests -resultBundlePath ui.xcresult 2>&1 | tee ui.log | grep -E "STEP|FEAT|SWIPE|LOCK|error|Executed|TEST "
+            -only-testing:CameraPPPUITests/BillingFlowUITests -only-testing:CameraPPPUITests/AllFeaturesUITests -only-testing:CameraPPPUITests/SwipeUITests -only-testing:CameraPPPUITests/AlbumLockUITests -only-testing:CameraPPPUITests/MonkeyUITests -resultBundlePath ui.xcresult 2>&1 | tee ui.log | grep -E "STEP|FEAT|SWIPE|LOCK|MONKEY|error|Executed|TEST "
           CODE=${PIPESTATUS[0]}
           sleep 2
           kill -INT $REC; wait $REC
-          grep -E "STEP [0-9]|FEAT [0-9]|SWIPE [0-9]" ui.log | sed -E 's/.*((STEP|FEAT|SWIPE|LOCK) [0-9])/\1/' > steps.txt
+          grep -E "STEP [0-9]|FEAT [0-9]|SWIPE [0-9]" ui.log | sed -E 's/.*((STEP|FEAT|SWIPE|LOCK|MONKEY) [0-9])/\1/' > steps.txt
           cat steps.txt
           mkdir -p shots
           xcrun xcresulttool export attachments --path ui.xcresult --output-path shots >/dev/null 2>&1 || true
