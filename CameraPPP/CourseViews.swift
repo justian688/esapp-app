@@ -336,7 +336,7 @@ struct CourseLibraryView: View {
             get: { playingVideo.map { IdentifiableURL(url: $0) } },
             set: { playingVideo = $0?.url }
         )) { item in
-            FullScreenVideoPlayer(videoURL: item.url)
+            FullScreenVideoPlayer(videoURL: item.url, onDeleted: { Task { await reload() } })
         }
         .fullScreenCover(item: Binding(
             get: { viewingPhoto.map { IdentifiableURL(url: $0) } },
@@ -771,7 +771,7 @@ struct CourseDetailView: View {
             get: { playingVideo.map { IdentifiableURL(url: $0) } },
             set: { playingVideo = $0?.url }
         )) { item in
-            FullScreenVideoPlayer(videoURL: item.url)
+            FullScreenVideoPlayer(videoURL: item.url, onDeleted: { Task { await reload() } })
         }
         .fullScreenCover(item: Binding(
             get: { viewingPhoto.map { IdentifiableURL(url: $0) } },

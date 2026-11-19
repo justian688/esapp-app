@@ -145,3 +145,13 @@
 "打開 es省電王 並立即開始省電錄影" = "Open es省電王 and start power-saving recording right away";
 "%@：%@" = "%@: %@";
 "錄影頁" = "Record";
+"分享" = "Share";
+"新增至" = "Add to";
+"存到「照片」App" = "Save to Photos";
+"已存到照片" = "Saved to Photos";
+"沒有權限存到照片，請到「設定」開啟" = "No permission to save to Photos. Turn it on in Settings.";
+"刪除這部影片？" = "Delete this video?";
+"刪除後無法復原。" = "This can't be undone.";
+"影片資訊" = "Video info";
+"檔案大小" = "File size";
+"解析度" = "Resolution";

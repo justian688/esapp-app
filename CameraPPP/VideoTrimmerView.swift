@@ -10,6 +10,8 @@ import AVKit
 import AVFoundation
 
 struct VideoTrimmerView: View {
+    /// 從播放畫面按「編輯」進來時，直接打開這部影片
+    var initialVideo: URL? = nil
     @Environment(\.dismiss) var dismiss
     @State private var videoURLs: [URL] = []
     @State private var selectedVideo: URL? = nil
@@ -21,6 +23,10 @@ struct VideoTrimmerView: View {
     @State private var showAlert = false
     @State private var shouldDismissAfterAlert = false
     
+    init(initialVideo: URL? = nil) {
+        self.initialVideo = initialVideo
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             HStack {
@@ -66,6 +72,7 @@ struct VideoTrimmerView: View {
         .background(Color.black)
         .task {
             videoURLs = await StorageManager.shared.fetchAllMedia()
+            if let initialVideo, selectedVideo == nil { loadVideoDetails(url: initialVideo) }
         }
         .alert(isPresented: $showAlert) {
             Alert(title: Text("Trimmer"), message: Text(exportMessage), dismissButton: .default(Text("OK")) {
