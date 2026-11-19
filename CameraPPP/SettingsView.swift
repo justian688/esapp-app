@@ -28,6 +28,8 @@ struct SettingsView: View {
     @State private var showEraseOptions = false
     @State private var pendingEraseAfter: Int?
     @AppStorage(AlbumLock.faceIDKey) private var albumFaceID = true
+    /// 讓開關跟著密碼鎖狀態即時更新
+    @AppStorage(AlbumLock.enabledKey) private var albumLockOn = false
     @AppStorage(AlbumLock.eraseAfterKey) private var albumEraseAfter = 0
     
     @Environment(\.dismiss) var dismiss
@@ -120,14 +122,14 @@ struct SettingsView: View {
                         title: "相簿密碼鎖",
                         subtitle: "打開課程相簿、課程剪輯前要輸入密碼",
                         isOn: Binding(
-                            get: { albumLock.isEnabled },
+                            get: { albumLockOn && albumLock.isEnabled },
                             set: { on in
                                 if on { showCreatePasscode = true } else { albumLock.disable(); albumEraseAfter = 0 }
                             })
                     )
                     .accessibilityIdentifier("settings_albumLock")
 
-                    if albumLock.isEnabled {
+                    if albumLockOn && albumLock.isEnabled {
                         if AlbumLock.biometricsAvailable {
                             SettingsToggleRow(icon: "faceid", title: "用 Face ID 解鎖", subtitle: nil, isOn: $albumFaceID)
                         }
