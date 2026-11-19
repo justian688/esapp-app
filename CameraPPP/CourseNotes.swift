@@ -20,10 +20,12 @@ struct CourseNote: Identifiable, Codable, Equatable {
     var courseId: UUID?
     /// 預設的「一般筆記」：永遠存在、排第一、不能刪除、標題不能改
     var isDefault = false
+    /// 從首頁月曆新增的筆記：記在哪一天
+    var day: Date?
 
-    init(id: UUID = UUID(), title: String, body: String, updatedAt: Date = Date(), courseId: UUID? = nil, isDefault: Bool = false) {
+    init(id: UUID = UUID(), title: String, body: String, updatedAt: Date = Date(), courseId: UUID? = nil, isDefault: Bool = false, day: Date? = nil) {
         self.id = id; self.title = title; self.body = body
-        self.updatedAt = updatedAt; self.courseId = courseId; self.isDefault = isDefault
+        self.updatedAt = updatedAt; self.courseId = courseId; self.isDefault = isDefault; self.day = day
     }
 
     // 舊版存的筆記沒有 isDefault 欄位
@@ -35,6 +37,7 @@ struct CourseNote: Identifiable, Codable, Equatable {
         updatedAt = try c.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
         courseId = try c.decodeIfPresent(UUID.self, forKey: .courseId)
         isDefault = try c.decodeIfPresent(Bool.self, forKey: .isDefault) ?? false
+        day = try c.decodeIfPresent(Date.self, forKey: .day)
     }
 }
 

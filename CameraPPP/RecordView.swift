@@ -43,47 +43,33 @@ struct RecordView: View {
                 
                 Spacer(minLength: 12)
 
-                // 計時與「開始上課」合成一顆圓形按鈕：沒錄影時按下開錄，錄影中顯示計時
+                // 「開始上課」膠囊按鈕（上一版樣式、小一點）；錄影中同一顆變成計時
                 Button(action: startRecordingIfNeeded) {
-                    ZStack {
-                        Circle()
-                            .stroke(Theme.chalkboard, lineWidth: 12)
-                        Circle()
-                            .stroke(Theme.chalkYellow.opacity(cameraManager.isRecording ? 0.9 : 0.55),
-                                    style: StrokeStyle(lineWidth: 2, dash: [10, 6]))
-                            .padding(8)
-                        Circle()
-                            .fill(Theme.chalkboard.opacity(0.6))
-                            .padding(14)
+                    HStack(spacing: 10) {
                         if cameraManager.isRecording {
-                            VStack(spacing: 6) {
-                                Text(timeString(time: timeElapsed))
-                                    .font(.system(size: 44, weight: .light).monospacedDigit())
-                                    .foregroundColor(.white)
-                                Label(tr("錄影中"), systemImage: "record.circle")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(Theme.danger)
-                            }
+                            Circle().fill(Theme.danger).frame(width: 9, height: 9)
+                            Text(timeString(time: timeElapsed))
+                                .font(.system(size: 20, weight: .medium).monospacedDigit())
                         } else {
-                            VStack(spacing: 10) {
-                                Image(systemName: "graduationcap.fill")
-                                    .font(.system(size: 34, weight: .semibold))
-                                    .foregroundColor(Theme.chalkYellow)
-                                Text("開始上課")
-                                    .font(.system(size: 22, weight: .semibold))
-                                    .tracking(3)
-                                    .foregroundColor(Theme.chalkWhite)
-                            }
+                            Image(systemName: "graduationcap.fill")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(Theme.chalkYellow)
+                            Text("開始上課")
+                                .font(.system(size: 19, weight: .semibold))
+                                .tracking(3)
                         }
                     }
-                    .frame(width: 196, height: 196)
-                    .contentShape(Circle())
+                    .foregroundColor(Color(red: 0.85, green: 0.81, blue: 0.71))
+                    .padding(.horizontal, 28)
+                    .frame(height: 54)
+                    .overlay(Capsule().stroke(Theme.chalkYellow.opacity(0.8), lineWidth: 2))
+                    .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(cameraManager.isRecording ? tr("錄影中") : tr("開始上課"))
                 .accessibilityHint("開始錄影")
                 .disabled(cameraManager.isRecording)
-                .padding(.bottom, 36)
+                .padding(.bottom, 40)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             

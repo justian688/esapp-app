@@ -14,6 +14,8 @@ struct MonthCalendarView: View {
     @State private var store = CourseStore.shared
     @State private var month = Calendar.current.dateInterval(of: .month, for: Date())!.start
     @State private var selectedDay: Date?
+    @State private var notesStore = CourseNotesStore.shared
+    @State private var editingNote: CourseNote?
     @AppStorage(AppLanguage.storageKey) private var appLanguage = AppLanguage.traditionalChinese.rawValue
 
     private let cal: Calendar = {
@@ -49,9 +51,6 @@ struct MonthCalendarView: View {
             Text(monthTitle)
                 .font(.system(size: 15, weight: .bold))
                 .foregroundColor(Theme.chalkWhite)
-            Text(trf("本月錄了 %lld 堂", recordedDays.values.reduce(0) { $0 + $1.count }))
-                .font(.system(size: 12))
-                .foregroundColor(.gray)
             Spacer()
             Button { changeMonth(-1) } label: {
                 Image(systemName: "chevron.left").frame(width: 32, height: 28)
@@ -78,7 +77,7 @@ struct MonthCalendarView: View {
     private func dayCell(_ day: Date) -> some View {
         let isToday = cal.isDateInToday(day)
         let isSelected = selectedDay.map { cal.isDate($0, inSameDayAs: day) } ?? false
-        let recorded = !(recordedDays[cal.startOfDay(for: day)] ?? []).isEmpty
+        let recorded = !(recordedDays[cal.startOfDay(for: day)] ?? []).isEmpty || !notes(on: day).isEmpty
         let scheduled = scheduledWeekdays.contains(cal.component(.weekday, from: day))
         return Button {
             withAnimation(.easeOut(duration: 0.15)) { selectedDay = isSelected ? nil : day }
@@ -108,22 +107,54 @@ struct MonthCalendarView: View {
         .buttonStyle(.plain)
     }
 
+    /// 點一天：有錄影、有筆記才列出來；沒有就只留「新增筆記」
     private func dayDetail(_ day: Date) -> some View {
         let names = recordedDays[cal.startOfDay(for: day)] ?? []
+        let dayNotes = notes(on: day)
         let df = DateFormatter()
         df.locale = Locale(identifier: Translations.isEnglish ? "en_US" : "zh_Hant_TW")
         df.setLocalizedDateFormatFromTemplate("MMMdEEE")
-        return HStack(alignment: .top, spacing: 8) {
-            Text(df.string(from: day))
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(Theme.chalkYellow)
-            Text(names.isEmpty ? tr("這天沒有錄影") : names.joined(separator: "、"))
-                .font(.system(size: 12))
-                .foregroundColor(Theme.chalkWhite)
-                .lineLimit(2)
-            Spacer(minLength: 0)
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Text(df.string(from: day))
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(Theme.chalkYellow)
+                if !names.isEmpty {
+                    Label(names.joined(separator: "、"), systemImage: "video.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.chalkWhite)
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 0)
+            }
+            ForEach(dayNotes) { note in
+                Button { editingNote = note } label: {
+                    Label(note.title.isEmpty ? tr("未命名筆記") : note.title, systemImage: "note.text")
+                        .font(.system(size: 13))
+                        .foregroundColor(Theme.chalkWhite)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+            }
+            Button {
+                editingNote = CourseNote(title: "", body: "", courseId: store.currentCourseId, day: cal.startOfDay(for: day))
+            } label: {
+                Label(tr("新增這天的筆記"), systemImage: "plus")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Theme.chalkYellow)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("calendar_addNote")
         }
         .padding(.top, 4)
+        .sheet(item: $editingNote) { note in
+            CourseNoteEditor(note: note, store: notesStore)
+        }
+    }
+
+    private func notes(on day: Date) -> [CourseNote] {
+        notesStore.notes.filter { n in n.day.map { cal.isDate($0, inSameDayAs: day) } ?? false }
     }
 
     // MARK: 資料
