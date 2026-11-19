@@ -211,8 +211,8 @@ final class BillingFlowUITests: XCTestCase {
         openResolutionWheel()
         pickWheel(containing: "4K")
         pause(1)
-        step("免費版：4K 上鎖（轉到 4K 會自動收起選單、畫質維持 1080p）",
-             !app.pickerWheels.firstMatch.exists && !app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH '4K'")).firstMatch.exists)
+        step("免費版：4K 上鎖（轉到 4K 會自動收起滾輪、改跳升級小彈窗）",
+             app.staticTexts["upsell_title"].waitForExistence(timeout: 6) && !app.pickerWheels.firstMatch.exists)
         let up = app.staticTexts["upsell_title"]
         step("點上鎖的 4K → 小彈窗「立即享受 4K 完整版功能」", up.waitForExistence(timeout: 6) && up.label.contains("4K"))
         pause(2)
