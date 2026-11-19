@@ -201,16 +201,13 @@ final class SwipeUITests: XCTestCase {
             if button("儲存").exists { button("儲存").tap() }
             pause(2)
         }
-        let rightCol = text("錄影")
-        let leftCol = text("名稱")
+        // 課程資訊表改成直向卡片：不用再左右拉
+        let card = text("段錄影")
+        check("課程資訊表：課程是直向卡片，不用左右拉就看得到錄影數", card.exists && card.isHittable)
         let table = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.4))
         table.press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.4)))
         pause(1)
-        check("課程資訊表往左滑 → 看得到最右邊的「錄影」欄", visible(rightCol))
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.4))
-            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.4)))
-        pause(1)
-        check("課程資訊表往右滑 → 回到最左邊的「名稱」欄", visible(leftCol))
+        check("課程資訊表往左滑 → 不會跑版，卡片還在原位", card.exists && card.isHittable && text("課程資訊表").exists)
         app.swipeUp(velocity: .fast); app.swipeDown(velocity: .fast)
         check("課程資訊表上下滑 → 標題列還在、不閃退", text("課程資訊表").exists && app.state == .runningForeground)
 

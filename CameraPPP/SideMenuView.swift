@@ -53,9 +53,6 @@ struct SideMenuView: View {
                     MenuRow(icon: "books.vertical.fill", title: "課程相簿") {
                         openPage(.gallery)
                     }
-                    MenuRow(icon: "tablecells", title: "課程資訊表") {
-                        openPage(.courseInfo)
-                    }
                     MenuRow(icon: "scissors", title: "課程剪輯") {
                         openPage(.trimmer)
                     }
@@ -74,9 +71,6 @@ struct SideMenuView: View {
                     }
                     }
 
-                    MenuRow(icon: "paperplane.fill", title: SubscriptionConfig.paymentsEnabled ? "Support and Upgrade" : "Support") {
-                        openPage(.support)
-                    }
                     
                     Divider().background(Color.gray.opacity(0.5)).padding(.vertical, 10)
 
@@ -89,6 +83,14 @@ struct SideMenuView: View {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                             AppLinks.shareApp()
                         }
+                    }
+
+                    // 課程資訊表、支援放在最下面
+                    MenuRow(icon: "tablecells", title: "課程資訊表") {
+                        openPage(.courseInfo)
+                    }
+                    MenuRow(icon: "paperplane.fill", title: SubscriptionConfig.paymentsEnabled ? "Support and Upgrade" : "Support") {
+                        openPage(.support)
                     }
                 }
                 .padding(.vertical)
@@ -471,6 +473,8 @@ struct WheelSelectRow<Value: Hashable>: View {
     let title: String
     @Binding var selection: Value
     let options: [(value: Value, label: String)]
+    /// 緊湊樣式：標籤和值靠在一起、靠左（不會左右散開）
+    var compact = false
     @State private var showing = false
 
     private var currentLabel: String {
@@ -479,15 +483,28 @@ struct WheelSelectRow<Value: Hashable>: View {
 
     var body: some View {
         Button { showing = true } label: {
-            HStack {
-                Text(tr(title)).foregroundColor(.gray)
-                Spacer()
-                Text(currentLabel).foregroundColor(.white)
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.gray)
+            if compact {
+                HStack(spacing: 8) {
+                    Image(systemName: "graduationcap.fill").foregroundColor(Theme.chalkYellow)
+                    Text(tr(title)).foregroundColor(.gray)
+                    Text(currentLabel).foregroundColor(.white).fontWeight(.semibold)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.gray)
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
+            } else {
+                HStack {
+                    Text(tr(title)).foregroundColor(.gray)
+                    Spacer()
+                    Text(currentLabel).foregroundColor(.white)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.gray)
+                }
+                .contentShape(Rectangle())
             }
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .sheet(isPresented: $showing) {

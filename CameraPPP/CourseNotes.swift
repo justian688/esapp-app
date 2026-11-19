@@ -225,7 +225,8 @@ struct CourseNoteEditor: View {
                     WheelSelectRow(
                         title: "課程",
                         selection: $note.courseId,
-                        options: [(UUID?.none, tr("不指定"))] + CourseStore.shared.courses.map { (Optional($0.id), tr($0.name)) }
+                        options: [(UUID?.none, tr("不指定"))] + CourseStore.shared.courses.map { (Optional($0.id), tr($0.name)) },
+                        compact: true
                     )
                     .padding(.horizontal, 12)
                     .padding(.vertical, 12)
@@ -233,17 +234,15 @@ struct CourseNoteEditor: View {
                     .cornerRadius(10)
                 }
 
-                ZStack(alignment: .topLeading) {
-                    if note.body.isEmpty {
-                        Text("課堂重點、老師提到的考試範圍、待複習的地方…")
-                            .foregroundColor(.gray)
-                            .padding(.horizontal, 17)
-                            .padding(.vertical, 20)
-                    }
-                    TextEditor(text: $note.body)
-                        .scrollContentBackground(.hidden)
-                        .padding(8)
+                // 用同一個輸入框顯示提示字，打字時文字位置不會跳
+                ScrollView {
+                    TextField(tr("課堂重點、老師提到的考試範圍、待複習的地方…"), text: $note.body, axis: .vertical)
+                        .font(.body)
+                        .foregroundColor(Theme.chalkWhite)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                        .padding(14)
                 }
+                .frame(maxHeight: .infinity)
                 .background(Theme.chalkboard)
                 .cornerRadius(10)
 

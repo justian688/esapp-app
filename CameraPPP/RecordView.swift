@@ -36,47 +36,54 @@ struct RecordView: View {
                         .tracking(1)
                         .foregroundColor(.gray)
                     CurrentCourseCard()
+                    MonthCalendarView()
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
                 
-                Spacer()
-                
-                ZStack {
-                    Circle()
-                        .stroke(Theme.chalkboard, lineWidth: 14)
-                        .frame(width: 210, height: 210)
-                    Circle()
-                        .stroke(Theme.chalkWhite.opacity(0.35), style: StrokeStyle(lineWidth: 2, dash: [10, 6]))
-                        .frame(width: 194, height: 194)
-                    
-                    Text(timeString(time: timeElapsed))
-                        .font(.system(size: 56, weight: .light, design: .default))
-                        .foregroundColor(.white)
-                }
-                
-                Spacer()
-                
+                Spacer(minLength: 12)
+
+                // 計時與「開始上課」合成一顆圓形按鈕：沒錄影時按下開錄，錄影中顯示計時
                 Button(action: startRecordingIfNeeded) {
-                    // 粉筆框線風格：透明底＋細黃框，左邊課程圖案
-                    HStack(spacing: 12) {
-                        Image(systemName: "graduationcap.fill")
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundColor(Theme.chalkYellow)
-                        Text("開始上課")
-                            .font(.system(size: 22, weight: .semibold))
-                            .tracking(3)
+                    ZStack {
+                        Circle()
+                            .stroke(Theme.chalkboard, lineWidth: 12)
+                        Circle()
+                            .stroke(Theme.chalkYellow.opacity(cameraManager.isRecording ? 0.9 : 0.55),
+                                    style: StrokeStyle(lineWidth: 2, dash: [10, 6]))
+                            .padding(8)
+                        Circle()
+                            .fill(Theme.chalkboard.opacity(0.6))
+                            .padding(14)
+                        if cameraManager.isRecording {
+                            VStack(spacing: 6) {
+                                Text(timeString(time: timeElapsed))
+                                    .font(.system(size: 44, weight: .light).monospacedDigit())
+                                    .foregroundColor(.white)
+                                Label(tr("錄影中"), systemImage: "record.circle")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(Theme.danger)
+                            }
+                        } else {
+                            VStack(spacing: 10) {
+                                Image(systemName: "graduationcap.fill")
+                                    .font(.system(size: 34, weight: .semibold))
+                                    .foregroundColor(Theme.chalkYellow)
+                                Text("開始上課")
+                                    .font(.system(size: 22, weight: .semibold))
+                                    .tracking(3)
+                                    .foregroundColor(Theme.chalkWhite)
+                            }
+                        }
                     }
-                    .foregroundColor(Color(red: 0.85, green: 0.81, blue: 0.71))
-                    .padding(.horizontal, 34)
-                    .frame(height: 64)
-                    .overlay(Capsule().stroke(Theme.chalkYellow.opacity(0.8), lineWidth: 2))
-                    .contentShape(Capsule())
+                    .frame(width: 196, height: 196)
+                    .contentShape(Circle())
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel(cameraManager.isRecording ? tr("錄影中") : tr("開始上課"))
                 .accessibilityHint("開始錄影")
                 .disabled(cameraManager.isRecording)
-                .opacity(cameraManager.isRecording ? 0.45 : 1.0)
-                .padding(.bottom, 50)
+                .padding(.bottom, 36)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             

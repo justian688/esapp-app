@@ -568,47 +568,90 @@ struct CourseInfoTableView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView([.vertical, .horizontal]) {
-                    Grid(alignment: .leading, horizontalSpacing: 0, verticalSpacing: 0) {
-                        GridRow {
-                            headerCell("名稱", width: 140)
-                            headerCell("分類", width: 96)
-                            headerCell("老師／講者", width: 110)
-                            headerCell("時間", width: 110)
-                            headerCell("地點", width: 90)
-                            headerCell("錄影", width: 60)
-                        }
+                // 改成由上往下的課程卡片（原本的寬表格要左右拉才看得到全部欄位）
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 10) {
                         ForEach(store.categories, id: \.self) { category in
-                            ForEach(store.courses(in: category)) { course in
-                                GridRow {
-                                    cell(course.name, width: 140, bold: true)
-                                    cell(category, width: 96)
-                                    cell(course.teacher, width: 110)
-                                    cell(course.schedule, width: 110)
-                                    cell(course.room, width: 90)
-                                    cell(trf("%lld 段", store.videoCount(courseId: course.id)), width: 60)
+                            let courses = store.courses(in: category)
+                            if !courses.isEmpty {
+                                Text(tr(category))
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(Theme.chalkYellow.opacity(0.85))
+                                    .padding(.top, 10)
+                                    .padding(.leading, 4)
+                                ForEach(courses) { course in
+                                    courseCard(course)
                                 }
-                                .contentShape(Rectangle())
-                                .onTapGesture { editingCourse = course }
-                                .accessibilityElement(children: .combine)
-                                .accessibilityAddTraits(.isButton)
                             }
                         }
+                        Text("點一張卡片可以編輯。分類可在「課程相簿」右上角建立。")
+                            .font(.system(size: 12))
+                            .foregroundColor(.gray)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 12)
                     }
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.chalkLine, lineWidth: 1))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .padding(16)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 24)
                 }
-                Text("點一列可以編輯。分類可在「課程相簿」右上角建立。")
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
-                    .padding(.bottom, 16)
             }
         }
         .background(Color.black.ignoresSafeArea())
         .sheet(item: $editingCourse) { course in
             CourseEditor(course: course)
         }
+    }
+
+    private func courseCard(_ course: Course) -> some View {
+        let videos = store.videoCount(courseId: course.id)
+        let details: [(String, String)] = [("person.fill", course.teacher), ("clock", course.schedule), ("mappin.and.ellipse", course.room)]
+            .filter { !$0.1.isEmpty }
+        return Button { editingCourse = course } label: {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "graduationcap.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(Theme.chalkYellow)
+                    .frame(width: 36, height: 36)
+                    .background(Theme.chalkYellow.opacity(0.15), in: RoundedRectangle(cornerRadius: 9))
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(tr(course.name))
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(Theme.chalkWhite)
+                        .lineLimit(1)
+                    if details.isEmpty {
+                        Text(tr("點一下補上老師、時間、地點"))
+                            .font(.system(size: 12))
+                            .foregroundColor(.gray)
+                    } else {
+                        // 老師、時間、地點：一行放不下會自動換行
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: 12) { ForEach(details, id: \.0) { detail($0.0, $0.1) } }
+                            VStack(alignment: .leading, spacing: 4) { ForEach(details, id: \.0) { detail($0.0, $0.1) } }
+                        }
+                    }
+                }
+                Spacer(minLength: 8)
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("\(videos)")
+                        .font(.system(size: 18, weight: .bold).monospacedDigit())
+                        .foregroundColor(videos > 0 ? Theme.chalkWhite : .gray)
+                    Text(tr("段錄影"))
+                        .font(.system(size: 11))
+                        .foregroundColor(.gray)
+                }
+            }
+            .padding(14)
+            .background(Theme.chalkboard, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Theme.chalkLine, lineWidth: 1))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func detail(_ icon: String, _ text: String) -> some View {
+        Label(text, systemImage: icon)
+            .font(.system(size: 12))
+            .foregroundColor(.gray)
+            .lineLimit(1)
     }
 
     private func headerCell(_ text: String, width: CGFloat) -> some View {
