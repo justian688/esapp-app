@@ -16,30 +16,32 @@ struct CustomTopAppBar: View {
     @AppStorage(AppLanguage.storageKey) private var appLanguage = AppLanguage.traditionalChinese.rawValue
 
     var body: some View {
-        HStack(spacing: 12) {
-            Button {
-                withAnimation(.easeInOut) { isMenuOpen.toggle() }
-            } label: {
-                Image(systemName: "line.3.horizontal")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(Theme.chalkWhite)
-                    .frame(width: 42, height: 42)
-                    .background(Theme.chalkboard, in: Circle())
-                    .overlay(Circle().stroke(Theme.chalkLine, lineWidth: 1))
-            }
-            .accessibilityIdentifier("menuButton")
-            .accessibilityLabel(tr("選單"))
-
+        // 切換鈕以整個螢幕置中；選單鍵疊在左邊，不會把切換鈕擠偏
+        ZStack {
             HStack(spacing: 0) {
                 tabButton(index: 0, icon: "video.fill", title: tr("錄影頁"), id: "tab_record")
                 tabButton(index: 1, icon: "calendar.badge.clock", title: tr("排程"), id: "tab_schedule")
             }
             .padding(4)
+            .frame(width: 230)
             .background(Theme.chalkboard, in: Capsule())
             .overlay(Capsule().stroke(Theme.chalkLine, lineWidth: 1))
 
-            // 右邊留同寬空白，讓切換鈕置中
-            Color.clear.frame(width: 42, height: 42)
+            HStack {
+                Button {
+                    withAnimation(.easeInOut) { isMenuOpen.toggle() }
+                } label: {
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(Theme.chalkWhite)
+                        .frame(width: 42, height: 42)
+                        .background(Theme.chalkboard, in: Circle())
+                        .overlay(Circle().stroke(Theme.chalkLine, lineWidth: 1))
+                }
+                .accessibilityIdentifier("menuButton")
+                .accessibilityLabel(tr("選單"))
+                Spacer()
+            }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
