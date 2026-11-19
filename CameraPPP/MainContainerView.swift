@@ -118,6 +118,7 @@ struct MainContainerView: View {
                 switch destination {
                 case .gallery:
                     CourseLibraryView()
+                        .albumLocked()
                         .navigationBarBackButtonHidden(true)
                 case .courseInfo:
                     CourseInfoTableView()
@@ -127,6 +128,7 @@ struct MainContainerView: View {
                         .navigationBarBackButtonHidden(true)
                 case .trimmer:
                     VideoTrimmerView()
+                        .albumLocked()
                         .navigationBarBackButtonHidden(true)
                 case .settings:
                     SettingsView()

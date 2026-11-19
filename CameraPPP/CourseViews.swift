@@ -783,7 +783,7 @@ struct CourseDetailView: View {
                                     editingNote = note
                                 } label: {
                                     HStack(spacing: 0) {
-                                        Rectangle().fill(Color.red.opacity(0.3)).frame(width: 3)
+                                        Rectangle().fill(Theme.chalkYellow.opacity(0.6)).frame(width: 3)
                                         VStack(alignment: .leading, spacing: 4) {
                                             Text(note.title.isEmpty ? tr("未命名筆記") : note.title)
                                                 .font(.system(size: 15, weight: .bold))

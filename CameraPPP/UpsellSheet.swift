@@ -55,7 +55,7 @@ struct UpsellSheet: View {
     /// 打開完整方案頁
     var onSeeAllPlans: () -> Void
 
-    private static let gold = Color(red: 0.96, green: 0.80, blue: 0.36)
+    private static let gold = Theme.premiumGold
 
     @State private var plan: UpsellPlan = .yearly
 

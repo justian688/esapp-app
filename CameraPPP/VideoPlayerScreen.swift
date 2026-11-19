@@ -75,7 +75,9 @@ struct FullScreenVideoPlayer: View {
         .fullScreenCover(isPresented: $showTrimmer) {
             VideoTrimmerView(initialVideo: videoURL)
         }
-        .onChange(of: showTrimmer) { _, open in if open { model.pause() } }
+        .onChange(of: showTrimmer) { _, open in
+            if open { model.pause() } else { model.reload(videoURL) }   // 剪完若選了「取代」，重新載入剪好的版本
+        }
     }
 
     // MARK: 上方列
@@ -303,6 +305,16 @@ final class VideoPlaybackModel: ObservableObject {
         }
         player.play()
         isPlaying = true
+    }
+
+    /// 檔案被替換（剪輯後取代原影片）時重新載入
+    func reload(_ url: URL) {
+        if let timeObserver { player.removeTimeObserver(timeObserver); self.timeObserver = nil }
+        if let endObserver { NotificationCenter.default.removeObserver(endObserver); self.endObserver = nil }
+        player.replaceCurrentItem(with: nil)
+        currentTime = 0
+        load(url)
+        pause()
     }
 
     func togglePlay() {

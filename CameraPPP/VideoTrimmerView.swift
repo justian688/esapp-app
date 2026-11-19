@@ -132,6 +132,8 @@ private struct ClipEditorView: View {
     @State private var selectedId: UUID?
     @State private var confirmDiscard = false
     @State private var resultMessage: String?
+    @State private var askReplace = false
+    @State private var finished = false
 
     private let timelineHeight: CGFloat = 64
 
@@ -157,9 +159,29 @@ private struct ClipEditorView: View {
             Button(tr("放棄"), role: .destructive) { onClose() }
             Button(tr("繼續剪輯"), role: .cancel) {}
         }
+        // 剪完詢問：取代原影片，還是另存一部新的
+        .confirmationDialog(tr("剪好了，要怎麼儲存？"), isPresented: $askReplace, titleVisibility: .visible) {
+            Button(tr("取代原影片"), role: .destructive) {
+                Task {
+                    let ok = await engine.commitReplacing(sourceURL)
+                    finished = ok
+                    resultMessage = ok ? tr("已取代原影片。") : (engine.lastError ?? tr("匯出失敗，請再試一次。"))
+                }
+            }
+            Button(tr("另存新影片（保留原影片）")) {
+                Task {
+                    let ok = await engine.commitAsNew(from: sourceURL)
+                    finished = ok
+                    resultMessage = ok ? tr("已另存新影片，原始影片也保留著。") : (engine.lastError ?? tr("匯出失敗，請再試一次。"))
+                }
+            }
+            Button(tr("取消"), role: .cancel) { engine.discardPendingExport() }
+        } message: {
+            Text(engine.exportedLossless ? tr("原畫質無損剪輯，畫質跟原片一樣。") : tr("這部影片的格式無法無損剪輯，已用最高畫質輸出。"))
+        }
         .alert(tr("課程剪輯"), isPresented: Binding(get: { resultMessage != nil }, set: { if !$0 { resultMessage = nil } })) {
             Button(tr("好")) {
-                if engine.exportSucceeded { onExported() }
+                if finished { onExported() }
             }
         } message: {
             Text(resultMessage ?? "")
@@ -180,11 +202,19 @@ private struct ClipEditorView: View {
             Spacer()
             Text(tr("課程剪輯")).font(.headline).foregroundColor(.white)
             Spacer()
+            Text(tr("原畫質"))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.white.opacity(0.85))
+                .padding(.horizontal, 8).padding(.vertical, 5)
+                .overlay(Capsule().stroke(.white.opacity(0.35), lineWidth: 1))
             Button {
                 Task {
                     engine.player.pause()
-                    let ok = await engine.export(source: sourceURL)
-                    resultMessage = ok ? tr("已匯出新影片，原始影片也保留著。") : (engine.lastError ?? tr("匯出失敗，請再試一次。"))
+                    if await engine.export(source: sourceURL) {
+                        askReplace = true
+                    } else {
+                        resultMessage = engine.lastError ?? tr("匯出失敗，請再試一次。")
+                    }
                 }
             } label: {
                 Group {
@@ -237,8 +267,19 @@ private struct ClipEditorView: View {
             }
             .accessibilityIdentifier("trim_play")
             Spacer()
-            Text(engine.hasEdits ? trf("%lld 段", engine.segments.count) : tr("原始長度"))
-                .font(.system(size: 12)).foregroundColor(.gray)
+            HStack(spacing: 18) {
+                Button { engine.undo(); selectedId = nil } label: {
+                    Image(systemName: "arrow.uturn.backward").font(.system(size: 17))
+                }
+                .disabled(!engine.canUndo)
+                .accessibilityIdentifier("trim_undo")
+                Button { engine.redo(); selectedId = nil } label: {
+                    Image(systemName: "arrow.uturn.forward").font(.system(size: 17))
+                }
+                .disabled(!engine.canRedo)
+                .accessibilityIdentifier("trim_redo")
+            }
+            .foregroundColor(.white)
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
@@ -362,8 +403,8 @@ private struct ClipEditorView: View {
             tool("trash", tr("刪除"), id: "trim_delete", disabled: selectedId == nil || engine.segments.count <= 1) {
                 if let id = selectedId { engine.delete(id); selectedId = nil }
             }
-            tool("arrow.uturn.backward", tr("復原"), id: "trim_undo", disabled: !engine.canUndo) {
-                engine.undo(); selectedId = nil
+            tool("plus.square.on.square", tr("複製"), id: "trim_duplicate", disabled: selectedId == nil) {
+                if let id = selectedId { engine.duplicate(id) }
             }
             tool("arrow.counterclockwise", tr("重設"), id: "trim_reset", disabled: !engine.hasEdits) {
                 engine.reset(); selectedId = nil
@@ -438,6 +479,7 @@ final class ClipEngine: ObservableObject {
 
     private var asset: AVURLAsset?
     private var history: [[ClipSegment]] = []
+    private var future: [[ClipSegment]] = []
     private var trimOrigin: ClipSegment?
     private var timeObserver: Any?
     /// 縮圖每隔幾秒取一張（依影片長度，最多約 150 張）
@@ -446,6 +488,11 @@ final class ClipEngine: ObservableObject {
     var totalDuration: Double { segments.reduce(0) { $0 + $1.length } }
     var hasEdits: Bool { segments.count != 1 || (segments.first.map { $0.start > 0.05 || $0.end < sourceDuration - 0.05 } ?? false) }
     var canUndo: Bool { !history.isEmpty }
+    var canRedo: Bool { !future.isEmpty }
+    /// 匯出好、等使用者決定「取代／另存」的暫存檔
+    private(set) var pendingExport: URL?
+    /// 這次是否為無損（直接複製原始影像、不重新壓縮）
+    private(set) var exportedLossless = false
 
     func load(_ url: URL) async {
         let asset = AVURLAsset(url: url)
@@ -510,9 +557,9 @@ final class ClipEngine: ObservableObject {
         guard let i = segments.firstIndex(where: { $0.id == id }) else { return }
         if trimOrigin == nil { trimOrigin = segments[i]; pushHistory() }
         guard let origin = trimOrigin else { return }
-        // 相鄰片段的範圍不能重疊（原始影片同一段不會出現兩次）
-        let lowerBound = i > 0 && segments[i - 1].end <= origin.start ? segments[i - 1].end : 0
-        let upperBound = i < segments.count - 1 && segments[i + 1].start >= origin.end ? segments[i + 1].start : sourceDuration
+        // 跟剪映一樣：可以往外拉回原影片的任何位置
+        let lowerBound = 0.0
+        let upperBound = sourceDuration
         var seg = segments[i]
         if leading {
             seg.start = min(max(lowerBound, origin.start + delta), origin.end - 0.5)
@@ -528,8 +575,25 @@ final class ClipEngine: ObservableObject {
 
     func undo() {
         guard let last = history.popLast() else { return }
+        future.append(segments)
         segments = last
         Task { await rebuild(keepTime: min(currentTime, totalDuration)) }
+    }
+
+    func redo() {
+        guard let next = future.popLast() else { return }
+        history.append(segments)
+        segments = next
+        Task { await rebuild(keepTime: min(currentTime, totalDuration)) }
+    }
+
+    /// 複製一段（放在它後面）
+    func duplicate(_ id: UUID) {
+        guard let i = segments.firstIndex(where: { $0.id == id }) else { return }
+        pushHistory()
+        let s = segments[i]
+        segments.insert(ClipSegment(start: s.start, end: s.end), at: i + 1)
+        Task { await rebuild(keepTime: currentTime) }
     }
 
     func reset() {
@@ -539,6 +603,7 @@ final class ClipEngine: ObservableObject {
     }
 
     private func pushHistory() {
+        future.removeAll()
         history.append(segments)
         if history.count > 30 { history.removeFirst() }
     }
@@ -595,29 +660,71 @@ final class ClipEngine: ObservableObject {
         }
     }
 
-    // MARK: 匯出
+    // MARK: 匯出（無損優先）
 
+    /// 匯出到暫存檔；成功後由畫面詢問「取代原影片」或「另存新影片」
     func export(source: URL) async -> Bool {
         isExporting = true
         defer { isExporting = false }
         exportSucceeded = false
-        guard let comp = await makeComposition(),
-              let session = AVAssetExportSession(asset: comp, presetName: AVAssetExportPresetHighestQuality) else {
+        lastError = nil
+        guard let comp = await makeComposition() else {
             lastError = tr("無法建立剪輯工作。")
             return false
         }
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp4")
+        let ext = source.pathExtension.isEmpty ? "mp4" : source.pathExtension
+        let type: AVFileType = ext.lowercased() == "mov" ? .mov : .mp4
+        // 1) 無損：直接複製原始影像資料，不重新壓縮（畫質跟原片一樣，速度快）
+        for (preset, lossless) in [(AVAssetExportPresetPassthrough, true), (AVAssetExportPresetHighestQuality, false)] {
+            guard let session = AVAssetExportSession(asset: comp, presetName: preset) else { continue }
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + "." + ext)
+            do {
+                try await session.export(to: tempURL, as: type)
+                pendingExport = tempURL
+                exportedLossless = lossless
+                exportSucceeded = true
+                return true
+            } catch {
+                try? FileManager.default.removeItem(at: tempURL)
+                lastError = trf("匯出失敗：%@", error.localizedDescription)
+                // 2) 無損失敗（少數格式不支援）→ 改用最高畫質重新壓縮
+            }
+        }
+        return false
+    }
+
+    /// 使用者選「取代原影片」：檔名、所屬課程都不變
+    func commitReplacing(_ source: URL) async -> Bool {
+        guard let temp = pendingExport else { return false }
         do {
-            try await session.export(to: tempURL, as: .mp4)
-            let saved = try await StorageManager.shared.saveVideo(from: tempURL)
-            // 剪好的影片歸到原本那堂課
-            CourseStore.shared.move(fileURL: saved, to: CourseStore.shared.courseId(for: source))
-            if MediaPreferences.saveToPhotosLibrary { await PhotoLibrarySaver.saveVideo(at: saved) }
-            exportSucceeded = true
+            _ = try FileManager.default.replaceItemAt(source, withItemAt: temp)
+            try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: source.path)
+            pendingExport = nil
+            if MediaPreferences.saveToPhotosLibrary { await PhotoLibrarySaver.saveVideo(at: source) }
             return true
         } catch {
             lastError = trf("匯出失敗：%@", error.localizedDescription)
             return false
         }
+    }
+
+    /// 使用者選「另存新影片」：原影片保留，新影片歸到同一堂課
+    func commitAsNew(from source: URL) async -> Bool {
+        guard let temp = pendingExport else { return false }
+        do {
+            let saved = try await StorageManager.shared.saveVideo(from: temp)
+            CourseStore.shared.move(fileURL: saved, to: CourseStore.shared.courseId(for: source))
+            pendingExport = nil
+            if MediaPreferences.saveToPhotosLibrary { await PhotoLibrarySaver.saveVideo(at: saved) }
+            return true
+        } catch {
+            lastError = trf("匯出失敗：%@", error.localizedDescription)
+            return false
+        }
+    }
+
+    func discardPendingExport() {
+        if let temp = pendingExport { try? FileManager.default.removeItem(at: temp) }
+        pendingExport = nil
     }
 }

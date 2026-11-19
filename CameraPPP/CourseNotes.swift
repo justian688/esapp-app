@@ -182,7 +182,7 @@ struct CourseNotesSection: View {
                         .background(
                             HStack(spacing: 0) {
                                 // 筆記本左側紅色邊線
-                                Rectangle().fill(Color.red.opacity(0.3)).frame(width: 3)
+                                Rectangle().fill(Theme.chalkYellow.opacity(0.6)).frame(width: 3)
                                 Theme.chalkboard
                             }
                         )
@@ -218,7 +218,7 @@ struct CourseNoteEditor: View {
                     .font(.headline)
                     .disabled(note.isDefault)   // 一般筆記的標題固定
                     .padding(12)
-                    .background(Color(UIColor.systemGray6))
+                    .background(Theme.chalkboard)
                     .cornerRadius(10)
 
                 if !CourseStore.shared.courses.isEmpty {
@@ -229,7 +229,7 @@ struct CourseNoteEditor: View {
                     )
                     .padding(.horizontal, 12)
                     .padding(.vertical, 12)
-                    .background(Color(UIColor.systemGray6))
+                    .background(Theme.chalkboard)
                     .cornerRadius(10)
                 }
 
@@ -244,7 +244,7 @@ struct CourseNoteEditor: View {
                         .scrollContentBackground(.hidden)
                         .padding(8)
                 }
-                .background(Color(UIColor.systemGray6))
+                .background(Theme.chalkboard)
                 .cornerRadius(10)
 
                 if note.isDefault {

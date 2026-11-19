@@ -57,7 +57,7 @@ struct PhotoSettingsView: View {
 
                     ColoredIconActionRow(
                         icon: "mic.fill",
-                        iconBgColor: Color.red.opacity(0.8),
+                        iconBgColor: Theme.danger.opacity(0.85),
                         title: "Siri 與捷徑",
                         subtitle: "對 Siri 說「用 es省電王 開始錄影」，或在「捷徑」App 加入主畫面"
                     ) {
@@ -68,7 +68,7 @@ struct PhotoSettingsView: View {
 
                     ColoredIconActionRow(
                         icon: "square.grid.2x2.fill",
-                        iconBgColor: Color(UIColor.darkGray),
+                        iconBgColor: Theme.chalkYellow.opacity(0.6),
                         title: "主畫面小工具與控制中心",
                         subtitle: "長按主畫面空白處 → 左上角「編輯」→「加入小工具」→ 搜尋 es省電王"
                     ) {}
@@ -97,7 +97,7 @@ struct SectionHeader: View {
     var body: some View {
         Text(title)
             .font(.system(size: 13, weight: .medium))
-            .foregroundColor(Color.red.opacity(0.8))
+            .foregroundColor(Theme.chalkYellow.opacity(0.85))
             .padding(.horizontal, 20)
             .padding(.top, 15)
             .padding(.bottom, 10)

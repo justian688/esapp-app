@@ -99,7 +99,7 @@ struct GalleryView: View {
                     }
                 }
             }
-            .background(Color(UIColor.systemGray6))
+            .background(Theme.chalkboard)
         }
         .background(Color.white)
         .task {

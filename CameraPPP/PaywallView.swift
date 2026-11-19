@@ -72,7 +72,7 @@ struct PaywallView: View {
 
     // MARK: - 樣式
 
-    private static let gold = Color(red: 0.96, green: 0.80, blue: 0.36)
+    private static let gold = Theme.premiumGold
     private static let card = Color(white: 0.10)
     private static let line = Color.white.opacity(0.08)
 

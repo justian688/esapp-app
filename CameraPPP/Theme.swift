@@ -18,6 +18,11 @@ enum Theme {
     static let chalkWhite = Color(red: 0.78, green: 0.78, blue: 0.75)
     /// 淡粉筆線
     static let chalkLine = Color.white.opacity(0.08)
+    /// 完整版專用亮金色（付費頁、升級小彈窗）
+    static let premiumGold = Color(red: 0.96, green: 0.80, blue: 0.36)
+    static let premiumGoldDeep = Color(red: 0.85, green: 0.62, blue: 0.22)
+    /// 危險動作（刪除、錄影中）
+    static let danger = Color(red: 0.86, green: 0.33, blue: 0.30)
 }
 
 /// 黑板風格的區塊標題，例如「排程錄影」「課程筆記」

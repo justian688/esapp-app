@@ -23,6 +23,12 @@ struct SettingsView: View {
     @State private var showingFrameRateOptions = false
     @State private var showPaywall = false
     @State private var upsellReason: UpsellReason?
+    @State private var albumLock = AlbumLock.shared
+    @State private var showCreatePasscode = false
+    @State private var showEraseOptions = false
+    @State private var pendingEraseAfter: Int?
+    @AppStorage(AlbumLock.faceIDKey) private var albumFaceID = true
+    @AppStorage(AlbumLock.eraseAfterKey) private var albumEraseAfter = 0
     
     @Environment(\.dismiss) var dismiss
     
@@ -106,6 +112,34 @@ struct SettingsView: View {
                         }
                     }
 
+                    // ── 隱私 ──
+                    sectionHeader("隱私", icon: "lock.fill")
+
+                    SettingsToggleRow(
+                        icon: "lock.rectangle.stack",
+                        title: "相簿密碼鎖",
+                        subtitle: "打開課程相簿、課程剪輯前要輸入密碼",
+                        isOn: Binding(
+                            get: { albumLock.isEnabled },
+                            set: { on in
+                                if on { showCreatePasscode = true } else { albumLock.disable(); albumEraseAfter = 0 }
+                            })
+                    )
+                    .accessibilityIdentifier("settings_albumLock")
+
+                    if albumLock.isEnabled {
+                        if AlbumLock.biometricsAvailable {
+                            SettingsToggleRow(icon: "faceid", title: "用 Face ID 解鎖", subtitle: nil, isOn: $albumFaceID)
+                        }
+                        SettingsMenuRow(icon: "exclamationmark.triangle", title: "輸錯太多次清除相簿",
+                                        subtitle: albumEraseAfter == 0 ? tr("關閉（建議）") : trf("連續輸錯 %lld 次清除", albumEraseAfter)) {
+                            showEraseOptions = true
+                        }
+                        SettingsMenuRow(icon: "key", title: "更改密碼", subtitle: "") {
+                            showCreatePasscode = true
+                        }
+                    }
+
                     // ── 一般（語言放最下面）──
                     sectionHeader("一般", icon: "gearshape.fill")
 
@@ -168,6 +202,34 @@ struct SettingsView: View {
                     Text("中文").tag(AppLanguage.traditionalChinese.rawValue)
                     Text("English").tag(AppLanguage.english.rawValue)
                 }
+            }
+        }
+        .fullScreenCover(isPresented: $showCreatePasscode) {
+            PasscodeScreen(mode: .create)
+        }
+        .sheet(isPresented: $showEraseOptions) {
+            WheelPickerSheet(title: "輸錯太多次清除相簿", isPresented: $showEraseOptions,
+                             message: "開啟後，連續輸錯密碼達到次數，相簿裡所有影片和照片都會被永久刪除，無法復原。輸錯 3 次起會先暫停一段時間。") {
+                Picker("輸錯太多次清除相簿", selection: Binding(
+                    get: { albumEraseAfter },
+                    set: { new in
+                        if new == 0 { albumEraseAfter = 0 } else { pendingEraseAfter = new }
+                    })) {
+                    Text(tr("關閉（建議）")).tag(0)
+                    Text(trf("連續輸錯 %lld 次", 3)).tag(3)
+                    Text(trf("連續輸錯 %lld 次", 5)).tag(5)
+                    Text(trf("連續輸錯 %lld 次", 10)).tag(10)
+                }
+            }
+            .confirmationDialog(tr("確定要開啟自動清除？"), isPresented: Binding(
+                get: { pendingEraseAfter != nil }, set: { if !$0 { pendingEraseAfter = nil } }), titleVisibility: .visible) {
+                Button(tr("開啟（我了解會永久刪除）"), role: .destructive) {
+                    if let n = pendingEraseAfter { albumEraseAfter = n }
+                    pendingEraseAfter = nil
+                }
+                Button(tr("取消"), role: .cancel) { pendingEraseAfter = nil }
+            } message: {
+                Text(trf("別人亂按或你自己打錯 %lld 次，所有課程影片和照片都會消失，而且救不回來。", pendingEraseAfter ?? 0))
             }
         }
         .sheet(isPresented: $showPaywall) {
@@ -315,7 +377,8 @@ struct SettingsToggleRow: View {
             
             Toggle("", isOn: $isOn)
                 .labelsHidden()
-                .tint(Color.red.opacity(0.8))
+                .tint(Theme.chalkYellow)
+                .accessibilityLabel(Text(title))   // 開關有名稱：語音朗讀、自動測試都找得到
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 14)
@@ -381,11 +444,13 @@ struct SettingsMenuRow: View {
                         .font(.system(size: 16, weight: .regular))
                         .foregroundColor(.white)
 
-                    Text(tr(subtitle))
-                        .font(.system(size: 13))
-                        .foregroundColor(.gray)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if !subtitle.isEmpty {
+                        Text(tr(subtitle))
+                            .font(.system(size: 13))
+                            .foregroundColor(.gray)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
 
                 Spacer()
