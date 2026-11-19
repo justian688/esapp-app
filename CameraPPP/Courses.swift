@@ -160,7 +160,13 @@ final class CourseStore {
     }
 
     /// 刪除課程：影片和照片不會刪掉，會移到「未分類」
+    /// 預設的「一般課程」不能刪除
+    func isDefault(_ course: Course) -> Bool {
+        course.name == Course.defaultCourseName
+    }
+
     func delete(_ course: Course) {
+        guard !isDefault(course) else { return }
         courses.removeAll { $0.id == course.id }
         for (name, record) in media where record.courseId == course.id {
             media[name]?.courseId = nil

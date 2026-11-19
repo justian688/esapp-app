@@ -235,8 +235,14 @@ final class SwipeUITests: XCTestCase {
         let row = text("錄影畫質")
         if visible(row) { row.tap() }
         pause(2)
-        let fourK = app.buttons.containing(NSPredicate(format: "label CONTAINS '4K'")).firstMatch
-        if fourK.waitForExistence(timeout: 3) { fourK.tap() }
+        // 畫質改成滾輪：轉到 4K（免費版上鎖）→ 選單自動收起、跳出升級小彈窗
+        let wheel = app.pickerWheels.firstMatch
+        if wheel.waitForExistence(timeout: 3) {
+            for _ in 0..<4 where wheel.exists && !((wheel.value as? String) ?? "").contains("4K") {
+                wheel.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.68)).tap()
+                usleep(600_000)
+            }
+        }
         let opened = upTitle.waitForExistence(timeout: 5)
         app.swipeDown(velocity: .fast)
         pause(2)

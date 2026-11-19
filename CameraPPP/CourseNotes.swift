@@ -10,12 +10,32 @@ import Observation
 import SwiftUI
 
 struct CourseNote: Identifiable, Codable, Equatable {
+    static let defaultTitle = "一般筆記"
+
     var id = UUID()
     var title: String
     var body: String
     var updatedAt = Date()
     /// 這則筆記屬於哪一堂課（nil = 未指定）
     var courseId: UUID?
+    /// 預設的「一般筆記」：永遠存在、排第一、不能刪除、標題不能改
+    var isDefault = false
+
+    init(id: UUID = UUID(), title: String, body: String, updatedAt: Date = Date(), courseId: UUID? = nil, isDefault: Bool = false) {
+        self.id = id; self.title = title; self.body = body
+        self.updatedAt = updatedAt; self.courseId = courseId; self.isDefault = isDefault
+    }
+
+    // 舊版存的筆記沒有 isDefault 欄位
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        title = try c.decode(String.self, forKey: .title)
+        body = try c.decode(String.self, forKey: .body)
+        updatedAt = try c.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
+        courseId = try c.decodeIfPresent(UUID.self, forKey: .courseId)
+        isDefault = try c.decodeIfPresent(Bool.self, forKey: .isDefault) ?? false
+    }
 }
 
 @Observable
@@ -31,6 +51,7 @@ final class CourseNotesStore {
 
     private init() {
         load()
+        ensureDefaultNote()
     }
 
     func save(_ note: CourseNote) {
@@ -41,7 +62,23 @@ final class CourseNotesStore {
         } else {
             notes.insert(updated, at: 0)
         }
-        notes.sort { $0.updatedAt > $1.updatedAt }
+        sortNotes()
+        persist()
+    }
+
+    /// 一般筆記固定排第一，其他依更新時間
+    private func sortNotes() {
+        notes.sort { a, b in
+            if a.isDefault != b.isDefault { return a.isDefault }
+            return a.updatedAt > b.updatedAt
+        }
+    }
+
+    /// 沒有「一般筆記」就建立一則（放在一般課程底下）
+    private func ensureDefaultNote() {
+        guard !notes.contains(where: { $0.isDefault }) else { return }
+        let general = CourseStore.shared.courses.first { $0.name == Course.defaultCourseName }
+        notes.insert(CourseNote(title: CourseNote.defaultTitle, body: "", courseId: general?.id, isDefault: true), at: 0)
         persist()
     }
 
@@ -54,6 +91,7 @@ final class CourseNotesStore {
     }
 
     func delete(_ note: CourseNote) {
+        guard !note.isDefault else { return }   // 一般筆記不能刪除
         notes.removeAll { $0.id == note.id }
         persist()
     }
@@ -61,7 +99,8 @@ final class CourseNotesStore {
     private func load() {
         guard let data = try? Data(contentsOf: fileURL),
               let decoded = try? JSONDecoder().decode([CourseNote].self, from: data) else { return }
-        notes = decoded.sorted { $0.updatedAt > $1.updatedAt }
+        notes = decoded
+        sortNotes()
     }
 
     private func persist() {
@@ -115,11 +154,11 @@ struct CourseNotesSection: View {
                         editingNote = note
                     } label: {
                         HStack(alignment: .top, spacing: 12) {
-                            Image(systemName: "pencil.line")
-                                .foregroundColor(.white)
+                            Image(systemName: note.isDefault ? "pin.fill" : "pencil.line")
+                                .foregroundColor(note.isDefault ? Theme.chalkYellow : .white)
                                 .padding(.top, 2)
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(note.title.isEmpty ? tr("未命名課程") : note.title)
+                                Text(note.title.isEmpty ? tr("未命名課程") : (note.isDefault ? tr(note.title) : note.title))
                                     .font(.system(size: 15, weight: .bold))
                                     .foregroundColor(.white)
                                     .lineLimit(1)
@@ -177,25 +216,19 @@ struct CourseNoteEditor: View {
             VStack(alignment: .leading, spacing: 12) {
                 TextField("課程名稱，例如：經濟學 第 5 週", text: $note.title)
                     .font(.headline)
+                    .disabled(note.isDefault)   // 一般筆記的標題固定
                     .padding(12)
                     .background(Color(UIColor.systemGray6))
                     .cornerRadius(10)
 
                 if !CourseStore.shared.courses.isEmpty {
-                    HStack {
-                        Text("課程")
-                            .foregroundColor(.gray)
-                        Spacer()
-                        Picker("課程", selection: $note.courseId) {
-                            Text("不指定").tag(UUID?.none)
-                            ForEach(CourseStore.shared.courses) { course in
-                                Text(tr(course.name)).tag(Optional(course.id))
-                            }
-                        }
-                        .pickerStyle(.menu)
-                    }
+                    WheelSelectRow(
+                        title: "課程",
+                        selection: $note.courseId,
+                        options: [(UUID?.none, tr("不指定"))] + CourseStore.shared.courses.map { (Optional($0.id), tr($0.name)) }
+                    )
                     .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 12)
                     .background(Color(UIColor.systemGray6))
                     .cornerRadius(10)
                 }
@@ -214,7 +247,13 @@ struct CourseNoteEditor: View {
                 .background(Color(UIColor.systemGray6))
                 .cornerRadius(10)
 
-                if isExisting {
+                if note.isDefault {
+                    Label("這是預設的一般筆記，不能刪除", systemImage: "lock.fill")
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                } else if isExisting {
                     Button(role: .destructive) {
                         confirmDelete = true
                     } label: {

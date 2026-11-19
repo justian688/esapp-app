@@ -368,7 +368,7 @@ private struct ScrubBar: View {
 
 // MARK: - AVPlayerLayer
 
-private struct PlayerLayerView: UIViewRepresentable {
+struct PlayerLayerView: UIViewRepresentable {
     let player: AVPlayer
 
     func makeUIView(context: Context) -> PlayerUIView {

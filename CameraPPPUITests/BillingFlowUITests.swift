@@ -120,15 +120,36 @@ final class BillingFlowUITests: XCTestCase {
         pause(2)
     }
 
-    /// 打開「錄影畫質」選單，回傳 4K 那個選項的文字
-    private func open4KOption() -> XCUIElement {
+    /// 打開「錄影畫質」滾輪選單
+    private func openResolutionWheel() {
         app.swipeDown(velocity: .fast)
         app.swipeDown(velocity: .fast)
         let row = app.staticTexts["錄影畫質"]
         scrollTo(row)
         row.tap()
         pause(2)
-        return app.buttons.containing(NSPredicate(format: "label CONTAINS '4K'")).firstMatch
+    }
+
+    /// 滾輪選單：一格一格轉，直到目前值包含指定文字（先往下找、再往上找）
+    @discardableResult
+    private func pickWheel(containing sub: String, maxSteps: Int = 8) -> Bool {
+        let wheel = app.pickerWheels.firstMatch
+        guard wheel.waitForExistence(timeout: 3) else { return false }
+        for dy in [0.68, 0.32] {
+            for _ in 0..<maxSteps {
+                guard wheel.exists else { return true }   // 選到上鎖項目時選單會自動關閉
+                if ((wheel.value as? String) ?? "").contains(sub) { return true }
+                wheel.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: dy)).tap()
+                usleep(600_000)
+            }
+        }
+        return ((wheel.value as? String) ?? "").contains(sub)
+    }
+
+    private func wheelDone() {
+        let done = app.buttons["wheel_done"]
+        if done.waitForExistence(timeout: 2) { done.tap() }
+        sleep(1)
     }
 
     // MARK: - 完整流程
@@ -152,10 +173,12 @@ final class BillingFlowUITests: XCTestCase {
         step("模擬付費開啟、試用重新開始 → 狀態：\(status)", status.contains("試用中"))
 
         // 2. 試用中 4K 可用
-        var opt = open4KOption()
-        step("試用中：4K 選項沒有上鎖（\(opt.label)）", opt.exists && !opt.label.contains("🔒"))
-        tapIfExists(opt)   // 試用中選 4K
-        pause(2)
+        openResolutionWheel()
+        let reached4K = pickWheel(containing: "4K")
+        let wheelValue = (app.pickerWheels.firstMatch.value as? String) ?? ""
+        step("試用中：4K 選項沒有上鎖（\(wheelValue)）", reached4K && !wheelValue.contains("🔒"))
+        wheelDone()   // 試用中選 4K
+        pause(1)
         step("試用中可以選 4K 錄影", app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH '4K'")).firstMatch.exists)
 
         // 3. 快轉到剩 23 小時 → 明天到期提醒
@@ -185,9 +208,11 @@ final class BillingFlowUITests: XCTestCase {
         step("狀態變成免費版：\(status)", status.contains("免費版") && status.contains("30 分鐘"))
 
         // 5. 免費版 4K 上鎖
-        opt = open4KOption()
-        step("免費版：4K 選項上鎖（\(opt.label)）", opt.label.contains("🔒"))
-        tapIfExists(opt)
+        openResolutionWheel()
+        pickWheel(containing: "4K")
+        pause(1)
+        step("免費版：4K 上鎖（轉到 4K 會自動收起選單、畫質維持 1080p）",
+             !app.pickerWheels.firstMatch.exists && !app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH '4K'")).firstMatch.exists)
         let up = app.staticTexts["upsell_title"]
         step("點上鎖的 4K → 小彈窗「立即享受 4K 完整版功能」", up.waitForExistence(timeout: 6) && up.label.contains("4K"))
         pause(2)

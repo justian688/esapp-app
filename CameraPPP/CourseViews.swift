@@ -184,23 +184,34 @@ struct CourseEditor: View {
         CourseStore.shared.courses.contains { $0.id == course.id }
     }
 
+    /// 預設的「一般課程」：名稱固定、不能刪除
+    private var isDefaultCourse: Bool {
+        CourseStore.shared.courses.first { $0.id == course.id }.map(CourseStore.shared.isDefault) ?? false
+    }
+
     var body: some View {
         NavigationStack {
             Form {
                 Section {
                     TextField("課程或演講名稱，例如：經濟學", text: $course.name)
+                        .disabled(isDefaultCourse)
                     TextField("老師／講者", text: $course.teacher)
                     TextField("時間，例如：週四 09:10", text: $course.schedule)
                     TextField("地點，例如：B203", text: $course.room)
                 }
                 Section("分類") {
-                    Picker("分類", selection: $course.category) {
-                        ForEach(CourseStore.shared.categories, id: \.self) { name in
-                            Text(name).tag(name)
-                        }
-                    }
+                    WheelSelectRow(
+                        title: "分類",
+                        selection: $course.category,
+                        options: CourseStore.shared.categories.map { ($0, tr($0)) }
+                    )
                 }
-                if isExisting {
+                if isDefaultCourse {
+                    Section {
+                        Label("這是預設的一般課程，不能刪除", systemImage: "lock.fill")
+                            .foregroundColor(.gray)
+                    }
+                } else if isExisting {
                     Section {
                         Button("刪除這堂課", role: .destructive) { confirmDelete = true }
                     } footer: {
@@ -245,6 +256,8 @@ struct CourseLibraryView: View {
     @State private var store = CourseStore.shared
     @State private var items: [LibraryItem] = []
     @State private var selectedCategory: String? = nil
+    /// 預設兩個分類：影片、照片（預設先看影片）
+    @State private var mediaTab: MediaKind = .video
     @State private var showNewCategory = false
     @State private var newCategoryName = ""
     @State private var playingVideo: URL?
@@ -280,6 +293,17 @@ struct CourseLibraryView: View {
             .padding(.horizontal, 8)
             .padding(.trailing, 8)
 
+            // 影片／照片 兩個固定分類
+            HStack(spacing: 0) {
+                mediaTabButton(.video, title: "影片", icon: "video.fill")
+                mediaTabButton(.photo, title: "照片", icon: "photo.fill")
+            }
+            .padding(3)
+            .background(Theme.chalkboard, in: Capsule())
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
+            .padding(.bottom, 6)
+
             // 有建立分類才顯示篩選列，否則就是全部影片
             if !store.customCategories.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -296,10 +320,10 @@ struct CourseLibraryView: View {
 
             if filteredItems.isEmpty {
                 VStack(spacing: 12) {
-                    Image(systemName: "video.slash")
+                    Image(systemName: mediaTab == .video ? "video.slash" : "photo")
                         .font(.system(size: 40))
                         .foregroundColor(.gray)
-                    Text("還沒有影片。到錄影頁按下錄影，錄好的課程都會出現在這裡。")
+                    Text(mediaTab == .video ? tr("還沒有影片。到錄影頁按下錄影，錄好的課程都會出現在這裡。") : tr("還沒有照片。錄影時點一下畫面就能拍照，照片會出現在這裡。"))
                         .font(.system(size: 14))
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
@@ -354,6 +378,25 @@ struct CourseLibraryView: View {
     }
 
     // MARK: - 畫面元件
+
+    private func mediaTabButton(_ kind: MediaKind, title: String, icon: String) -> some View {
+        let selected = mediaTab == kind
+        let count = items.filter { $0.kind == kind }.count
+        return Button {
+            withAnimation(.easeInOut(duration: 0.15)) { mediaTab = kind }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: icon).font(.system(size: 13))
+                Text(tr(title)).font(.system(size: 14, weight: selected ? .bold : .regular))
+                Text("\(count)").font(.system(size: 12)).opacity(0.7)
+            }
+            .foregroundColor(selected ? .black : .gray)
+            .frame(maxWidth: .infinity, minHeight: 34)
+            .background(selected ? Theme.chalkYellow : Color.clear, in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(kind == .video ? "library_videos" : "library_photos")
+    }
 
     private func categoryChip(title: String, value: String?) -> some View {
         let selected = selectedCategory == value
@@ -430,9 +473,10 @@ struct CourseLibraryView: View {
     // MARK: - 資料
 
     private var filteredItems: [LibraryItem] {
-        guard let category = selectedCategory else { return items }
+        let ofKind = items.filter { $0.kind == mediaTab }
+        guard let category = selectedCategory else { return ofKind }
         let ids = Set(store.courses(in: category).map(\.id))
-        return items.filter { item in
+        return ofKind.filter { item in
             guard let id = store.courseId(for: item.url) else { return false }
             return ids.contains(id)
         }

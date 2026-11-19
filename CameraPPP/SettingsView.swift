@@ -49,104 +49,21 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     
-                    // Section Header
-                    Text("GENERAL SETTINGS")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color.red.opacity(0.8))
-                        .padding(.horizontal, 20)
-                        .padding(.top, 10)
-                        .padding(.bottom, 15)
+                    // ── 錄影 ──
+                    sectionHeader("錄影設定", icon: "video.fill")
 
-                    SettingsMenuRow(
-                        icon: "globe",
-                        title: "語言",
-                        subtitle: selectedLanguageName
-                    ) {
-                        showingLanguageOptions = true
-                    }
-                    .confirmationDialog("語言", isPresented: $showingLanguageOptions, titleVisibility: .visible) {
-                        Button("中文") {
-                            appLanguageRaw = AppLanguage.traditionalChinese.rawValue
-                        }
-
-                        Button("English") {
-                            appLanguageRaw = AppLanguage.english.rawValue
-                        }
-
-                        Button("Cancel", role: .cancel) { }
-                    }
-                    
-                    SettingsToggleRow(
-                        icon: "photo.on.rectangle",
-                        title: "錄完自動存到「照片」App",
-                        subtitle: "影片和照片會另存一份到 iPhone 的「照片」，方便分享與 iCloud 備份",
-                        isOn: $saveToPhotosLibrary
-                    )
-                    .onChange(of: saveToPhotosLibrary) { _, enabled in
-                        guard enabled else { return }
-                        Task {
-                            let granted = await PhotoLibrarySaver.requestAccess()
-                            if !granted { saveToPhotosLibrary = false }
-                        }
-                    }
-
-
-                    SettingsMenuRow(
-                        icon: "camera.rotate",
-                        title: "相機鏡頭",
-                        subtitle: selectedCameraFacingName
-                    ) {
-                        showingCameraOptions = true
-                    }
-                    .confirmationDialog("相機鏡頭", isPresented: $showingCameraOptions, titleVisibility: .visible) {
-                        Button("前置鏡頭") {
-                            preferredCameraFacing = CameraFacing.front.rawValue
-                        }
-
-                        Button("後置鏡頭") {
-                            preferredCameraFacing = CameraFacing.back.rawValue
-                        }
-
-                        Button("Cancel", role: .cancel) { }
-                    }
-
-                    SettingsMenuRow(
-                        icon: "video.badge.waveform",
-                        title: "錄影畫質",
-                        subtitle: currentResolutionTitle
-                    ) {
+                    SettingsMenuRow(icon: "video.badge.waveform", title: "錄影畫質", subtitle: currentResolutionTitle) {
                         showingResolutionOptions = true
                     }
-                    .confirmationDialog("錄影畫質", isPresented: $showingResolutionOptions, titleVisibility: .visible) {
-                        ForEach(CaptureResolution.allCases) { option in
-                            Button(option.requiresPremium && !hasFullAccess ? "🔒 " + option.title : option.title) {
-                                if option.requiresPremium && !hasFullAccess {
-                                    upsellReason = .fourK
-                                } else {
-                                    resolutionRaw = option.rawValue
-                                }
-                            }
-                        }
-                        Button("取消", role: .cancel) { }
-                    } message: {
-                        Text(SubscriptionConfig.paymentsEnabled ? tr("畫質越高越清楚，但越耗電、檔案越大。4K 需要完整版。") : tr("畫質越高越清楚，但越耗電、檔案越大。"))
-                    }
-                    
-                    SettingsMenuRow(
-                        icon: "speedometer",
-                        title: "錄影幀數",
-                        subtitle: frameRateSubtitle
-                    ) {
+                    SettingsMenuRow(icon: "speedometer", title: "錄影幀數", subtitle: frameRateSubtitle) {
                         showingFrameRateOptions = true
                     }
-                    .confirmationDialog("錄影幀數", isPresented: $showingFrameRateOptions, titleVisibility: .visible) {
-                        ForEach(CaptureFrameRate.allCases) { option in
-                            Button(option.title) { frameRateRaw = option.rawValue }
-                        }
-                        Button("取消", role: .cancel) { }
-                    } message: {
-                        Text("幀數越高畫面越流暢，但越耗電、檔案越大。手機或目前畫質不支援時，會自動改用支援的最高幀數。")
+                    SettingsMenuRow(icon: "camera.rotate", title: "相機鏡頭", subtitle: selectedCameraFacingName) {
+                        showingCameraOptions = true
                     }
+
+                    // ── 拍照與快速開始 ──
+                    sectionHeader("拍照與快速開始", icon: "camera.fill")
 
                     NavigationLink(value: SideMenuDestination.photoSettings) {
                         HStack(alignment: .center, spacing: 20) {
@@ -172,6 +89,30 @@ struct SettingsView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings_photoSettings")
 
+                    // ── 儲存 ──
+                    sectionHeader("儲存位置", icon: "externaldrive.fill")
+
+                    SettingsToggleRow(
+                        icon: "photo.on.rectangle",
+                        title: "錄完自動存到「照片」App",
+                        subtitle: "影片和照片會另存一份到 iPhone 的「照片」，方便分享與 iCloud 備份",
+                        isOn: $saveToPhotosLibrary
+                    )
+                    .onChange(of: saveToPhotosLibrary) { _, enabled in
+                        guard enabled else { return }
+                        Task {
+                            let granted = await PhotoLibrarySaver.requestAccess()
+                            if !granted { saveToPhotosLibrary = false }
+                        }
+                    }
+
+                    // ── 一般（語言放最下面）──
+                    sectionHeader("一般", icon: "gearshape.fill")
+
+                    SettingsMenuRow(icon: "globe", title: "語言", subtitle: selectedLanguageName) {
+                        showingLanguageOptions = true
+                    }
+
                     if SubscriptionConfig.isTestBuild {
                         testToolsSection
                     }
@@ -182,6 +123,53 @@ struct SettingsView: View {
         }
         .background(Color.black)
         .navigationBarHidden(true)
+        .sheet(isPresented: $showingResolutionOptions) {
+            WheelPickerSheet(title: "錄影畫質", isPresented: $showingResolutionOptions,
+                             message: SubscriptionConfig.paymentsEnabled ? "畫質越高越清楚，但越耗電、檔案越大。4K 需要完整版。" : "畫質越高越清楚，但越耗電、檔案越大。") {
+                Picker("錄影畫質", selection: Binding(
+                    get: { effectiveResolution.rawValue },
+                    set: { new in
+                        let option = CaptureResolution(rawValue: new) ?? .defaultResolution
+                        if option.requiresPremium && !hasFullAccess {
+                            // 免費版選到 4K → 滾輪彈回原本的畫質，關掉選單後跳出升級小彈窗
+                            showingResolutionOptions = false
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { upsellReason = .fourK }
+                        } else {
+                            resolutionRaw = new
+                        }
+                    })) {
+                    ForEach(CaptureResolution.allCases) { option in
+                        Text(option.requiresPremium && !hasFullAccess ? "🔒 " + option.title : option.title).tag(option.rawValue)
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingFrameRateOptions) {
+            WheelPickerSheet(title: "錄影幀數", isPresented: $showingFrameRateOptions,
+                             message: "幀數越高畫面越流暢，但越耗電、檔案越大。手機或目前畫質不支援時，會自動改用支援的最高幀數。") {
+                Picker("錄影幀數", selection: $frameRateRaw) {
+                    ForEach(CaptureFrameRate.allCases) { option in
+                        Text(option.title).tag(option.rawValue)
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingCameraOptions) {
+            WheelPickerSheet(title: "相機鏡頭", isPresented: $showingCameraOptions) {
+                Picker("相機鏡頭", selection: $preferredCameraFacing) {
+                    Text(tr("前置鏡頭")).tag(CameraFacing.front.rawValue)
+                    Text(tr("後置鏡頭")).tag(CameraFacing.back.rawValue)
+                }
+            }
+        }
+        .sheet(isPresented: $showingLanguageOptions) {
+            WheelPickerSheet(title: "語言", isPresented: $showingLanguageOptions) {
+                Picker("語言", selection: $appLanguageRaw) {
+                    Text("中文").tag(AppLanguage.traditionalChinese.rawValue)
+                    Text("English").tag(AppLanguage.english.rawValue)
+                }
+            }
+        }
         .sheet(isPresented: $showPaywall) {
             PaywallView(isPresented: $showPaywall, allowDismiss: true)
         }
@@ -194,6 +182,23 @@ struct SettingsView: View {
             })
             .environmentObject(subscriptionManager)
         }
+    }
+
+    /// 目前實際使用的畫質（免費版存著 4K 時會用 1080p）
+    private var effectiveResolution: CaptureResolution {
+        let saved = CaptureResolution(rawValue: resolutionRaw) ?? .defaultResolution
+        return saved.requiresPremium && !hasFullAccess ? .hd1080 : saved
+    }
+
+    private func sectionHeader(_ title: String, icon: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon).font(.system(size: 12, weight: .bold))
+            Text(tr(title)).font(.system(size: 13, weight: .bold)).tracking(1)
+        }
+        .foregroundColor(Theme.chalkYellow.opacity(0.85))
+        .padding(.horizontal, 20)
+        .padding(.top, 22)
+        .padding(.bottom, 6)
     }
 
     /// 已訂閱或還在試用期 → 4K 可用

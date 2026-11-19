@@ -58,18 +58,18 @@ struct RecordView: View {
                 Spacer()
                 
                 Button(action: startRecordingIfNeeded) {
-                    // 粉筆框線風格：透明底＋細黃框，左邊小紅點代表錄影
-                    HStack(spacing: 16) {
-                        Circle()
-                            .fill(Color(red: 0.72, green: 0.26, blue: 0.24))
-                            .frame(width: 18, height: 18)
+                    // 粉筆框線風格：透明底＋細黃框，左邊課程圖案
+                    HStack(spacing: 12) {
+                        Image(systemName: "graduationcap.fill")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundColor(Theme.chalkYellow)
                         Text("開始上課")
-                            .font(.system(size: 30, weight: .semibold))
-                            .tracking(4)
+                            .font(.system(size: 22, weight: .semibold))
+                            .tracking(3)
                     }
                     .foregroundColor(Color(red: 0.85, green: 0.81, blue: 0.71))
-                    .padding(.horizontal, 48)
-                    .frame(height: 96)
+                    .padding(.horizontal, 34)
+                    .frame(height: 64)
                     .overlay(Capsule().stroke(Theme.chalkYellow.opacity(0.8), lineWidth: 2))
                     .contentShape(Capsule())
                 }
@@ -377,13 +377,10 @@ private final class GestureCaptureView: UIView {
         isOpaque = false
         isUserInteractionEnabled = true
         
-        let doubleTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap))
-        doubleTapRecognizer.numberOfTapsRequired = 2
-        addGestureRecognizer(doubleTapRecognizer)
-        
-        let singleTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleSingleTap))
-        singleTapRecognizer.require(toFail: doubleTapRecognizer)
-        addGestureRecognizer(singleTapRecognizer)
+        // 自己判斷單擊／雙擊：系統預設的雙擊間隔很短，黑畫面上兩下按慢一點
+        // 就會被當成兩次「點一下」（拍兩張照）而不是「結束」。改成 0.45 秒內第二下都算雙擊。
+        let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        addGestureRecognizer(tapRecognizer)
         
         let leftSwipeRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeLeft))
         leftSwipeRecognizer.direction = .left
@@ -398,12 +395,23 @@ private final class GestureCaptureView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    @objc private func handleSingleTap() {
-        onSingleTap?()
-    }
-    
-    @objc private func handleDoubleTap() {
-        onDoubleTap?()
+    private let doubleTapWindow: TimeInterval = 0.45
+    private var pendingSingleTap: DispatchWorkItem?
+
+    @objc private func handleTap() {
+        if let pending = pendingSingleTap {
+            // 第二下來了 → 取消拍照，改成結束
+            pending.cancel()
+            pendingSingleTap = nil
+            onDoubleTap?()
+            return
+        }
+        let work = DispatchWorkItem { [weak self] in
+            self?.pendingSingleTap = nil
+            self?.onSingleTap?()
+        }
+        pendingSingleTap = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + doubleTapWindow, execute: work)
     }
     
     @objc private func handleSwipeLeft() {

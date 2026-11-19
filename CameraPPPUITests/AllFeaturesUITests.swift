@@ -81,6 +81,33 @@ final class AllFeaturesUITests: XCTestCase {
 
     // MARK: - 全功能巡檢
 
+    /// 滾輪選單：一格一格轉，直到目前值包含指定文字（先往下找、再往上找）
+    @discardableResult
+    private func pickWheel(containing sub: String, maxSteps: Int = 8) -> Bool {
+        let wheel = app.pickerWheels.firstMatch
+        guard wheel.waitForExistence(timeout: 3) else { return false }
+        for dy in [0.68, 0.32] {
+            for _ in 0..<maxSteps {
+                guard wheel.exists else { return true }   // 選到上鎖項目時選單會自動關閉
+                if ((wheel.value as? String) ?? "").contains(sub) { return true }
+                wheel.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: dy)).tap()
+                usleep(600_000)
+            }
+        }
+        return ((wheel.value as? String) ?? "").contains(sub)
+    }
+
+    private func wheelDone() {
+        let done = app.buttons["wheel_done"]
+        if done.waitForExistence(timeout: 2) { done.tap() }
+        sleep(1)
+    }
+
+    private func scrollToElement(_ e: XCUIElement, max: Int = 8) {
+        var i = 0
+        while !(e.exists && e.isHittable) && i < max { app.swipeUp(velocity: .slow); i += 1 }
+    }
+
     func testEveryFeature() throws {
         relaunch()
 
@@ -184,25 +211,26 @@ final class AllFeaturesUITests: XCTestCase {
         // 11. 設定頁
         relaunch()
         check("側邊欄 → 設定：打開正常", openMenu("menu_gearshape.fill") && text("設定").waitForExistence(timeout: 4))
-        // 相機鏡頭
+        // 相機鏡頭（滾輪選單）
         if tapIfExists(text("相機鏡頭")) {
             pause(1)
-            check("設定：相機鏡頭選單有前置／後置", button("前置鏡頭").exists && button("後置鏡頭").exists)
-            _ = tapIfExists(button("後置鏡頭"))
-            pause(1)
+            let hasFront = pickWheel(containing: "前置")
+            let hasBack = pickWheel(containing: "後置")
+            check("設定：相機鏡頭滾輪有前置／後置", hasFront && hasBack)
+            wheelDone()
         }
-        // 幀數
+        // 幀數（滾輪選單）
         if tapIfExists(text("錄影幀數")) {
             pause(1)
-            check("設定：錄影幀數選單有 24／30／60 fps", button("24 fps").exists && button("30 fps").exists && button("60 fps").exists)
-            _ = tapIfExists(button("30 fps"))
-            pause(1)
+            let all = pickWheel(containing: "24 fps") && pickWheel(containing: "60 fps") && pickWheel(containing: "30 fps")
+            check("設定：錄影幀數滾輪有 24／30／60 fps", all)
+            wheelDone()
             check("設定：選 30 fps 後顯示 30 fps", text("30 fps").exists)
         }
         // 拍照與快速開始
         if tapIfExists(app.buttons["settings_photoSettings"]) {
             pause(2)
-            check("設定 → 拍照與快速開始：打開正常", text("拍照與畫質設定").exists || text("Siri").exists)
+            check("設定 → 拍照與快速開始：打開正常", text("拍照與快速開始").exists || text("Siri").exists)
             app.swipeUp(velocity: .slow)
             pause(1)
             check("拍照與快速開始：有 Siri 與小工具教學", text("Siri").exists && text("小工具").exists)
@@ -213,10 +241,13 @@ final class AllFeaturesUITests: XCTestCase {
         // 12. 語言切換：英文 → 中文
         relaunch()
         _ = openMenu("menu_gearshape.fill")
+        scrollToElement(text("語言"))
         if tapIfExists(text("語言")) {
             pause(1)
-            if !tapIfExists(button("英文"), timeout: 2) { _ = tapIfExists(button("English"), timeout: 2) }
-            pause(2)
+            pickWheel(containing: "English")
+            wheelDone()
+            pause(1)
+            app.swipeDown(velocity: .fast); app.swipeDown(velocity: .fast)
             check("英文：設定頁標題、語言、錄影畫質、幀數都變英文",
                   text("Settings").exists && text("Language").exists && text("Video quality").exists && text("Frame rate").exists)
             check("英文：設定頁沒有殘留中文（錄影畫質／錄影幀數）", !text("錄影畫質").exists && !text("錄影幀數").exists)
@@ -241,10 +272,13 @@ final class AllFeaturesUITests: XCTestCase {
             // 切回中文
             relaunch()
             _ = openMenu("menu_gearshape.fill")
+            scrollToElement(text("Language"))
             if tapIfExists(text("Language")) {
                 pause(1)
-                _ = tapIfExists(button("中文"))
-                pause(2)
+                pickWheel(containing: "中文")
+                wheelDone()
+                pause(1)
+                app.swipeDown(velocity: .fast); app.swipeDown(velocity: .fast)
             }
             check("切回中文：設定頁恢復中文", text("設定").exists && text("錄影畫質").exists)
         } else {
