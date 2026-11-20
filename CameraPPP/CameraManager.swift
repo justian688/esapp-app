@@ -237,15 +237,24 @@ final class CameraManager: NSObject, Sendable {
                 format = better
             }
         }
-        let actual = Int(min(want, maxRate(format)).rounded(.down))
+        // 找一個「真的包含」目標幀數的範圍；設定值一定落在範圍內，避免 iOS 因不支援的幀數直接閃退
+        let ranges = format.videoSupportedFrameRateRanges
+        guard !ranges.isEmpty else { return }
+        let target = min(want, maxRate(format))
+        let range = ranges.first(where: { $0.minFrameRate <= target && target <= $0.maxFrameRate })
+            ?? ranges.max(by: { $0.maxFrameRate < $1.maxFrameRate })!
+        let fps = min(max(target, range.minFrameRate), range.maxFrameRate)
+        var duration = CMTime(value: 1000, timescale: CMTimeScale((fps * 1000).rounded(.down)))
+        // 夾在範圍允許的最短／最長時間之間
+        if CMTimeCompare(duration, range.minFrameDuration) < 0 { duration = range.minFrameDuration }
+        if CMTimeCompare(duration, range.maxFrameDuration) > 0 { duration = range.maxFrameDuration }
         do {
             try device.lockForConfiguration()
+            defer { device.unlockForConfiguration() }
             if format != current { device.activeFormat = format }
-            let duration = CMTime(value: 1, timescale: CMTimeScale(actual))
             device.activeVideoMinFrameDuration = duration
             device.activeVideoMaxFrameDuration = duration
-            device.unlockForConfiguration()
-            UserDefaults.standard.set(actual, forKey: CaptureFrameRate.actualKey)
+            UserDefaults.standard.set(Int(fps.rounded()), forKey: CaptureFrameRate.actualKey)
         } catch {
             print("設定幀數失敗：\(error.localizedDescription)")
         }

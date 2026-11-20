@@ -114,6 +114,7 @@ struct MainContainerView: View {
                         .zIndex(100)
                 }
             }
+            .enableSwipeBack()   // 從側邊欄打開的頁面都能滑動返回
             .navigationDestination(for: SideMenuDestination.self) { destination in
                 switch destination {
                 case .gallery:
