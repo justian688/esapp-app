@@ -1,0 +1,46 @@
+name: 抓 TestFlight 當機紀錄
+on:
+  push:
+    branches: [crash-fetch]
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - run: pip install pyjwt cryptography requests >/dev/null
+      - name: 下載最近的當機紀錄
+        env:
+          KID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISS: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+        run: |
+          python3 - <<'PY'
+          import os, time, base64, re, jwt, requests
+          raw = os.environ["KEY"].strip()
+          txt = raw if "BEGIN PRIVATE KEY" in raw else base64.b64decode(raw).decode()
+          body = re.sub(r"[^A-Za-z0-9+/=]", "", re.sub(r"-----(BEGIN|END) PRIVATE KEY-----", "", txt))
+          pem = "-----BEGIN PRIVATE KEY-----\n" + "\n".join(body[i:i+64] for i in range(0, len(body), 64)) + "\n-----END PRIVATE KEY-----\n"
+          tok = jwt.encode({"iss": os.environ["ISS"].strip(), "iat": int(time.time()), "exp": int(time.time()) + 900, "aud": "appstoreconnect-v1"},
+                           pem, algorithm="ES256", headers={"kid": os.environ["KID"].strip(), "typ": "JWT"})
+          H = {"Authorization": f"Bearer {tok}"}
+          base = "https://api.appstoreconnect.apple.com/v1"
+          r = requests.get(f"{base}/apps/6776604268/betaFeedbackCrashSubmissions", headers=H, params={"limit": 5, "sort": "-createdDate"})
+          print("crash submissions:", r.status_code)
+          data = r.json().get("data", []) if r.ok else []
+          if not r.ok: print(r.text[:800])
+          for d in data[:3]:
+              a = d["attributes"]
+              print("=====", a.get("createdDate"), a.get("deviceModel"), a.get("osVersion"), a.get("appPlatform"), "comment:", a.get("comment"))
+              lg = requests.get(f"{base}/betaFeedbackCrashSubmissions/{d['id']}/crashLog", headers=H)
+              if lg.ok:
+                  t = lg.json()["data"]["attributes"].get("logText", "")
+                  lines = t.splitlines()
+                  # 印出例外資訊與當機執行緒
+                  keep = []
+                  for i, l in enumerate(lines):
+                      if re.search(r"Exception Type|Exception Reason|Termination Reason|Crashed:|Application Specific|fatal|CameraPPP", l):
+                          keep.extend(lines[max(0, i-1): i+4])
+                  print("\n".join(dict.fromkeys(keep))[:6000])
+                  print("---- 前 60 行 ----"); print("\n".join(lines[:60]))
+              else:
+                  print("log", lg.status_code, lg.text[:300])
+          PY
