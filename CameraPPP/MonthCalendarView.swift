@@ -2,22 +2,18 @@
 //  MonthCalendarView.swift
 //  CameraPPP
 //
-//  首頁月曆（像 Google 日曆月檢視，比例縮小）：同步 iPhone「行事曆」的行程
-//  ・格子裡寫當天第一個行程名稱；小點：那天有筆記
-//  ・沒授權時標題列有「同步 iPhone 行事曆」按鈕，按了才詢問權限
-//  ・點一天：從下方彈出那天的行程，可新增當天筆記
+//  首頁月曆（比例縮小）：單純用來記筆記
+//  ・格子裡寫當天第一則筆記的標題
+//  ・點一天：從下方彈出那天的筆記，可新增當天筆記
 //
 
 import SwiftUI
-import EventKit
 
 struct MonthCalendarView: View {
     @State private var store = CourseStore.shared
     @State private var notesStore = CourseNotesStore.shared
     @State private var month = Calendar.current.dateInterval(of: .month, for: Date())!.start
     @State private var selectedDay: Date?
-    @State private var events: [Date: [String]] = [:]
-    @State private var calendarAuthorized = EKEventStore.authorizationStatus(for: .event) == .fullAccess
     @AppStorage(AppLanguage.storageKey) private var appLanguage = AppLanguage.traditionalChinese.rawValue
 
     private let cal: Calendar = {
@@ -47,7 +43,6 @@ struct MonthCalendarView: View {
                 .preferredColorScheme(.dark)
         }
         .accessibilityIdentifier("home_calendar")
-        .task(id: month) { loadEvents() }
     }
 
     // MARK: 標題列
@@ -58,13 +53,6 @@ struct MonthCalendarView: View {
                 .font(.system(size: 16, weight: .bold))
                 .foregroundColor(Theme.chalkWhite)
             Spacer()
-            if !calendarAuthorized {
-                Button { Task { await requestCalendar() } } label: {
-                    Label(tr("同步 iPhone 行事曆"), systemImage: "arrow.triangle.2.circlepath")
-                        .font(.system(size: 11, weight: .semibold))
-                }
-                .accessibilityIdentifier("calendar_sync")
-            }
             Button { changeMonth(-1) } label: {
                 Image(systemName: "chevron.left").frame(width: 36, height: 30)
             }
@@ -92,9 +80,10 @@ struct MonthCalendarView: View {
 
     private func dayCell(_ day: Date, height: CGFloat) -> some View {
         let isToday = cal.isDateInToday(day)
-        let labels: [(String, Bool)] = (events[cal.startOfDay(for: day)] ?? []).map { ($0, false) }
+        let dayNotes = notes(on: day)
+        let labels: [(String, Bool)] = dayNotes.map { ($0.title.isEmpty ? tr("筆記") : $0.title, false) }
         let maxLabels = 1
-        let hasNote = !notes(on: day).isEmpty
+        let hasNote = !dayNotes.isEmpty
         return Button {
             selectedDay = day
         } label: {
@@ -148,25 +137,6 @@ struct MonthCalendarView: View {
         return Array(repeating: nil, count: lead) + range.compactMap { cal.date(byAdding: .day, value: $0 - 1, to: month) }
     }
 
-    /// 讀 iPhone 行事曆本月的行程（只讀，不會改你的行事曆）
-    private func loadEvents() {
-        calendarAuthorized = EKEventStore.authorizationStatus(for: .event) == .fullAccess
-        guard calendarAuthorized, let end = cal.date(byAdding: .month, value: 1, to: month) else { events = [:]; return }
-        let ek = CalendarSync.store
-        let pred = ek.predicateForEvents(withStart: month, end: end, calendars: nil)
-        var out: [Date: [String]] = [:]
-        for e in ek.events(matching: pred).sorted(by: { $0.startDate < $1.startDate }) {
-            let day = cal.startOfDay(for: e.startDate)
-            out[day, default: []].append(e.title ?? "")
-        }
-        events = out
-    }
-
-    private func requestCalendar() async {
-        _ = try? await CalendarSync.store.requestFullAccessToEvents()
-        loadEvents()
-    }
-
     private func notes(on day: Date) -> [CourseNote] {
         notesStore.notes.filter { n in n.day.map { cal.isDate($0, inSameDayAs: day) } ?? false }
     }
@@ -178,17 +148,12 @@ struct MonthCalendarView: View {
     }
 }
 
-/// 共用一個 EKEventStore（建立成本高）
-enum CalendarSync {
-    static let store = EKEventStore()
-}
-
 private struct DayRef: Identifiable {
     let date: Date
     var id: TimeInterval { date.timeIntervalSince1970 }
 }
 
-// MARK: - 點一天：那天的錄影和筆記
+// MARK: - 點一天：那天的筆記
 
 private struct DayDetailSheet: View {
     let day: Date
@@ -196,15 +161,6 @@ private struct DayDetailSheet: View {
     @State private var notesStore = CourseNotesStore.shared
     @State private var editingNote: CourseNote?
     private let cal = Calendar(identifier: .gregorian)
-
-    /// 這天 iPhone 行事曆裡的行程
-    private var dayEvents: [EKEvent] {
-        guard EKEventStore.authorizationStatus(for: .event) == .fullAccess else { return [] }
-        let start = cal.startOfDay(for: day)
-        guard let end = cal.date(byAdding: .day, value: 1, to: start) else { return [] }
-        let pred = CalendarSync.store.predicateForEvents(withStart: start, end: end, calendars: nil)
-        return CalendarSync.store.events(matching: pred).sorted { $0.startDate < $1.startDate }
-    }
 
     private var dayNotes: [CourseNote] {
         notesStore.notes.filter { n in n.day.map { cal.isDate($0, inSameDayAs: day) } ?? false }
@@ -218,27 +174,12 @@ private struct DayDetailSheet: View {
     }
 
     var body: some View {
-        let tf = formatter("jmm")
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
                 Text(formatter("MMMMdEEEE").string(from: day))
                     .font(.title3.weight(.bold))
                     .foregroundColor(Theme.chalkWhite)
                     .padding(.top, 18)
-
-                ForEach(dayEvents, id: \.eventIdentifier) { e in
-                    HStack(spacing: 10) {
-                        Rectangle().fill(Color(cgColor: e.calendar.cgColor)).frame(width: 3, height: 28).cornerRadius(1.5)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(e.title ?? "").foregroundColor(Theme.chalkWhite).lineLimit(1)
-                            Text(e.isAllDay ? tr("整天") : "\(tf.string(from: e.startDate)) – \(tf.string(from: e.endDate))")
-                                .font(.footnote).foregroundColor(.gray)
-                        }
-                        Spacer()
-                    }
-                    .padding(12)
-                    .background(Theme.chalkboard, in: RoundedRectangle(cornerRadius: 12))
-                }
 
                 ForEach(dayNotes) { note in
                     Button { editingNote = note } label: {

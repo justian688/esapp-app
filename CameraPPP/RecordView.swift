@@ -30,7 +30,7 @@ struct RecordView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // 課程卡＋月曆（比例縮小、同步 iPhone 行事曆），上下留白，最下面是開始上課
+                // 課程卡＋月曆（比例縮小、記筆記用），上下留白，最下面是開始上課
                 VStack(alignment: .leading, spacing: 14) {
                     Text(CourseFormat.headerDate.string(from: Date()))
                         .font(.system(size: 13))
