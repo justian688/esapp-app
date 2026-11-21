@@ -2,20 +2,22 @@
 //  MonthCalendarView.swift
 //  CameraPPP
 //
-//  首頁大月曆（像 Google 日曆月檢視）：填滿首頁中間，格子裡直接寫課名
-//  ・金色小標籤：那天有錄影的課
-//  ・灰色小標籤：課程時間寫了「週X」的固定上課日
-//  ・小點：那天有筆記
-//  ・點一天：從下方彈出那天的錄影、筆記，可新增當天筆記
+//  首頁月曆（像 Google 日曆月檢視，比例縮小）：同步 iPhone「行事曆」的行程
+//  ・格子裡寫當天第一個行程名稱；小點：那天有筆記
+//  ・沒授權時標題列有「同步 iPhone 行事曆」按鈕，按了才詢問權限
+//  ・點一天：從下方彈出那天的行程，可新增當天筆記
 //
 
 import SwiftUI
+import EventKit
 
 struct MonthCalendarView: View {
     @State private var store = CourseStore.shared
     @State private var notesStore = CourseNotesStore.shared
     @State private var month = Calendar.current.dateInterval(of: .month, for: Date())!.start
     @State private var selectedDay: Date?
+    @State private var events: [Date: [String]] = [:]
+    @State private var calendarAuthorized = EKEventStore.authorizationStatus(for: .event) == .fullAccess
     @AppStorage(AppLanguage.storageKey) private var appLanguage = AppLanguage.traditionalChinese.rawValue
 
     private let cal: Calendar = {
@@ -28,13 +30,9 @@ struct MonthCalendarView: View {
         VStack(spacing: 6) {
             header
             weekdayRow
-            GeometryReader { geo in
-                let rows = CGFloat(max(1, (cells.count + 6) / 7))
-                let cellH = max(40, (geo.size.height - (rows - 1) * 3) / rows)
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 3), count: 7), spacing: 3) {
-                    ForEach(Array(cells.enumerated()), id: \.offset) { _, day in
-                        if let day { dayCell(day, height: cellH) } else { Color.clear.frame(height: cellH) }
-                    }
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 3), count: 7), spacing: 3) {
+                ForEach(Array(cells.enumerated()), id: \.offset) { _, day in
+                    if let day { dayCell(day, height: 44) } else { Color.clear.frame(height: 44) }
                 }
             }
         }
@@ -49,6 +47,7 @@ struct MonthCalendarView: View {
                 .preferredColorScheme(.dark)
         }
         .accessibilityIdentifier("home_calendar")
+        .task(id: month) { loadEvents() }
     }
 
     // MARK: 標題列
@@ -59,6 +58,13 @@ struct MonthCalendarView: View {
                 .font(.system(size: 16, weight: .bold))
                 .foregroundColor(Theme.chalkWhite)
             Spacer()
+            if !calendarAuthorized {
+                Button { Task { await requestCalendar() } } label: {
+                    Label(tr("同步 iPhone 行事曆"), systemImage: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 11, weight: .semibold))
+                }
+                .accessibilityIdentifier("calendar_sync")
+            }
             Button { changeMonth(-1) } label: {
                 Image(systemName: "chevron.left").frame(width: 36, height: 30)
             }
@@ -86,11 +92,8 @@ struct MonthCalendarView: View {
 
     private func dayCell(_ day: Date, height: CGFloat) -> some View {
         let isToday = cal.isDateInToday(day)
-        let recorded = recordedDays[cal.startOfDay(for: day)] ?? []
-        let weekday = cal.component(.weekday, from: day)
-        let scheduled = (scheduledByWeekday[weekday] ?? []).filter { !recorded.contains($0) }
-        let labels: [(String, Bool)] = recorded.map { ($0, true) } + scheduled.map { ($0, false) }
-        let maxLabels = height >= 70 ? 2 : (height >= 52 ? 1 : 0)
+        let labels: [(String, Bool)] = (events[cal.startOfDay(for: day)] ?? []).map { ($0, false) }
+        let maxLabels = 1
         let hasNote = !notes(on: day).isEmpty
         return Button {
             selectedDay = day
@@ -112,9 +115,6 @@ struct MonthCalendarView: View {
                         .padding(.horizontal, 2)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(item.1 ? Theme.chalkYellow : Color.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 3))
-                }
-                if labels.count > maxLabels && maxLabels > 0 {
-                    Text("+\(labels.count - maxLabels)").font(.system(size: 9)).foregroundColor(.gray)
                 }
                 Spacer(minLength: 0)
             }
@@ -148,37 +148,23 @@ struct MonthCalendarView: View {
         return Array(repeating: nil, count: lead) + range.compactMap { cal.date(byAdding: .day, value: $0 - 1, to: month) }
     }
 
-    /// 本月哪天錄了哪些課（課程名稱，同一天同一堂課只算一次）
-    private var recordedDays: [Date: [String]] {
-        guard let end = cal.date(byAdding: .month, value: 1, to: month) else { return [:] }
+    /// 讀 iPhone 行事曆本月的行程（只讀，不會改你的行事曆）
+    private func loadEvents() {
+        calendarAuthorized = EKEventStore.authorizationStatus(for: .event) == .fullAccess
+        guard calendarAuthorized, let end = cal.date(byAdding: .month, value: 1, to: month) else { events = [:]; return }
+        let ek = CalendarSync.store
+        let pred = ek.predicateForEvents(withStart: month, end: end, calendars: nil)
         var out: [Date: [String]] = [:]
-        for r in store.media.values where r.kind == .video && r.recordedAt >= month && r.recordedAt < end {
-            let day = cal.startOfDay(for: r.recordedAt)
-            let name = tr(store.course(id: r.courseId)?.name ?? "未分類")
-            if !(out[day] ?? []).contains(name) { out[day, default: []].append(name) }
+        for e in ek.events(matching: pred).sorted(by: { $0.startDate < $1.startDate }) {
+            let day = cal.startOfDay(for: e.startDate)
+            out[day, default: []].append(e.title ?? "")
         }
-        return out
+        events = out
     }
 
-    /// 課程時間寫了「週一～週日／星期X」→ 每週那天顯示課名（Calendar 的 weekday：1 = 週日）
-    private var scheduledByWeekday: [Int: [String]] {
-        let map: [Character: Int] = ["日": 1, "天": 1, "一": 2, "二": 3, "三": 4, "四": 5, "五": 6, "六": 7]
-        var out: [Int: [String]] = [:]
-        for course in store.courses {
-            let s = course.schedule
-            for prefix in ["週", "周", "星期", "禮拜"] {
-                var rest = Substring(s)
-                while let r = rest.range(of: prefix) {
-                    let after = rest[r.upperBound...]
-                    if let c = after.first, let w = map[c] {
-                        let name = tr(course.name)
-                        if !(out[w] ?? []).contains(name) { out[w, default: []].append(name) }
-                    }
-                    rest = after
-                }
-            }
-        }
-        return out
+    private func requestCalendar() async {
+        _ = try? await CalendarSync.store.requestFullAccessToEvents()
+        loadEvents()
     }
 
     private func notes(on day: Date) -> [CourseNote] {
@@ -190,6 +176,11 @@ struct MonthCalendarView: View {
             withAnimation(.easeInOut(duration: 0.2)) { month = m }
         }
     }
+}
+
+/// 共用一個 EKEventStore（建立成本高）
+enum CalendarSync {
+    static let store = EKEventStore()
 }
 
 private struct DayRef: Identifiable {
@@ -204,20 +195,15 @@ private struct DayDetailSheet: View {
     @State private var store = CourseStore.shared
     @State private var notesStore = CourseNotesStore.shared
     @State private var editingNote: CourseNote?
-    @State private var playing: IdentifiableURL?
     private let cal = Calendar(identifier: .gregorian)
 
-    /// 錄影檔放在 App 的 SecureMedia 資料夾（跟 StorageManager 一樣）
-    private var recordings: [(url: URL, record: MediaRecord)] {
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("SecureMedia", isDirectory: true)
-        return store.media.values
-            .filter { $0.kind == .video && cal.isDate($0.recordedAt, inSameDayAs: day) }
-            .sorted { $0.recordedAt < $1.recordedAt }
-            .compactMap { r in
-                let url = dir.appendingPathComponent(r.fileName)
-                return FileManager.default.fileExists(atPath: url.path) ? (url, r) : nil
-            }
+    /// 這天 iPhone 行事曆裡的行程
+    private var dayEvents: [EKEvent] {
+        guard EKEventStore.authorizationStatus(for: .event) == .fullAccess else { return [] }
+        let start = cal.startOfDay(for: day)
+        guard let end = cal.date(byAdding: .day, value: 1, to: start) else { return [] }
+        let pred = CalendarSync.store.predicateForEvents(withStart: start, end: end, calendars: nil)
+        return CalendarSync.store.events(matching: pred).sorted { $0.startDate < $1.startDate }
     }
 
     private var dayNotes: [CourseNote] {
@@ -240,19 +226,18 @@ private struct DayDetailSheet: View {
                     .foregroundColor(Theme.chalkWhite)
                     .padding(.top, 18)
 
-                ForEach(recordings, id: \.url) { item in
-                    Button { playing = IdentifiableURL(url: item.url) } label: {
-                        HStack(spacing: 10) {
-                            Image(systemName: "play.circle.fill").font(.title3).foregroundColor(Theme.chalkYellow)
-                            Text(tr(store.course(id: item.record.courseId)?.name ?? "未分類"))
-                                .foregroundColor(Theme.chalkWhite)
-                            Spacer()
-                            Text(tf.string(from: item.record.recordedAt)).font(.footnote).foregroundColor(.gray)
+                ForEach(dayEvents, id: \.eventIdentifier) { e in
+                    HStack(spacing: 10) {
+                        Rectangle().fill(Color(cgColor: e.calendar.cgColor)).frame(width: 3, height: 28).cornerRadius(1.5)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(e.title ?? "").foregroundColor(Theme.chalkWhite).lineLimit(1)
+                            Text(e.isAllDay ? tr("整天") : "\(tf.string(from: e.startDate)) – \(tf.string(from: e.endDate))")
+                                .font(.footnote).foregroundColor(.gray)
                         }
-                        .padding(12)
-                        .background(Theme.chalkboard, in: RoundedRectangle(cornerRadius: 12))
+                        Spacer()
                     }
-                    .buttonStyle(.plain)
+                    .padding(12)
+                    .background(Theme.chalkboard, in: RoundedRectangle(cornerRadius: 12))
                 }
 
                 ForEach(dayNotes) { note in
@@ -286,9 +271,6 @@ private struct DayDetailSheet: View {
         .background(Color.black.ignoresSafeArea())
         .sheet(item: $editingNote) { note in
             CourseNoteEditor(note: note, store: notesStore)
-        }
-        .fullScreenCover(item: $playing) { item in
-            FullScreenVideoPlayer(videoURL: item.url)
         }
     }
 }

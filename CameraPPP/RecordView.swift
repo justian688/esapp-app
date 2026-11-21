@@ -30,19 +30,19 @@ struct RecordView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // 版面 6：課程卡＋大月曆填滿中間（格子寫課名），下面是開始上課
-                VStack(alignment: .leading, spacing: 12) {
+                // 課程卡＋月曆（比例縮小、同步 iPhone 行事曆），上下留白，最下面是開始上課
+                VStack(alignment: .leading, spacing: 14) {
                     Text(CourseFormat.headerDate.string(from: Date()))
                         .font(.system(size: 13))
                         .tracking(1)
                         .foregroundColor(.gray)
                     CurrentCourseCard()
                     MonthCalendarView()
-                        .frame(maxHeight: .infinity)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
-                .padding(.bottom, 14)
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+
+                Spacer(minLength: 20)
 
                 // 「開始上課」膠囊按鈕（上一版樣式、小一點）；錄影中同一顆變成計時
                 Button(action: startRecordingIfNeeded) {

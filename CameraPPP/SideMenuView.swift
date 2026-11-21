@@ -226,13 +226,7 @@ struct ScheduleView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    
-                    CourseNotesSection()
-
-                    Divider()
-                        .background(Color.gray.opacity(0.3))
-                        .padding(.top, 16)
-
+                    // 課程筆記區塊已移除（筆記從側邊欄「課程筆記」或首頁月曆進入）
                     ChalkSectionTitle(icon: "calendar.badge.clock", title: "排程錄影")
                         .padding(.horizontal, 20)
                         .padding(.top, 20)

@@ -140,7 +140,7 @@ final class AllFeaturesUITests: XCTestCase {
         check("排程錄影分頁：有時長、相機鏡頭、重複錄影設定", text("時長").exists && text("重複錄影").exists)
         app.swipeUp(velocity: .slow)
         pause(1)
-        check("排程錄影分頁：下方有課程筆記區塊", text("課程筆記").exists || button("新增筆記").exists)
+        check("排程錄影分頁：課程筆記區塊已移除", !text("課程筆記").exists)
         _ = tapIfExists(app.buttons["tab_record"])
         pause(1)
 
