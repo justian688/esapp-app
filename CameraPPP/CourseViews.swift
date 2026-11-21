@@ -605,8 +605,8 @@ struct CourseInfoTableView: View {
         let videos = store.videoCount(courseId: course.id)
         let details: [(String, String)] = [("person.fill", course.teacher), ("clock", course.schedule), ("mappin.and.ellipse", course.room)]
             .filter { !$0.1.isEmpty }
-        return Button { editingCourse = course } label: {
-            HStack(alignment: .top, spacing: 12) {
+        // 用「點一下」手勢而不是 Button：左右滑過卡片時手指放開不會被當成點擊而跳出編輯
+        return HStack(alignment: .top, spacing: 12) {
                 Image(systemName: "graduationcap.fill")
                     .font(.system(size: 16))
                     .foregroundColor(Theme.chalkYellow)
@@ -643,8 +643,7 @@ struct CourseInfoTableView: View {
             .background(Theme.chalkboard, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Theme.chalkLine, lineWidth: 1))
             .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
+            .onTapGesture { editingCourse = course }
     }
 
     private func detail(_ icon: String, _ text: String) -> some View {
