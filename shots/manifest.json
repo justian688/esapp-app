@@ -1,0 +1,1004 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "8B05FAA8-AC84-4181-943B-A8FD434D846B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "L08 關閉後打開相簿不用密碼_0_2877BFBC-10AE-4FBA-9D4F-43CC8F1E0D2C.png",
+        "timestamp" : 1795270400.206
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "85F034F4-9A20-48FE-82B5-8128DEE65954.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "L07 關閉密碼鎖 → 開關變回關閉_0_A7CA03BF-C716-4F15-9A99-A93BAE3CAFA4.png",
+        "timestamp" : 1795270381.618
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "A887FA36-3D85-4204-91BB-CB3ABFFB67F5.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "L06 輸對 → 進入課程相簿_0_2C705683-7862-40F7-B644-EFC2795D6798.png",
+        "timestamp" : 1795270356.437
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "2A417F80-E411-431D-BA18-FCD2D9D90A7B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "L05 輸錯 → 顯示「密碼錯誤」、相簿沒打開_0_5AD6E9FD-E9D5-4601-887E-F0C2D559E2A6.png",
+        "timestamp" : 1795270346.439
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "E414C2F6-2247-4B21-9B5E-AA482ED11384.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "L04 打開課程相簿 → 要求輸入密碼_0_D2C01451-3F34-41C1-A822-406339B78B84.png",
+        "timestamp" : 1795270337.318
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "EBBEA830-85ED-4C4B-AE43-133A066F05F7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "L03 輸入兩次相同密碼 → 密碼鎖開啟_0_04A25512-4130-446E-8703-704B2BE7C2D2.png",
+        "timestamp" : 1795270301.571
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "047C8580-240C-46B2-8F4D-58FBBBCC27EB.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "L02 打開開關 → 出現設定密碼畫面_0_C5475022-2346-4046-BA57-B69C5A679898.png",
+        "timestamp" : 1795270265.69
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "EDB00C42-41B1-476C-8256-3B7AF56F29D7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "L01 設定頁有「相簿密碼鎖」_0_CAB8C6FE-A2C5-4BD5-81F8-C5C4947EB7EE.png",
+        "timestamp" : 1795270250.177
+      }
+    ],
+    "testIdentifier" : "AlbumLockUITests/testAlbumLock()",
+    "testIdentifierURL" : "test://com.apple.xcode/CameraPPP/CameraPPPUITests/AlbumLockUITests/testAlbumLock"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "29356F59-638B-40C7-8DED-3228F85C8D91.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F29 切回中文：設定頁恢復中文_0_8316C303-663F-486A-9492-5E587D9ABF0C.png",
+        "timestamp" : 1795270885.353
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "ABD9169A-E061-4289-84D6-34932CA18806.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F28 英文：課程資訊表變英文（Course List）_0_48DDA647-9505-44D5-8F9D-974DB2F0C72E.png",
+        "timestamp" : 1795270827.365
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "54E94C09-750F-4C4D-9671-7F9217A512FB.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F27 英文：排程錄影頁變英文（Scheduled Recording／Duration）_0_C70648E2-E013-4FD8-9448-3DC1E8F8D63A.png",
+        "timestamp" : 1795270805.697
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "925927D2-DC64-42F8-99C4-BC38A7913275.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F26 英文：首頁「Start Class」_0_9162A3E3-A1E8-4B62-B362-70858C58A8E6.png",
+        "timestamp" : 1795270800.796
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "5FE141A6-036B-421E-A92A-422D4359B0E4.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F25 英文：側邊欄變英文（Course Library／Course Notes）_0_17336C9E-2614-4D34-BB27-EB025AE8D75B.png",
+        "timestamp" : 1795270787.427
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "0942AB6D-BF68-4F38-9AD2-3F19C1564549.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F24 英文：設定頁沒有殘留中文（錄影畫質／錄影幀數）_0_E6F400B0-E0A4-447D-8F03-D4308CA8D641.png",
+        "timestamp" : 1795270770.52
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "E782A381-CA51-4D69-9D73-F22971DB7872.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F23 英文：設定頁標題、語言、錄影畫質、幀數都變英文_0_2610655D-584D-42B7-9016-CE9ECF320D17.png",
+        "timestamp" : 1795270769.854
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "91AF049D-35DF-4280-8FE2-F15090FD58A5.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F22 拍照與快速開始：有 Siri 與小工具教學_0_7F1F3F23-36FC-4E40-9E64-E1A4F4E6B2DE.png",
+        "timestamp" : 1795270731.305
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "27B5A47D-9431-45EE-85A9-A7FE40116997.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F21 設定 → 拍照與快速開始：打開正常_0_E257DFA1-BEC7-412E-A1FF-B30D873A4BCD.png",
+        "timestamp" : 1795270728.838
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "36CECA3A-4118-42E9-B850-E762682BFBC9.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F20 設定：選 30 fps 後顯示 30 fps_0_B152A9A2-5527-4A20-8DAD-0383C44A0C3F.png",
+        "timestamp" : 1795270724.5
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "F73C32F8-BE6B-492E-993D-DF11A9F33F63.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F19 設定：錄影幀數滾輪有 24／30／60 fps_0_35D54A4A-538D-40F1-8869-74246354D213.png",
+        "timestamp" : 1795270720.814
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "69700E3B-FA3F-4209-BDB1-EB5943685A4C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F18 設定：相機鏡頭滾輪有前置／後置_0_AF632B26-AEC7-41C2-8272-D893B54D5045.png",
+        "timestamp" : 1795270652.834
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "D4996869-47FB-469C-B559-64D08251470A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F17 側邊欄 → 設定：打開正常_0_247960ED-AC4F-424D-8BF2-36B477DC0278.png",
+        "timestamp" : 1795270644.604
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "E323D391-2201-4CD2-8EDA-95E5BBCB579A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F16 側邊欄 → 分享這個 App：跳出分享選單_0_C04EF91F-7E3B-46C7-8C08-3379A97B7BFB.png",
+        "timestamp" : 1795270621.053
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "07AC4BCB-1D7C-4F00-B395-7ED19D8E2B4B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F15 支援頁：選單文字是中文（沒有殘留英文）_0_C78313F4-4754-4FCC-B95C-4EB966E61E8A.png",
+        "timestamp" : 1795270597.265
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "59ADA095-6D84-4CB8-B580-6F8C6FB79321.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F14 側邊欄 → 支援：打開正常_0_3139D537-6C5C-46E2-BB0E-2504810574BB.png",
+        "timestamp" : 1795270596.77
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "DB7C2710-0042-4D80-B783-83A633423144.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F13 課程筆記：新增筆記後出現在列表_0_D72E1B9C-ABC9-4826-A012-61AA5CE992C2.png",
+        "timestamp" : 1795270575.707
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "F7CDBDEB-44C9-4FED-BB3F-ECBAEF630D46.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F12 側邊欄 → 課程筆記：打開正常_0_004826AA-B939-4AE4-B0AD-9BE1A649E831.png",
+        "timestamp" : 1795270559.009
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "13883B99-DB51-4B52-B41D-DD5627B99CC6.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F11 側邊欄 → 課程剪輯：打開正常_0_0B411423-8767-44C1-9A7D-73059A610A22.png",
+        "timestamp" : 1795270538.14
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "CDFD8F4A-F8D3-4615-A3E7-461A4FEA0BBA.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F10 課程資訊表：新增課程「測試課程A」後出現在列表_0_261A64C4-8589-45F4-9CD4-3EA34439DE25.png",
+        "timestamp" : 1795270510.371
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "9E71EA0C-10AA-40D6-A5B8-14A99F40A196.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F09 側邊欄 → 課程資訊表：打開正常_0_15F5D3CF-D904-406D-B44C-CE46D0BC42E4.png",
+        "timestamp" : 1795270488.981
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "46245FC4-1F27-46F4-B1CD-8989C07E0827.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F08 側邊欄 → 課程相簿：打開正常_0_C7F2880B-13FA-4534-9C2D-C0DEBEECE3C2.png",
+        "timestamp" : 1795270468.423
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "9F96FFE2-108E-462F-86F1-AF45ACC6F070.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F07 排程錄影分頁：課程筆記區塊已移除_0_627DC7C0-3D9A-4B20-B425-043A2902AFF0.png",
+        "timestamp" : 1795270444.153
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "753E4AA3-5A51-4E8F-B1ED-F24144A96377.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F06 排程錄影分頁：有時長、相機鏡頭、重複錄影設定_0_73648E60-FB61-4EC7-A11D-729813600F71.png",
+        "timestamp" : 1795270441.781
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "AC8A0552-ED2B-4370-A227-BADE7009C4FE.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F05 排程錄影分頁：打開正常_0_D60A8920-BE03-445B-B159-1D96366BE567.png",
+        "timestamp" : 1795270441.494
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "273D0519-CECC-4967-AC76-435F671902E7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F04 按開始上課：模擬器沒相機時會說明原因（不閃退）_0_431ACD43-C64E-4090-A70A-7806327FA5E0.png",
+        "timestamp" : 1795270433.949
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "9EEBE047-67AA-4444-A37D-268972356851.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F03 點目前課程 → 打開選課程畫面_0_46E5A6C4-14F4-403F-9D07-EE594765FA0C.png",
+        "timestamp" : 1795270424.501
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "2EFC4B78-6B0F-4434-BA2D-965320B4D57C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F02 首頁：有目前課程卡片_0_BED743A0-B8A2-4721-A85C-6D9AFB388D2D.png",
+        "timestamp" : 1795270419.401
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "AE424087-D0AE-4E9F-A563-F0BE8901C896.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "F01 首頁：有「開始上課」按鈕_0_D799E989-3055-4935-B5B5-0270671AB28A.png",
+        "timestamp" : 1795270419.068
+      }
+    ],
+    "testIdentifier" : "AllFeaturesUITests/testEveryFeature()",
+    "testIdentifierURL" : "test://com.apple.xcode/CameraPPP/CameraPPPUITests/AllFeaturesUITests/testEveryFeature"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "C1715A8F-BC47-429B-8EDB-5DE38F32C8AC.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "23 試用中（等同付費）：首頁沒有廣告_0_F433C71D-0129-49E7-9311-3E0C2C342C0E.png",
+        "timestamp" : 1795271056.555
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "79DFB7A6-31F6-4D4A-B27F-58F68EDEF0D2.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "22 「試用重新開始」→ 回到試用中：目前狀態：試用中，剩餘 6 天 23 小時_0_DAEDF821-776D-43B1-964F-39BE740C6D59.png",
+        "timestamp" : 1795271050.957
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "B67447F0-2DD8-47EB-A446-65D8DE464FC2.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "21 從側邊欄可以打開付費畫面_0_2AC8B196-0791-4552-9D50-951BD2117B3A.png",
+        "timestamp" : 1795271032.745
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "938AF334-B449-4CCA-A9E0-3ED2CFD31D53.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "20 側邊欄出現「升級完整版」選項_0_D8F778D8-C3B4-46D7-AD10-77ACC9658740.png",
+        "timestamp" : 1795271029.202
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "866CF677-8941-4377-A14D-61CE40818068.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "19 免費版：首頁下方出現廣告_0_ACE3E4C9-6A81-44D3-89FE-79FA93A70246.png",
+        "timestamp" : 1795271020.351
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "D95871B8-473E-41E3-8A62-D3FD5DCA1861.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "18 免費版上限改成 1 分鐘：目前狀態：免費版（每次錄影最多 1 分鐘、最高 1080p）_0_35C5B5D5-0B20-4305-A26B-1BC16E396113.png",
+        "timestamp" : 1795271013.267
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "84022782-BEBB-4C8E-857A-678AD078A41B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "17 完整方案頁可以關掉_0_5A129D1D-7E7E-4CD0-A4C7-FDB849CA0DAA.png",
+        "timestamp" : 1795271007.638
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "FCD1716E-7C5D-4A97-ADE3-7C9867F18857.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "16 小彈窗點「查看所有方案」→ 打開完整方案頁_0_3D151530-9EEC-437B-BB2C-59B95B969CC3.png",
+        "timestamp" : 1795271000.939
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "55A081F6-EA7C-4CE9-B1F6-30EB87BBD554.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "15 小彈窗有年訂閱、月訂閱兩個方案_0_4406F98C-6650-491A-88D0-33F808C7C642.png",
+        "timestamp" : 1795270992.07
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "4AA40C0A-051B-43A4-8777-532CAC2478D0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "14 點上鎖的 4K → 小彈窗「立即享受 4K 完整版功能」_0_B58ABC3C-B79D-49E4-AFF8-2003F8FBF267.png",
+        "timestamp" : 1795270989.438
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "AD7D4DAA-3476-48F4-B5A2-B63E613C4382.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "13 免費版：4K 上鎖（轉到 4K 會自動收起滾輪、改跳升級小彈窗）_0_8A1ABE4C-576B-44FB-A6D7-1384150CF56D.png",
+        "timestamp" : 1795270987.826
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "D202C33E-9FA2-4818-A7EF-8200D423D886.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "12 狀態變成免費版：目前狀態：免費版（每次錄影最多 30 分鐘、最高 1080p）_0_A48A9727-5911-414C-8196-A1DDD376531C.png",
+        "timestamp" : 1795270975.121
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "1C4080D0-5CF9-4C12-A1C4-4021808BBD06.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "11 到期後沒有其他自動跳出的付費畫面_0_13906427-92B2-4EEE-99F6-51C93663061A.png",
+        "timestamp" : 1795270974.151
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "465066BE-000E-4E48-B19D-41629323A08C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "廣告畫面_0_7CC6C5D7-33E9-4E17-B0E4-734998075B28.png",
+        "timestamp" : 1795270964.284
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "744B8D56-4B64-485E-BC64-8FAB82373AD8.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "10 小彈窗有「升級完整版」／「繼續使用免費版」／「查看所有方案」_0_538379EB-3730-44A3-B6E5-1ADBA4348C2A.png",
+        "timestamp" : 1795270956.293
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "D35B530B-41EF-4ADA-97E3-E7B448FBE3C1.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "09 到期時正在用 4K → 小彈窗「4K 已改為 1080p」_0_313AD94F-5393-4F3B-9D35-B86DF4E8DDFA.png",
+        "timestamp" : 1795270951.879
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "4143A7D8-CBC0-4426-91B7-DCDB1F2438B4.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "08 選「到期後用免費版」後不會再跳提醒_0_856A0BC7-1D45-4F8C-839E-EB5F553641C0.png",
+        "timestamp" : 1795270947.788
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "7A1307EE-80FE-4B5A-BAEE-0DF6642492EA.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "07 提醒有兩個選擇：查看付費方案／到期後用免費版_0_BF7E4CEF-E3B3-4B4F-B21E-DCA9F2C549C6.png",
+        "timestamp" : 1795270941.896
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "BD3E297F-E013-4079-B340-185ECB723F94.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "06 快轉剩 23 小時 → 跳出「免費試用明天到期」_0_D65FBF17-2418-4850-B580-8680040AC0BC.png",
+        "timestamp" : 1795270939.344
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "E220A2EF-6B2D-4FFF-A1B4-E116F5A95B38.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "05 試用中可以選 4K 錄影_0_88DC6F6E-1313-41F8-ACCF-5E2745C49B5C.png",
+        "timestamp" : 1795270935.153
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "988B4F06-3DF1-4443-81C9-314777E6563C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "04 試用中：4K 選項沒有上鎖（4K（完整版，最清晰、較耗電佔空間））_0_BB9A2F19-47C2-47CF-8702-E979F95DDE83.png",
+        "timestamp" : 1795270930.028
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "5C935B00-AD32-4220-9D32-E26FE4D09B4B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03 模擬付費開啟、試用重新開始 → 狀態：目前狀態：試用中，剩餘 6 天 23 小時_0_51295E44-4DC9-4B18-85FC-DD551C0DE1D8.png",
+        "timestamp" : 1795270920.505
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "7ABB7850-E57F-441F-8469-F4858B5F6427.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "02 設定頁最下面看得到「🧪 測試工具」_0_5831AF3E-A370-4C6C-916F-443BFE3EA81F.png",
+        "timestamp" : 1795270910.817
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "0014C823-8AF0-4041-9EE1-6F35AD2FEBEF.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01 App 開啟，進入錄影首頁_0_85C1639E-6B36-4BD9-851E-2D932E64714D.png",
+        "timestamp" : 1795270902.224
+      }
+    ],
+    "testIdentifier" : "BillingFlowUITests/testFullBillingFlow()",
+    "testIdentifierURL" : "test://com.apple.xcode/CameraPPP/CameraPPPUITests/BillingFlowUITests/testFullBillingFlow"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "20E06222-1DDA-4875-AC37-3BA4AEC06259.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M20 側邊欄：亂按後重開，主畫面正常_0_EEA266B5-6F79-4EAB-A747-D35EFD97CBA2.png",
+        "timestamp" : 1795271608.326
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "3FBEA9CB-275A-4ECE-B1B0-29768000E176.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M19 側邊欄：亂按 20 次沒閃退_0_5D4C88A4-A33B-4D47-BA88-CB02352D6736.png",
+        "timestamp" : 1795271596.952
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "3778CF05-8BDF-4FD2-A304-8A55B282C229.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M18 拍照與快速開始：亂按後重開，主畫面正常_0_27931D60-7CD1-4808-ADA5-D88C0C1B21E8.png",
+        "timestamp" : 1795271549.687
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "A3CB4695-81E4-4063-A02C-DD5E29F9597E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M17 拍照與快速開始：亂按 20 次沒閃退_0_9F24F5B5-1D6E-4124-AFC6-2E954990D4D2.png",
+        "timestamp" : 1795271539.467
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "074FB4D1-1714-408D-90F9-47685A6C116C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M16 支援：亂按後重開，主畫面正常_0_0E343BBF-ECF4-42A2-B6E4-943E96453D9C.png",
+        "timestamp" : 1795271495.903
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "5EFE8A08-33AC-40F8-9C99-D93F3F52AC92.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M15 支援：亂按 20 次沒閃退_0_F4ABE2E1-A717-4081-96F8-A5EE4969DCC9.png",
+        "timestamp" : 1795271483.723
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "3B93B88B-322C-45F4-A8B5-3A0AC1B66CBB.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M14 設定：亂按後重開，主畫面正常_0_FD786445-A49A-4D09-A898-9228AA606744.png",
+        "timestamp" : 1795271413.462
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "4F01FDA2-BB5B-4FCF-9058-35E138E89147.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M13 設定：亂按 20 次沒閃退_0_8B659C8A-9B28-400D-B762-A8F20F89D9B8.png",
+        "timestamp" : 1795271401.687
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "D2DB6D2B-B0F5-4D49-9ED9-320D89BABAD1.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M12 課程資訊表：亂按後重開，主畫面正常_0_C7804AC2-A571-409D-AD8C-061898C301BE.png",
+        "timestamp" : 1795271346.112
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "22203A1B-71DC-4582-91FA-D4827128E078.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M11 課程資訊表：亂按 20 次沒閃退_0_E3A49927-6E6D-4194-BFB7-EB6148F06AB1.png",
+        "timestamp" : 1795271336.583
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "79DDC2C3-C5C1-4287-8829-162AAF82232B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M10 課程筆記：亂按後重開，主畫面正常_0_D092401F-7AF6-4326-84A3-61A7834908E6.png",
+        "timestamp" : 1795271296.82
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "9DF76F30-8108-4D6E-B46F-9E1EA3228D40.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M09 課程筆記：亂按 20 次沒閃退_0_D1C86137-28E3-44E2-91F2-23E8009ABF56.png",
+        "timestamp" : 1795271287.196
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "8F569687-5105-4DEA-973A-78BCA7259F7A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M08 課程剪輯：亂按後重開，主畫面正常_0_0355B4AA-FEAF-481F-BE93-756BA115EE3E.png",
+        "timestamp" : 1795271252.875
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "C816AFC2-86FC-4357-8560-575605153142.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M07 課程剪輯：亂按 20 次沒閃退_0_A85717DE-6B75-4A87-8B51-A55DEFA96E11.png",
+        "timestamp" : 1795271240.235
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "9B7875A8-0FAB-4834-86F9-80A97789D5DC.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M06 課程相簿：亂按後重開，主畫面正常_0_B57C43EF-8562-4F48-A48A-BA97F32F4CDA.png",
+        "timestamp" : 1795271211.781
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "7DA38A80-0234-4142-9702-E805CEF90642.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M05 課程相簿：亂按 20 次沒閃退_0_879B452C-6E4D-4C8D-BF5F-9F8775D61714.png",
+        "timestamp" : 1795271200.747
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "FEBB744B-A1B9-46CA-9D18-90627CEA8BF9.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M04 排程頁：亂按後重開，主畫面正常_0_FA059AD3-B02E-4B01-863C-B5F859980394.png",
+        "timestamp" : 1795271170.603
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "43AC0E05-AFA3-4182-A6A4-9CA495F98C91.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M03 排程頁：亂按 20 次沒閃退_0_CB578525-BA67-47FF-9D4A-A0D8C335F6A9.png",
+        "timestamp" : 1795271161.493
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "B94A7D56-980D-4B52-8DF7-094992B0183F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M02 首頁：亂按後重開，主畫面正常_0_6D38FD91-519A-48BB-A414-932DA28CD811.png",
+        "timestamp" : 1795271126.54
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "241D6062-5612-415E-A9B3-BFB05DB58A64.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "M01 首頁：亂按 20 次沒閃退_0_625D3CCC-F584-4224-9F3B-33BF449E63CA.png",
+        "timestamp" : 1795271118.25
+      }
+    ],
+    "testIdentifier" : "MonkeyUITests/testRandomTapsEveryScreen()",
+    "testIdentifierURL" : "test://com.apple.xcode/CameraPPP/CameraPPPUITests/MonkeyUITests/testRandomTapsEveryScreen"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "CECA5C36-0309-434C-BC91-239E97AB0BA8.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S27 還原測試狀態（付費模擬關閉）：目前狀態：付費功能關閉中（全部免費）_0_37EE8EE5-9C14-4EE7-B45F-C050DD232BAF.png",
+        "timestamp" : 1795271865.983
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "EF7C87FF-D149-43CD-96C0-382E776B64B8.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S26 試用重新開始 → 回到試用中：目前狀態：試用中，剩餘 6 天 23 小時_0_12F8EEAE-0715-4C9D-89A7-73313F44D9F6.png",
+        "timestamp" : 1795271862.086
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "20EFAE99-6BE0-43DA-ABE0-F9B1C4A09DA8.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S25 免費版（有廣告橫幅）首頁左右滑 → 分頁照常切換_0_40A0F6A1-A626-4EDB-BDF0-F818315D65AD.png",
+        "timestamp" : 1795271851.008
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "DACC8F45-1A55-41DF-9B89-B25C268467CD.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S24 手動打開的付費頁往下滑 → 可以關閉_0_309B74CB-A163-4F94-B04A-E61D004F8060.png",
+        "timestamp" : 1795271825.535
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "CD756D46-AA19-4EDE-9092-CE478984EDDB.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S23 付費頁往上滑 → 內容可以捲動、訂閱鈕還在_0_A181A590-4F02-43A3-AE96-343C712DAC2D.png",
+        "timestamp" : 1795271819.69
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "B7431FAD-6315-4CCF-BE95-7E78AC8634FE.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S22 滑掉小彈窗後 → 畫質沒有變成 4K_0_FCC6E0C4-D147-41D1-864D-7201A2E6479F.png",
+        "timestamp" : 1795271799.612
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "1417D028-F4D1-4946-8AA0-5434884F737C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S21 免費版小彈窗（4K）往下滑 → 可以關閉_0_4E76B207-40C4-4E3B-9A03-C6E594A81C99.png",
+        "timestamp" : 1795271799.214
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "65AED94F-4C9F-4FF4-981F-AEF9BE81BC38.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S20 設定頁往下滑 → 回到最上面的「錄影畫質」_0_8715CC67-51B4-4F6C-A241-2D612E4C28B7.png",
+        "timestamp" : 1795271747.809
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "4776F7D3-0BF2-4AE7-A5B8-E532175F6E74.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S19 設定頁一路往上滑 → 到最底的測試工具_0_279E319C-264B-4114-83F3-0C3F335E4BAA.png",
+        "timestamp" : 1795271740.756
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "845DE297-BF8C-4F72-B38F-7B43DC6C6290.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S18 課程資訊表上下滑 → 標題列還在、不閃退_0_AF8879F5-21A1-4894-88A1-8AC75A17586E.png",
+        "timestamp" : 1795271721.068
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "89572865-73F6-427A-82BA-F17890A875C5.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S17 課程資訊表往左滑 → 不會跑版，卡片還在原位_0_51E8E0E1-1CF6-4490-B7E1-D6C6B7F89090.png",
+        "timestamp" : 1795271718.881
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "9EFD240B-31E3-4D94-9E13-E707125891CD.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S16 課程資訊表：課程是直向卡片，不用左右拉就看得到錄影數_0_97049845-4503-4DE5-BF14-1DEF671829C5.png",
+        "timestamp" : 1795271716.564
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "5CBFF844-1355-40E1-8D6F-B9E12990EA48.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S15 選課程彈窗往下滑 → 關閉回首頁_0_119A76E4-9BBC-4EE1-B956-347F48019977.png",
+        "timestamp" : 1795271700.701
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "3C5B701B-ECED-4394-8BC3-A33291C159ED.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S14 點側邊欄外面 → 關閉（原本的方式仍正常）_0_63075788-05D8-4553-BB30-DC50E729A21D.png",
+        "timestamp" : 1795271680.698
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "75093A52-191E-4FB4-B734-03BB51195BF9.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S13 在側邊欄外的暗色區域往左滑 → 也會關閉_0_2EA24292-7DA5-4CEF-9C40-C20045C0CC63.png",
+        "timestamp" : 1795271675.824
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "8C9394F6-EA88-40C1-A6D6-B2301E4CB3F5.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S12 滑掉側邊欄後 → 仍停在原本的錄影頁（沒誤切分頁）_0_37FBECEE-48AB-4EF5-858B-7F1BC78EC0E7.png",
+        "timestamp" : 1795271670.243
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "63A2A1FB-34F9-4673-B808-8980D09F72BB.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S11 側邊欄往左滑 → 側邊欄關閉_0_2DA41514-BEB8-4CDC-97B7-AF8656B77722.png",
+        "timestamp" : 1795271669.855
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "447F116E-B643-4A44-863B-F372B4ED3E28.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S10 側邊欄往上滑 → 最下面的「分享」還在、可以點_0_17D3F5FE-0EAC-42E0-8FDF-B12A7A192E0A.png",
+        "timestamp" : 1795271665.71
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "60603409-6EBD-4A5D-BA6B-6531A90ED079.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S09 點選單鍵 → 側邊欄打開_0_2C11C0B4-8BFB-4905-9612-002C289C6FFD.png",
+        "timestamp" : 1795271663.922
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "09961561-C9D3-444E-9F28-21B9813DF9B6.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S08 亂滑後點錄影分頁 → 正常回到錄影頁_0_BD56E6B8-0AA5-48CD-B18D-EF7B093D43D4.png",
+        "timestamp" : 1795271660.472
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "81B92442-3E14-4AED-BA4C-E6E8BDC0A78B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S07 快速左右亂滑 8 次 → 不閃退、頂部按鈕還能按_0_AF3B54C3-178A-49B7-9221-985436C63DE0.png",
+        "timestamp" : 1795271658.287
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "474F4CA4-7641-4E37-ADFE-16FD92FE3043.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S06 錄影頁再往右滑 → 停在錄影頁、不會亂跳_0_9DCFCCF5-F855-40D8-8E81-0FDBF0D6E46F.png",
+        "timestamp" : 1795271636.79
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "BB56E2A9-8786-49DE-BDC8-4F0AF6894419.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S05 排程頁往右滑 → 回到錄影頁_0_376FFD2E-3DC9-4808-A59C-BB5C1BA5A0AB.png",
+        "timestamp" : 1795271633.471
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "E957DA93-86BC-4EFB-9CA8-0EF2A4FECD77.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S04 排程頁往下滑 → 回到頂部（看得到時長設定）_0_F59B3025-30F9-412E-83C4-4F7E8880B060.png",
+        "timestamp" : 1795271630.451
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "E6F084F6-A07C-45BA-8A86-AF622E6A2414.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S03 排程頁往上滑 → 不閃退、排程設定還在_0_90A48B2F-9ACE-4805-8A2A-74CCA01775D8.png",
+        "timestamp" : 1795271627.893
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "23D439B2-02CB-4649-9FF2-2C4EEC7789CE.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S02 錄影頁往左滑 → 切到排程錄影頁_0_73D05464-C629-48FC-8CD7-6EE761C9C793.png",
+        "timestamp" : 1795271625.474
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "6478AFFB-AE17-412A-A1E5-51BCFFD300B6",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "8CAE265C-5245-49D6-81A6-ECC36C52B889.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "S01 首頁：一開始停在錄影頁_0_1DF990D5-89F5-4A9C-9FE5-930F14C377B7.png",
+        "timestamp" : 1795271622.527
+      }
+    ],
+    "testIdentifier" : "SwipeUITests/testSwipeGestures()",
+    "testIdentifierURL" : "test://com.apple.xcode/CameraPPP/CameraPPPUITests/SwipeUITests/testSwipeGestures"
+  }
+]

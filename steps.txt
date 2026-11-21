@@ -1,0 +1,79 @@
+FEAT 01 PASS 首頁：有「開始上課」按鈕
+FEAT 02 PASS 首頁：有目前課程卡片
+FEAT 03 PASS 點目前課程 → 打開選課程畫面
+FEAT 04 PASS 按開始上課：模擬器沒相機時會說明原因（不閃退）
+FEAT 05 PASS 排程錄影分頁：打開正常
+FEAT 06 PASS 排程錄影分頁：有時長、相機鏡頭、重複錄影設定
+FEAT 07 PASS 排程錄影分頁：課程筆記區塊已移除
+FEAT 08 PASS 側邊欄 → 課程相簿：打開正常
+FEAT 09 PASS 側邊欄 → 課程資訊表：打開正常
+FEAT 10 PASS 課程資訊表：新增課程「測試課程A」後出現在列表
+FEAT 11 PASS 側邊欄 → 課程剪輯：打開正常
+FEAT 12 PASS 側邊欄 → 課程筆記：打開正常
+FEAT 13 PASS 課程筆記：新增筆記後出現在列表
+FEAT 14 PASS 側邊欄 → 支援：打開正常
+FEAT 15 PASS 支援頁：選單文字是中文（沒有殘留英文）
+FEAT 16 PASS 側邊欄 → 分享這個 App：跳出分享選單
+FEAT 17 PASS 側邊欄 → 設定：打開正常
+FEAT 18 PASS 設定：相機鏡頭滾輪有前置／後置
+FEAT 19 PASS 設定：錄影幀數滾輪有 24／30／60 fps
+FEAT 20 PASS 設定：選 30 fps 後顯示 30 fps
+FEAT 21 PASS 設定 → 拍照與快速開始：打開正常
+FEAT 22 PASS 拍照與快速開始：有 Siri 與小工具教學
+FEAT 23 PASS 英文：設定頁標題、語言、錄影畫質、幀數都變英文
+FEAT 24 PASS 英文：設定頁沒有殘留中文（錄影畫質／錄影幀數）
+FEAT 25 PASS 英文：側邊欄變英文（Course Library／Course Notes）
+FEAT 26 PASS 英文：首頁「Start Class」
+FEAT 27 PASS 英文：排程錄影頁變英文（Scheduled Recording／Duration）
+FEAT 28 PASS 英文：課程資訊表變英文（Course List）
+FEAT 29 PASS 切回中文：設定頁恢復中文
+STEP 01 PASS App 開啟，進入錄影首頁
+STEP 02 PASS 設定頁最下面看得到「🧪 測試工具」
+STEP 03 PASS 模擬付費開啟、試用重新開始 → 狀態：目前狀態：試用中，剩餘 6 天 23 小時
+STEP 04 PASS 試用中：4K 選項沒有上鎖（4K（完整版，最清晰、較耗電佔空間））
+STEP 05 PASS 試用中可以選 4K 錄影
+STEP 06 PASS 快轉剩 23 小時 → 跳出「免費試用明天到期」
+STEP 07 PASS 提醒有兩個選擇：查看付費方案／到期後用免費版
+STEP 08 PASS 選「到期後用免費版」後不會再跳提醒
+STEP 09 PASS 到期時正在用 4K → 小彈窗「4K 已改為 1080p」
+STEP 10 PASS 小彈窗有「升級完整版」／「繼續使用免費版」／「查看所有方案」
+STEP 11 PASS 到期後沒有其他自動跳出的付費畫面
+STEP 12 PASS 狀態變成免費版：目前狀態：免費版（每次錄影最多 30 分鐘、最高 1080p）
+STEP 13 PASS 免費版：4K 上鎖（轉到 4K 會自動收起滾輪、改跳升級小彈窗）
+STEP 14 PASS 點上鎖的 4K → 小彈窗「立即享受 4K 完整版功能」
+STEP 15 PASS 小彈窗有年訂閱、月訂閱兩個方案
+STEP 16 PASS 小彈窗點「查看所有方案」→ 打開完整方案頁
+STEP 17 PASS 完整方案頁可以關掉
+STEP 18 PASS 免費版上限改成 1 分鐘：目前狀態：免費版（每次錄影最多 1 分鐘、最高 1080p）
+STEP 19 PASS 免費版：首頁下方出現廣告
+STEP 20 PASS 側邊欄出現「升級完整版」選項
+STEP 21 PASS 從側邊欄可以打開付費畫面
+STEP 22 PASS 「試用重新開始」→ 回到試用中：目前狀態：試用中，剩餘 6 天 23 小時
+STEP 23 PASS 試用中（等同付費）：首頁沒有廣告
+SWIPE 01 PASS 首頁：一開始停在錄影頁
+SWIPE 02 PASS 錄影頁往左滑 → 切到排程錄影頁
+SWIPE 03 PASS 排程頁往上滑 → 不閃退、排程設定還在
+SWIPE 04 PASS 排程頁往下滑 → 回到頂部（看得到時長設定）
+SWIPE 05 PASS 排程頁往右滑 → 回到錄影頁
+SWIPE 06 PASS 錄影頁再往右滑 → 停在錄影頁、不會亂跳
+SWIPE 07 PASS 快速左右亂滑 8 次 → 不閃退、頂部按鈕還能按
+SWIPE 08 PASS 亂滑後點錄影分頁 → 正常回到錄影頁
+SWIPE 09 PASS 點選單鍵 → 側邊欄打開
+SWIPE 10 PASS 側邊欄往上滑 → 最下面的「分享」還在、可以點
+SWIPE 11 PASS 側邊欄往左滑 → 側邊欄關閉
+SWIPE 12 PASS 滑掉側邊欄後 → 仍停在原本的錄影頁（沒誤切分頁）
+SWIPE 13 PASS 在側邊欄外的暗色區域往左滑 → 也會關閉
+SWIPE 14 PASS 點側邊欄外面 → 關閉（原本的方式仍正常）
+SWIPE 15 PASS 選課程彈窗往下滑 → 關閉回首頁
+SWIPE 16 PASS 課程資訊表：課程是直向卡片，不用左右拉就看得到錄影數
+SWIPE 17 PASS 課程資訊表往左滑 → 不會跑版，卡片還在原位
+SWIPE 18 PASS 課程資訊表上下滑 → 標題列還在、不閃退
+SWIPE 19 PASS 設定頁一路往上滑 → 到最底的測試工具
+SWIPE 20 PASS 設定頁往下滑 → 回到最上面的「錄影畫質」
+SWIPE 21 PASS 免費版小彈窗（4K）往下滑 → 可以關閉
+SWIPE 22 PASS 滑掉小彈窗後 → 畫質沒有變成 4K
+SWIPE 23 PASS 付費頁往上滑 → 內容可以捲動、訂閱鈕還在
+SWIPE 24 PASS 手動打開的付費頁往下滑 → 可以關閉
+SWIPE 25 PASS 免費版（有廣告橫幅）首頁左右滑 → 分頁照常切換
+SWIPE 26 PASS 試用重新開始 → 回到試用中：目前狀態：試用中，剩餘 6 天 23 小時
+SWIPE 27 PASS 還原測試狀態（付費模擬關閉）：目前狀態：付費功能關閉中（全部免費）
