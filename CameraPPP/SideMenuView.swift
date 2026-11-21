@@ -53,9 +53,6 @@ struct SideMenuView: View {
                     MenuRow(icon: "books.vertical.fill", title: "課程相簿") {
                         openPage(.gallery)
                     }
-                    MenuRow(icon: "tablecells", title: "課程資訊表") {
-                        openPage(.courseInfo)
-                    }
                     MenuRow(icon: "scissors", title: "課程剪輯") {
                         openPage(.trimmer)
                     }
@@ -74,9 +71,6 @@ struct SideMenuView: View {
                     }
                     }
 
-                    MenuRow(icon: "paperplane.fill", title: SubscriptionConfig.paymentsEnabled ? "Support and Upgrade" : "Support") {
-                        openPage(.support)
-                    }
                     
                     Divider().background(Color.gray.opacity(0.5)).padding(.vertical, 10)
 
@@ -86,9 +80,17 @@ struct SideMenuView: View {
                     
                     MenuRow(icon: "square.and.arrow.up", title: "Share this app") {
                         withAnimation { isMenuOpen = false }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            // shareApp() // 呼叫你的分享邏輯
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                            AppLinks.shareApp()
                         }
+                    }
+
+                    // 課程資訊表、支援放在最下面
+                    MenuRow(icon: "tablecells", title: "課程資訊表") {
+                        openPage(.courseInfo)
+                    }
+                    MenuRow(icon: "paperplane.fill", title: SubscriptionConfig.paymentsEnabled ? "Support and Upgrade" : "Support") {
+                        openPage(.support)
                     }
                 }
                 .padding(.vertical)
@@ -111,6 +113,12 @@ struct SideMenuView: View {
 }
 
 // MARK: - 側邊欄選單列
+/// 側邊欄左右滑動時，避免手指放開被當成點到選單項目
+enum SideMenuGestureGate {
+    static var lastHorizontalSwipe = Date.distantPast
+    static var justSwiped: Bool { Date().timeIntervalSince(lastHorizontalSwipe) < 0.5 }
+}
+
 struct MenuRow: View {
     var icon: String
     var title: LocalizedStringKey
@@ -118,6 +126,8 @@ struct MenuRow: View {
     
     var body: some View {
         Button {
+            // 剛剛是在左右滑（想關掉側邊欄），不是點這一行 → 忽略
+            guard !SideMenuGestureGate.justSwiped else { return }
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             action()
         } label: {
@@ -139,6 +149,7 @@ struct MenuRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(MenuButtonStyle())
+        .accessibilityIdentifier("menu_" + icon)
     }
 }
 
@@ -174,8 +185,7 @@ enum SideMenuDestination: Hashable {
 
 struct ScheduleView: View {
     @State private var targetDate = Date().addingTimeInterval(300)
-    @State private var showDatePicker = false
-    @State private var showTimePicker = false
+    @State private var showDateTimePicker = false
     @State private var showDurationOptions = false
     @State private var showCameraOptions = false
     @State private var showRepeatRecordingOptions = false
@@ -187,13 +197,15 @@ struct ScheduleView: View {
     
     private var dateString: String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd"
+        formatter.locale = Locale(identifier: Translations.isEnglish ? "en_US" : "zh_Hant_TW")
+        formatter.setLocalizedDateFormatFromTemplate("MMMdEEE")
         return formatter.string(from: targetDate)
     }
     
     private var timeString: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "hh:mm a"
+        formatter.locale = Locale(identifier: Translations.isEnglish ? "en_US" : "zh_Hant_TW")
         return formatter.string(from: targetDate)
     }
 
@@ -206,7 +218,7 @@ struct ScheduleView: View {
     }
 
     private var repeatRecording: String {
-        isRepeatRecordingEnabled ? "開啟" : "關閉"
+        isRepeatRecordingEnabled ? tr("開啟") : tr("關閉")
     }
 
     
@@ -214,25 +226,16 @@ struct ScheduleView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    
-                    CourseNotesSection()
-
-                    Divider()
-                        .background(Color.gray.opacity(0.3))
-                        .padding(.top, 16)
-
+                    // 課程筆記區塊已移除（筆記從側邊欄「課程筆記」或首頁月曆進入）
                     ChalkSectionTitle(icon: "calendar.badge.clock", title: "排程錄影")
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
                         .padding(.bottom, 10)
                     
-                    ScheduleRow(title: "DATE", value: dateString) {
-                        showDatePicker = true
+                    ScheduleRow(title: "開始時間", value: "\(dateString)  \(timeString)") {
+                        showDateTimePicker = true
                     }
-                    
-                    ScheduleRow(title: "TIME", value: timeString) {
-                        showTimePicker = true
-                    }
+                    .accessibilityIdentifier("schedule_dateTime")
                     
                     ScheduleRow(title: "時長", value: duration) {
                         showDurationOptions = true
@@ -242,17 +245,6 @@ struct ScheduleView: View {
                     }
                     ScheduleRow(title: "重複錄影", value: repeatRecording) {
                         showRepeatRecordingOptions = true
-                    }
-                    .confirmationDialog("重複錄影", isPresented: $showRepeatRecordingOptions, titleVisibility: .visible) {
-                        Button("開啟") {
-                            isRepeatRecordingEnabled = true
-                        }
-
-                        Button("關閉") {
-                            isRepeatRecordingEnabled = false
-                        }
-
-                        Button("Cancel", role: .cancel) { }
                     }
                 }
                 .padding(.bottom, 20)
@@ -293,24 +285,25 @@ struct ScheduleView: View {
         .alert(isPresented: $showAlert) {
             Alert(title: Text("Schedule"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
-        .sheet(isPresented: $showDatePicker) {
-            VStack {
-                DatePicker("Select Date", selection: $targetDate, displayedComponents: .date)
-                    .datePickerStyle(.graphical)
-                    .padding()
-                Button("Done") { showDatePicker = false }
-                    .font(.headline)
-                    .padding()
+        // 日期＋時間一起選（同一組滾輪）
+        .sheet(isPresented: $showDateTimePicker) {
+            WheelPickerSheet(title: "開始時間", isPresented: $showDateTimePicker) {
+                DatePicker("", selection: $targetDate, in: Date()..., displayedComponents: [.date, .hourAndMinute])
+                    .datePickerStyle(.wheel)
+                    .environment(\.locale, Locale(identifier: Translations.isEnglish ? "en_US" : "zh_Hant_TW"))
             }
-            .presentationDetents([.medium])
+        }
+        .sheet(isPresented: $showRepeatRecordingOptions) {
+            WheelPickerSheet(title: "重複錄影", isPresented: $showRepeatRecordingOptions) {
+                Picker("重複錄影", selection: $isRepeatRecordingEnabled) {
+                    Text(tr("開啟")).tag(true)
+                    Text(tr("關閉")).tag(false)
+                }
+            }
         }
         .sheet(isPresented: $showDurationOptions) {
             WheelPickerSheet(title: "時長", isPresented: $showDurationOptions) {
-                Picker("時長", selection: $selectedDurationMinutes) {
-                    ForEach(RecordingPreferences.durationOptions, id: \.self) { minutes in
-                        Text(RecordingPreferences.durationLabel(minutes)).tag(minutes)
-                    }
-                }
+                DurationTimerPicker(totalMinutes: $selectedDurationMinutes)
             }
         }
         .sheet(isPresented: $showCameraOptions) {
@@ -320,18 +313,6 @@ struct ScheduleView: View {
                     Text("後置鏡頭").tag(CameraFacing.back.rawValue)
                 }
             }
-        }
-        .sheet(isPresented: $showTimePicker) {
-            VStack {
-                DatePicker("Select Time", selection: $targetDate, displayedComponents: .hourAndMinute)
-                    .datePickerStyle(.wheel)
-                    .labelsHidden()
-                    .padding()
-                Button("Done") { showTimePicker = false }
-                    .font(.headline)
-                    .padding()
-            }
-            .presentationDetents([.medium])
         }
     }
     
@@ -370,7 +351,7 @@ struct ScheduleRow: View {
                 Spacer()
                 
                 if !value.isEmpty {
-                    Text(value)
+                    Text(tr(value))
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.gray)
                 }
@@ -389,23 +370,43 @@ struct ScheduleRow: View {
 
 
 /// 底部滑動選單（滾輪）
+/// 全 App 統一的選擇方式：底部滑出、滾輪選、按「完成」收起
 struct WheelPickerSheet<Content: View>: View {
     let title: String
     @Binding var isPresented: Bool
+    var message: String? = nil
     @ViewBuilder let content: () -> Content
+
+    init(title: String, isPresented: Binding<Bool>, message: String? = nil, @ViewBuilder content: @escaping () -> Content) {
+        self.title = title
+        self._isPresented = isPresented
+        self.message = message
+        self.content = content
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text(title)
+                Text(tr(title))
                     .font(.headline)
                     .foregroundColor(.white)
                 Spacer()
-                Button("完成") { isPresented = false }
+                Button(tr("完成")) { isPresented = false }
                     .font(.headline)
+                    .foregroundColor(Theme.chalkYellow)
+                    .accessibilityIdentifier("wheel_done")
             }
             .padding(.horizontal, 20)
             .padding(.top, 20)
+
+            if let message {
+                Text(tr(message))
+                    .font(.footnote)
+                    .foregroundColor(.gray)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 6)
+            }
 
             content()
                 .pickerStyle(.wheel)
@@ -413,8 +414,101 @@ struct WheelPickerSheet<Content: View>: View {
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal)
         }
-        .presentationDetents([.height(300)])
+        .presentationDetents([.height(message == nil ? 300 : 350)])
         .presentationDragIndicator(.visible)
         .preferredColorScheme(.dark)
+    }
+}
+
+/// 時長：仿 iOS「計時器」— 小時、分鐘兩個滾輪；兩個都是 0 代表「不限」
+struct DurationTimerPicker: View {
+    @Binding var totalMinutes: Int
+    @State private var hours = 0
+    @State private var minutes = 0
+
+    var body: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 0) {
+                wheel(selection: $hours, range: 0..<13, unit: tr("小時"))
+                wheel(selection: $minutes, range: 0..<60, unit: tr("分鐘"))
+            }
+            .frame(height: 180)
+            Text(totalMinutes == 0 ? tr("設為 0 小時 0 分鐘＝不限時長（錄到手動停止）") : RecordingPreferences.durationLabel(totalMinutes))
+                .font(.footnote)
+                .foregroundColor(.gray)
+        }
+        .onAppear {
+            hours = totalMinutes / 60
+            minutes = totalMinutes % 60
+        }
+        .onChange(of: hours) { _, _ in totalMinutes = hours * 60 + minutes }
+        .onChange(of: minutes) { _, _ in totalMinutes = hours * 60 + minutes }
+    }
+
+    private func wheel(selection: Binding<Int>, range: Range<Int>, unit: String) -> some View {
+        HStack(spacing: 6) {
+            Picker("", selection: selection) {
+                ForEach(Array(range), id: \.self) { Text("\($0)").tag($0) }
+            }
+            .pickerStyle(.wheel)
+            .labelsHidden()
+            .frame(width: 80)
+            .clipped()
+            Text(unit)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundColor(.white)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+/// 表單裡的選擇列：點一下從底部滑出滾輪（跟「時長」一樣的選法）
+struct WheelSelectRow<Value: Hashable>: View {
+    let title: String
+    @Binding var selection: Value
+    let options: [(value: Value, label: String)]
+    /// 緊湊樣式：標籤和值靠在一起、靠左（不會左右散開）
+    var compact = false
+    @State private var showing = false
+
+    private var currentLabel: String {
+        options.first { $0.value == selection }?.label ?? ""
+    }
+
+    var body: some View {
+        Button { showing = true } label: {
+            if compact {
+                HStack(spacing: 8) {
+                    Image(systemName: "graduationcap.fill").foregroundColor(Theme.chalkYellow)
+                    Text(tr(title)).foregroundColor(.gray)
+                    Text(currentLabel).foregroundColor(.white).fontWeight(.semibold)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.gray)
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
+            } else {
+                HStack {
+                    Text(tr(title)).foregroundColor(.gray)
+                    Spacer()
+                    Text(currentLabel).foregroundColor(.white)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.gray)
+                }
+                .contentShape(Rectangle())
+            }
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $showing) {
+            WheelPickerSheet(title: title, isPresented: $showing) {
+                Picker(tr(title), selection: $selection) {
+                    ForEach(options.indices, id: \.self) { i in
+                        Text(options[i].label).tag(options[i].value)
+                    }
+                }
+            }
+        }
     }
 }

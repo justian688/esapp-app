@@ -8,6 +8,32 @@
 @preconcurrency import AVFoundation
 import Foundation
 
+/// 錄影幀數。預設 60 fps；手機或目前解析度不支援時，自動改用支援的最高幀數
+nonisolated enum CaptureFrameRate: Int, CaseIterable, Identifiable {
+    case fps24 = 24
+    case fps30 = 30
+    case fps60 = 60
+
+    static let storageKey = "captureFrameRate"
+    /// 實際套用到相機的幀數（手機不支援時會比設定低）
+    static let actualKey = "captureFrameRateActual"
+    static let defaultRate: CaptureFrameRate = .fps60
+
+    var id: Int { rawValue }
+
+    var title: String {
+        switch self {
+        case .fps24: return tr("24 fps（電影感、最省空間）")
+        case .fps30: return tr("30 fps（一般、省電）")
+        case .fps60: return tr("60 fps（最流暢）")
+        }
+    }
+
+    static var current: CaptureFrameRate {
+        CaptureFrameRate(rawValue: UserDefaults.standard.object(forKey: storageKey) as? Int ?? 0) ?? defaultRate
+    }
+}
+
 /// 錄影與拍照解析度（會同時影響錄影畫質、照片大小與耗電）
 nonisolated enum CaptureResolution: String, CaseIterable, Identifiable {
     case hd720
@@ -22,9 +48,9 @@ nonisolated enum CaptureResolution: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .hd720: return "720p（最省電）"
-        case .hd1080: return "1080p（清晰）"
-        case .uhd4K: return SubscriptionConfig.paymentsEnabled ? "4K（進階版，最清晰、較耗電佔空間）" : "4K（最清晰、較耗電佔空間）"
+        case .hd720: return tr("720p（最省電）")
+        case .hd1080: return tr("1080p（清晰）")
+        case .uhd4K: return SubscriptionConfig.paymentsEnabled ? tr("4K（完整版，最清晰、較耗電佔空間）") : tr("4K（最清晰、較耗電佔空間）")
         }
     }
 
@@ -36,13 +62,13 @@ nonisolated enum CaptureResolution: String, CaseIterable, Identifiable {
         }
     }
 
-    /// 4K 需要進階版
+    /// 4K 需要完整版（試用期間可用）
     var requiresPremium: Bool { SubscriptionConfig.paymentsEnabled && self == .uhd4K }
 
     static var current: CaptureResolution {
         let saved = CaptureResolution(rawValue: UserDefaults.standard.string(forKey: storageKey) ?? "") ?? .defaultResolution
-        // 沒有進階版（例如訂閱過期）時，4K 自動降成 1080p
-        if saved.requiresPremium && !UserDefaults.standard.bool(forKey: SubscriptionConfig.premiumStatusKey) {
+        // 沒有完整版（例如訂閱過期）時，4K 自動降成 1080p
+        if saved.requiresPremium && !FeatureAccess.hasFullAccess {
             return .hd1080
         }
         return saved
@@ -61,17 +87,17 @@ nonisolated enum PhotoCaptureMode: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .quality: return "畫質優先"
-        case .balanced: return "平衡"
-        case .speed: return "速度優先"
+        case .quality: return tr("畫質優先")
+        case .balanced: return tr("平衡")
+        case .speed: return tr("速度優先")
         }
     }
 
     var subtitle: String {
         switch self {
-        case .quality: return "照片最清楚，連拍時稍慢"
-        case .balanced: return "畫質與速度兼顧"
-        case .speed: return "拍照最快，適合快速連拍投影片"
+        case .quality: return tr("照片最清楚，連拍時稍慢")
+        case .balanced: return tr("畫質與速度兼顧")
+        case .speed: return tr("拍照最快，適合快速連拍投影片")
         }
     }
 

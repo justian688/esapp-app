@@ -16,6 +16,7 @@ struct PaywallView: View {
     var allowDismiss: Bool = true
 
     @State private var selectedPlan: PaywallPlan = .yearly
+    @State private var crownPulse = false
 
     private var monthlyPriceText: String {
         subscriptionManager.monthlyProduct?.displayPrice ?? SubscriptionConfig.fallbackMonthlyPrice
@@ -27,10 +28,11 @@ struct PaywallView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            LinearGradient(colors: [Color(red: 0.07, green: 0.06, blue: 0.045), .black, .black], startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea()
 
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: 22) {
                     headerSection
                     featureSection
                     planSection
@@ -41,11 +43,14 @@ struct PaywallView: View {
                 .padding(.vertical, 32)
             }
 
+            // 讀取價格／購買中：只顯示小轉圈，不擋住按鈕（價格讀取卡住時仍可關閉付費畫面）
             if subscriptionManager.isLoading {
-                Color.black.opacity(0.45).ignoresSafeArea()
                 ProgressView()
                     .tint(.white)
                     .scaleEffect(1.2)
+                    .padding(18)
+                    .background(RoundedRectangle(cornerRadius: 14).fill(Color.black.opacity(0.6)))
+                    .allowsHitTesting(false)
             }
         }
         .interactiveDismissDisabled(!allowDismiss)
@@ -65,120 +70,312 @@ struct PaywallView: View {
         }
     }
 
+    // MARK: - 樣式
+
+    private static let gold = Theme.premiumGold
+    private static let card = Color(white: 0.10)
+    private static let line = Color.white.opacity(0.08)
+
+    // MARK: - 價格計算
+
+    private var monthlyValue: Decimal {
+        subscriptionManager.monthlyProduct?.price ?? SubscriptionConfig.fallbackMonthlyValue
+    }
+
+    private var yearlyValue: Decimal {
+        subscriptionManager.yearlyProduct?.price ?? SubscriptionConfig.fallbackYearlyValue
+    }
+
+    /// 年訂閱換算每月多少錢
+    private var yearlyPerMonthText: String {
+        let perMonth = (NSDecimalNumber(decimal: yearlyValue).doubleValue / 12).rounded()
+        if let product = subscriptionManager.yearlyProduct {
+            return perMonth.formatted(.currency(code: product.priceFormatStyle.currencyCode).precision(.fractionLength(0)))
+        }
+        return "NT$\(Int(perMonth))"
+    }
+
+    /// 年訂閱比月訂閱省多少（%）
+    private var yearlySavingsPercent: Int {
+        let fullYear = NSDecimalNumber(decimal: monthlyValue * 12).doubleValue
+        let yearly = NSDecimalNumber(decimal: yearlyValue).doubleValue
+        guard fullYear > 0, yearly < fullYear else { return 0 }
+        return Int(((1 - yearly / fullYear) * 100).rounded(.down))
+    }
+
+    private var ctaTitle: String {
+        switch selectedPlan {
+        case .yearly:
+            return AppLanguage.current.localized("Subscribe yearly · \(yearlyPriceText)/yr", "訂閱年方案 · \(yearlyPriceText)/年")
+        case .monthly:
+            return AppLanguage.current.localized("Subscribe monthly · \(monthlyPriceText)/mo", "訂閱月方案 · \(monthlyPriceText)/月")
+        }
+    }
+
+    // MARK: - 標題
+
     private var headerSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 14) {
             if allowDismiss {
                 HStack {
                     Spacer()
                     Button {
                         isPresented = false
                     } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.gray)
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white.opacity(0.7))
+                            .frame(width: 32, height: 32)
+                            .background(Circle().fill(Color.white.opacity(0.12)))
                     }
+                    .accessibilityIdentifier("paywall_close")
                 }
             }
 
-            Image(systemName: "crown.fill")
-                .font(.system(size: 44))
-                .foregroundColor(.yellow)
-
-            Text(AppLanguage.current.localized(
-                "Upgrade to Premium",
-                "升級至進階版"
-            ))
-            .font(.title.bold())
-            .foregroundColor(.white)
-
-            if trialManager.isTrialActive {
-                Text(trialManager.remainingTrialText)
-                    .font(.subheadline)
-                    .foregroundColor(.green)
-            } else {
-                Text(AppLanguage.current.localized(
-                    "Your free trial has ended. Subscribe to continue.",
-                    "免費試用已結束（1 個月），請訂閱以繼續使用。"
-                ))
-                .font(.subheadline)
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.center)
+            ZStack {
+                Circle()
+                    .fill(RadialGradient(colors: [Self.gold.opacity(0.16), .clear], center: .center, startRadius: 4, endRadius: 60))
+                    .frame(width: 120, height: 120)
+                Image(systemName: "crown.fill")
+                    .font(.system(size: 44))
+                    .foregroundStyle(LinearGradient(colors: [Self.gold, Color(red: 0.85, green: 0.6, blue: 0.2)], startPoint: .top, endPoint: .bottom))
+                    .shadow(color: Self.gold.opacity(crownPulse ? 0.35 : 0.12), radius: crownPulse ? 10 : 5)
+                    .scaleEffect(crownPulse ? 1.06 : 1.0)
             }
-        }
-    }
+            .onAppear {
+                withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) { crownPulse = true }
+            }
+            .padding(.top, allowDismiss ? -16 : 8)
 
-    private var featureSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            paywallFeature(icon: "video.fill", text: AppLanguage.current.localized(
-                "Unlimited video recording",
-                "無限制錄影"
-            ))
-            paywallFeature(icon: "calendar", text: AppLanguage.current.localized(
-                "Scheduled recording",
-                "排程錄影"
-            ))
-            paywallFeature(icon: "scissors", text: AppLanguage.current.localized(
-                "Video trimmer tools",
-                "影片剪輯工具"
-            ))
-        }
-        .padding(20)
-        .background(Color(white: 0.12))
-        .cornerRadius(16)
-    }
+            Text(AppLanguage.current.localized("Record every class, start to finish", "整堂課完整錄下來"))
+                .font(.title2.bold())
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
 
-    private var planSection: some View {
-        VStack(spacing: 12) {
-            planCard(
-                plan: .monthly,
-                title: AppLanguage.current.localized("Monthly", "月訂閱"),
-                price: monthlyPriceText,
-                subtitle: AppLanguage.current.localized("Billed every month", "每月自動續訂")
-            )
-
-            planCard(
-                plan: .yearly,
-                title: AppLanguage.current.localized("Yearly", "年訂閱"),
-                price: yearlyPriceText,
-                subtitle: AppLanguage.current.localized("Best value - save 75%", "最划算 - 省 75%"),
-                badge: AppLanguage.current.localized("RECOMMENDED", "推薦")
-            )
-
-            Text(AppLanguage.current.localized(
-                "Reference pricing: \(SubscriptionConfig.fallbackMonthlyPrice)/month, \(SubscriptionConfig.fallbackYearlyPrice)/year",
-                "參考定價：\(SubscriptionConfig.fallbackMonthlyPrice)/月、\(SubscriptionConfig.fallbackYearlyPrice)/年"
-            ))
-            .font(.caption)
-            .foregroundColor(.gray)
+            Group {
+                if trialManager.isTrialActive {
+                    Label(AppLanguage.current.localized("Free trial · ", "免費試用中 · ") + trialManager.remainingTrialText, systemImage: "clock")
+                        .foregroundColor(Self.gold)
+                } else {
+                    Text(AppLanguage.current.localized(
+                        "Your 7-day free trial has ended. Subscribe, or keep using the free version.",
+                        "7 天免費試用已結束。可以訂閱完整版，或繼續使用免費版。"
+                    ))
+                    .foregroundColor(.white.opacity(0.6))
+                }
+            }
+            .font(.subheadline)
             .multilineTextAlignment(.center)
         }
     }
 
-    private var actionSection: some View {
-        VStack(spacing: 12) {
-            Button {
-                Task {
-                    await purchaseSelectedPlan()
-                }
-            } label: {
-                Text(AppLanguage.current.localized("Subscribe Now", "立即訂閱"))
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Color.red.opacity(0.85))
-                    .cornerRadius(14)
-            }
+    // MARK: - 免費版 vs 完整版 對照表
 
-            Button {
-                Task {
-                    await subscriptionManager.restorePurchases()
+    private var featureSection: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(AppLanguage.current.localized("Feature", "功能"))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text(AppLanguage.current.localized("Free", "免費版"))
+                    .frame(width: 80)
+                HStack(spacing: 3) {
+                    Image(systemName: "crown.fill").font(.system(size: 10))
+                    Text(AppLanguage.current.localized("Premium", "完整版"))
                 }
-            } label: {
-                Text(AppLanguage.current.localized("Restore Purchases", "恢復購買"))
-                    .font(.subheadline.weight(.medium))
-                    .foregroundColor(.white.opacity(0.85))
+                .foregroundColor(Self.gold)
+                .frame(width: 80)
             }
+            .font(.caption.bold())
+            .foregroundColor(.white.opacity(0.5))
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+
+            compareRow(AppLanguage.current.localized("Recording length", "錄影時長"),
+                       free: .text(AppLanguage.current.localized("30 min", "30 分鐘")),
+                       premium: .text(AppLanguage.current.localized("Unlimited", "不限")), highlight: true)
+            compareRow(AppLanguage.current.localized("Video quality", "錄影畫質"),
+                       free: .text("1080p"), premium: .text("4K"), highlight: true)
+            if AdConfig.adsEnabled {
+                compareRow(AppLanguage.current.localized("Ads", "廣告"),
+                           free: .text(AppLanguage.current.localized("Has ads", "有廣告")),
+                           premium: .text(AppLanguage.current.localized("Ad-free", "無廣告")), highlight: true)
+            }
+            compareRow(AppLanguage.current.localized("Up to 60 fps", "最高 60 fps"), free: .check, premium: .check)
+            compareRow(AppLanguage.current.localized("Scheduled recording", "排程錄影"), free: .check, premium: .check)
+            compareRow(AppLanguage.current.localized("Trimming & course notes", "剪輯、課程筆記"), free: .check, premium: .check, isLast: true)
+        }
+        .background(RoundedRectangle(cornerRadius: 18).fill(Self.card))
+        .overlay(
+            // 完整版那一欄的金色外框
+            HStack {
+                Spacer()
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Self.gold.opacity(0.6), lineWidth: 1.5)
+                    .frame(width: 80)
+                    .padding(.vertical, 4)
+            }
+            .padding(.horizontal, 16)
+        )
+    }
+
+    private enum CompareValue {
+        case text(String)
+        case check
+    }
+
+    private func compareRow(_ title: String, free: CompareValue, premium: CompareValue, highlight: Bool = false, isLast: Bool = false) -> some View {
+        VStack(spacing: 0) {
+            Rectangle().fill(Self.line).frame(height: 1)
+            HStack {
+                Text(title)
+                    .font(.system(size: 15, weight: highlight ? .semibold : .regular))
+                    .foregroundColor(.white.opacity(highlight ? 1 : 0.8))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                compareCell(free, isPremium: false).frame(width: 80)
+                compareCell(premium, isPremium: true).frame(width: 80)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 11)
+        }
+    }
+
+    @ViewBuilder
+    private func compareCell(_ value: CompareValue, isPremium: Bool) -> some View {
+        switch value {
+        case .text(let t):
+            if isPremium {
+                // 完整版優勢：暗金底、金字標籤（不刺眼）
+                Text(t)
+                    .font(.system(size: 13, weight: .heavy))
+                    .foregroundColor(Self.gold.opacity(0.92))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(Self.gold.opacity(0.12)))
+                    .overlay(Capsule().stroke(Self.gold.opacity(0.35), lineWidth: 1))
+            } else {
+                Text(t)
+                    .font(.system(size: 14))
+                    .foregroundColor(.white.opacity(0.45))
+                    .strikethrough(false)
+            }
+        case .check:
+            Image(systemName: "checkmark")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(isPremium ? Self.gold.opacity(0.85) : .white.opacity(0.45))
+        }
+    }
+
+    // MARK: - 方案
+
+    private var planSection: some View {
+        VStack(spacing: 12) {
+            planCard(
+                plan: .yearly,
+                title: AppLanguage.current.localized("Yearly", "年訂閱"),
+                price: yearlyPriceText,
+                period: AppLanguage.current.localized("/yr", "/年"),
+                subtitle: AppLanguage.current.localized("About \(yearlyPerMonthText)/month", "每月約 \(yearlyPerMonthText)"),
+                badge: yearlySavingsPercent > 0
+                    ? AppLanguage.current.localized("SAVE \(yearlySavingsPercent)%", "省 \(yearlySavingsPercent)%")
+                    : AppLanguage.current.localized("BEST VALUE", "最划算")
+            )
+            planCard(
+                plan: .monthly,
+                title: AppLanguage.current.localized("Monthly", "月訂閱"),
+                price: monthlyPriceText,
+                period: AppLanguage.current.localized("/mo", "/月"),
+                subtitle: AppLanguage.current.localized("Cancel anytime", "隨時可取消")
+            )
+        }
+    }
+
+    private func planCard(plan: PaywallPlan, title: String, price: String, period: String, subtitle: String, badge: String? = nil) -> some View {
+        let selected = selectedPlan == plan
+        return Button {
+            withAnimation(.easeOut(duration: 0.15)) { selectedPlan = plan }
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 22))
+                    .foregroundColor(selected ? Self.gold : .white.opacity(0.3))
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 8) {
+                        Text(title)
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        if let badge {
+                            Text(badge)
+                                .font(.caption2.bold())
+                                .foregroundColor(.black)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(Capsule().fill(Self.gold))
+                        }
+                    }
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.5))
+                }
+
+                Spacer()
+
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                    Text(price)
+                        .font(.title3.bold())
+                        .foregroundColor(.white)
+                    Text(period)
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.5))
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+            .background(RoundedRectangle(cornerRadius: 16).fill(selected ? Self.gold.opacity(0.10) : Self.card))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(selected ? Self.gold : Self.line, lineWidth: selected ? 2 : 1))
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - 按鈕
+
+    private var actionSection: some View {
+        VStack(spacing: 14) {
+            Button {
+                Task { await purchaseSelectedPlan() }
+            } label: {
+                Text(ctaTitle)
+                    .font(.headline)
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 17)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(LinearGradient(colors: [Self.gold, Color(red: 0.90, green: 0.68, blue: 0.25)], startPoint: .leading, endPoint: .trailing))
+                    )
+                    .overlay(ShimmerSweep().clipShape(RoundedRectangle(cornerRadius: 16)))
+                    .shadow(color: Self.gold.opacity(0.15), radius: 8, y: 3)
+            }
+            .accessibilityIdentifier("paywall_subscribe")
+
+            HStack(spacing: 24) {
+                Button {
+                    Task { await subscriptionManager.restorePurchases() }
+                } label: {
+                    Text(AppLanguage.current.localized("Restore Purchases", "恢復購買"))
+                }
+
+                if allowDismiss && !trialManager.isTrialActive && !subscriptionManager.isPremium {
+                    Button {
+                        isPresented = false
+                    } label: {
+                        Text(AppLanguage.current.localized("Continue with Free", "繼續使用免費版"))
+                    }
+                    .accessibilityIdentifier("paywall_continueFree")
+                }
+            }
+            .font(.subheadline)
+            .foregroundColor(.white.opacity(0.65))
         }
     }
 
@@ -186,89 +383,24 @@ struct PaywallView: View {
         VStack(spacing: 8) {
             Text(AppLanguage.current.localized(
                 "Payment will be charged to your Apple ID. Subscription renews automatically unless canceled at least 24 hours before the end of the current period.",
-                "費用將從 Apple ID 扣款。訂閱將自動續訂，除非在目前期間結束前至少 24 小時取消。"
+                "費用將從 Apple ID 扣款。訂閱會自動續訂，除非在目前期間結束前至少 24 小時取消。"
             ))
             .font(.caption2)
-            .foregroundColor(.gray)
+            .foregroundColor(.white.opacity(0.35))
             .multilineTextAlignment(.center)
 
             HStack(spacing: 16) {
                 if let termsURL = URL(string: SubscriptionConfig.termsOfUseURL) {
                     Link(AppLanguage.current.localized("Terms of Use", "使用條款"), destination: termsURL)
                 }
-
                 if let privacyURL = URL(string: SubscriptionConfig.privacyPolicyURL) {
                     Link(AppLanguage.current.localized("Privacy Policy", "隱私權政策"), destination: privacyURL)
                 }
             }
             .font(.caption)
-            .foregroundColor(.blue)
+            .foregroundColor(.white.opacity(0.5))
         }
-        .padding(.top, 8)
-    }
-
-    private func paywallFeature(icon: String, text: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .foregroundColor(.red.opacity(0.85))
-                .frame(width: 22)
-            Text(text)
-                .foregroundColor(.white)
-                .font(.system(size: 15))
-            Spacer()
-        }
-    }
-
-    private func planCard(
-        plan: PaywallPlan,
-        title: String,
-        price: String,
-        subtitle: String,
-        badge: String? = nil
-    ) -> some View {
-        Button {
-            selectedPlan = plan
-        } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text(title)
-                            .font(.headline)
-                            .foregroundColor(.white)
-
-                        if let badge {
-                            Text(badge)
-                                .font(.caption2.bold())
-                                .foregroundColor(.black)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(Color.yellow)
-                                .cornerRadius(6)
-                        }
-                    }
-
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-
-                Spacer()
-
-                Text(price)
-                    .font(.title3.bold())
-                    .foregroundColor(.white)
-            }
-            .padding(18)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(selectedPlan == plan ? Color.red : Color.gray.opacity(0.4), lineWidth: selectedPlan == plan ? 2 : 1)
-            )
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(selectedPlan == plan ? Color.red.opacity(0.12) : Color(white: 0.1))
-            )
-        }
-        .buttonStyle(.plain)
+        .padding(.top, 4)
     }
 
     private func purchaseSelectedPlan() async {
@@ -301,4 +433,47 @@ struct PaywallView: View {
 private enum PaywallPlan {
     case monthly
     case yearly
+}
+
+
+/// 完整版欄位：金色漸層底＋發光外框＋流動光澤
+private struct PremiumColumnGlow: View {
+    let gold: Color
+    @State private var glow = false
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 14)
+            .fill(LinearGradient(colors: [gold.opacity(0.10), gold.opacity(0.03)], startPoint: .top, endPoint: .bottom))
+            .overlay(ShimmerSweep(period: 4.0, strength: 0.10).clipShape(RoundedRectangle(cornerRadius: 14)))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(gold.opacity(0.45), lineWidth: 1)
+            )
+            .shadow(color: gold.opacity(glow ? 0.18 : 0.06), radius: glow ? 8 : 4)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) { glow = true }
+            }
+            .allowsHitTesting(false)
+    }
+}
+
+/// 斜向掃過的一道光
+private struct ShimmerSweep: View {
+    var period: Double = 2.6
+    var strength: Double = 0.18
+    @State private var phase: CGFloat = -1
+
+    var body: some View {
+        GeometryReader { geo in
+            LinearGradient(colors: [.clear, .white.opacity(strength), .clear], startPoint: .leading, endPoint: .trailing)
+                .frame(width: max(geo.size.width, geo.size.height) * 0.6)
+                .rotationEffect(.degrees(20))
+                .offset(x: phase * geo.size.width * 1.6)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .allowsHitTesting(false)
+        .onAppear {
+            withAnimation(.linear(duration: period).repeatForever(autoreverses: false)) { phase = 1 }
+        }
+    }
 }

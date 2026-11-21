@@ -44,6 +44,8 @@ struct PrivacyCamApp: App {
                 .onChange(of: scenePhase) { _, phase in
                     // 從背景回來也再檢查一次（例如去 App Store 沒更新就回來）
                     if phase == .active { Task { await updateChecker.check() } }
+                    // 相簿密碼鎖：一離開 App 就重新上鎖
+                    if phase == .background { AlbumLock.shared.relock() }
                 }
         }
     }

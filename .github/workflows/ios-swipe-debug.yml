@@ -1,0 +1,49 @@
+name: 只跑滑動測試（除錯用）
+
+on:
+  push:
+    branches: [swipe-debug]
+  workflow_dispatch:
+
+jobs:
+  swipe:
+    name: 只跑滑動測試
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - name: 選 iPhone 模擬器並設定
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json,sys
+          d=json.load(sys.stdin)["devices"]
+          c=[(rt,x) for rt,xs in d.items() if "iOS" in rt for x in xs if x["name"].startswith("iPhone") and "Pro" in x["name"] and "Max" not in x["name"]]
+          c.sort(key=lambda p:(p[0],p[1]["name"]))
+          print(c[-1][1]["udid"])')
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl ui "$UDID" appearance dark
+          xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 || true
+      - name: 編譯
+        run: |
+          set -o pipefail
+          xcodebuild build-for-testing -project CameraPPP.xcodeproj -scheme CameraPPP -configuration Debug \
+            -destination "id=${{ steps.sim.outputs.udid }}" -derivedDataPath build \
+            CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER="" \
+            2>&1 | grep -E "error:|BUILD|TEST BUILD" || true
+      - name: 滑動測試（印完整錯誤）
+        run: |
+          UDID=${{ steps.sim.outputs.udid }}
+          APP=$(find build/Build/Products/Debug-iphonesimulator -maxdepth 1 -name "CameraPPP.app" | head -1)
+          xcrun simctl install "$UDID" "$APP"
+          for p in camera microphone photos; do xcrun simctl privacy "$UDID" grant $p com.lin.energysaving || true; done
+          set +e
+          xcodebuild test-without-building -project CameraPPP.xcodeproj -scheme CameraPPP \
+            -destination "id=$UDID" -derivedDataPath build -only-testing:CameraPPPUITests/SwipeUITests \
+            2>&1 | tee sw.log | grep -E "SWIPE [0-9]|DEBUG|error|Failed|failure|Test Case|Executed|TEST "
+          exit 0

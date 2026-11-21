@@ -12,16 +12,10 @@ struct PhotoSettingsView: View {
     @Environment(\.dismiss) var dismiss
 
     @AppStorage(PhotoCaptureMode.storageKey) private var photoModeRaw = PhotoCaptureMode.quality.rawValue
-    @AppStorage(CaptureResolution.storageKey) private var resolutionRaw = CaptureResolution.defaultResolution.rawValue
     @State private var showingModeOptions = false
-    @State private var showingResolutionOptions = false
 
     private var photoMode: PhotoCaptureMode {
         PhotoCaptureMode(rawValue: photoModeRaw) ?? .quality
-    }
-
-    private var resolution: CaptureResolution {
-        CaptureResolution(rawValue: resolutionRaw) ?? .defaultResolution
     }
 
     var body: some View {
@@ -33,7 +27,7 @@ struct PhotoSettingsView: View {
                         .foregroundColor(.white)
                 }
 
-                Text("拍照與畫質設定")
+                Text("拍照與快速開始")
                     .font(.title2)
                     .foregroundColor(.white)
 
@@ -46,7 +40,7 @@ struct PhotoSettingsView: View {
                 VStack(alignment: .leading, spacing: 0) {
 
                     // MARK: - 畫質
-                    SectionHeader(title: "畫質")
+                    SectionHeader(title: "拍照")
 
                     SettingsMenuRow(
                         icon: "hq",
@@ -54,26 +48,6 @@ struct PhotoSettingsView: View {
                         subtitle: "\(photoMode.title)：\(photoMode.subtitle)"
                     ) {
                         showingModeOptions = true
-                    }
-                    .confirmationDialog("拍照模式", isPresented: $showingModeOptions, titleVisibility: .visible) {
-                        ForEach(PhotoCaptureMode.allCases) { mode in
-                            Button(mode.title) { photoModeRaw = mode.rawValue }
-                        }
-                        Button("取消", role: .cancel) { }
-                    }
-
-                    SettingsMenuRow(
-                        icon: "camera.fill",
-                        title: "錄影與拍照解析度",
-                        subtitle: "\(resolution.title)。錄影中變更會在下次錄影時生效"
-                    ) {
-                        showingResolutionOptions = true
-                    }
-                    .confirmationDialog("錄影與拍照解析度", isPresented: $showingResolutionOptions, titleVisibility: .visible) {
-                        ForEach(CaptureResolution.allCases) { option in
-                            Button(option.title) { resolutionRaw = option.rawValue }
-                        }
-                        Button("取消", role: .cancel) { }
                     }
 
                     Divider().padding(.vertical, 5)
@@ -83,7 +57,7 @@ struct PhotoSettingsView: View {
 
                     ColoredIconActionRow(
                         icon: "mic.fill",
-                        iconBgColor: Color.red.opacity(0.8),
+                        iconBgColor: Theme.danger.opacity(0.85),
                         title: "Siri 與捷徑",
                         subtitle: "對 Siri 說「用 es省電王 開始錄影」，或在「捷徑」App 加入主畫面"
                     ) {
@@ -94,7 +68,7 @@ struct PhotoSettingsView: View {
 
                     ColoredIconActionRow(
                         icon: "square.grid.2x2.fill",
-                        iconBgColor: Color(UIColor.darkGray),
+                        iconBgColor: Theme.chalkYellow.opacity(0.6),
                         title: "主畫面小工具與控制中心",
                         subtitle: "長按主畫面空白處 → 左上角「編輯」→「加入小工具」→ 搜尋 es省電王"
                     ) {}
@@ -104,6 +78,15 @@ struct PhotoSettingsView: View {
             }
         }
         .background(Color.black)
+        .sheet(isPresented: $showingModeOptions) {
+            WheelPickerSheet(title: "拍照模式", isPresented: $showingModeOptions, message: photoMode.subtitle) {
+                Picker("拍照模式", selection: $photoModeRaw) {
+                    ForEach(PhotoCaptureMode.allCases) { mode in
+                        Text(tr(mode.title)).tag(mode.rawValue)
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -114,7 +97,7 @@ struct SectionHeader: View {
     var body: some View {
         Text(title)
             .font(.system(size: 13, weight: .medium))
-            .foregroundColor(Color.red.opacity(0.8))
+            .foregroundColor(Theme.chalkYellow.opacity(0.85))
             .padding(.horizontal, 20)
             .padding(.top, 15)
             .padding(.bottom, 10)

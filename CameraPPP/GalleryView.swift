@@ -99,7 +99,7 @@ struct GalleryView: View {
                     }
                 }
             }
-            .background(Color(UIColor.systemGray6))
+            .background(Theme.chalkboard)
         }
         .background(Color.white)
         .task {
@@ -110,7 +110,7 @@ struct GalleryView: View {
             get: { selectedVideo.map { IdentifiableURL(url: $0) } },
             set: { selectedVideo = $0?.url }
         )) { identifiableURL in
-            FullScreenVideoPlayer(videoURL: identifiableURL.url)
+            FullScreenVideoPlayer(videoURL: identifiableURL.url, onDeleted: { videoURLs.removeAll { $0 == identifiableURL.url } })
         }
         .fullScreenCover(item: Binding(
             get: { selectedPhoto.map { IdentifiableURL(url: $0) } },
@@ -323,36 +323,6 @@ struct PhotoThumbnailItem: View {
 
         await MainActor.run {
             image = loadedImage
-        }
-    }
-}
-
-// MARK: - 全螢幕影片播放器
-struct FullScreenVideoPlayer: View {
-    let videoURL: URL
-    @Environment(\.dismiss) var dismiss
-    @State private var player: AVPlayer?
-    
-    var body: some View {
-        ZStack(alignment: .topLeading) {
-            Color.black.ignoresSafeArea()
-            
-            VideoPlayer(player: player)
-                .ignoresSafeArea()
-                .onAppear {
-                    player = AVPlayer(url: videoURL)
-                    player?.play()
-                }
-                .onDisappear {
-                    player?.pause()
-                }
-            
-            Button(action: { dismiss() }) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 30))
-                    .foregroundColor(.white.opacity(0.8))
-                    .padding()
-            }
         }
     }
 }
