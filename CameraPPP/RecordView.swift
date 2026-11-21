@@ -30,18 +30,19 @@ struct RecordView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: 14) {
+                // 版面 6：課程卡＋大月曆填滿中間（格子寫課名），下面是開始上課
+                VStack(alignment: .leading, spacing: 12) {
                     Text(CourseFormat.headerDate.string(from: Date()))
                         .font(.system(size: 13))
                         .tracking(1)
                         .foregroundColor(.gray)
                     CurrentCourseCard()
                     MonthCalendarView()
+                        .frame(maxHeight: .infinity)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
-                
-                Spacer(minLength: 12)
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+                .padding(.bottom, 14)
 
                 // 「開始上課」膠囊按鈕（上一版樣式、小一點）；錄影中同一顆變成計時
                 Button(action: startRecordingIfNeeded) {
@@ -69,7 +70,7 @@ struct RecordView: View {
                 .accessibilityLabel(cameraManager.isRecording ? tr("錄影中") : tr("開始上課"))
                 .accessibilityHint("開始錄影")
                 .disabled(cameraManager.isRecording)
-                .padding(.bottom, 40)
+                .padding(.bottom, 24)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
