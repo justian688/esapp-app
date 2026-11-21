@@ -151,6 +151,8 @@ struct RecordingOverlayView: View {
     @State private var limitWarning: String?
     @State private var warnedMinutes: Set<Int> = []
     @State private var limitWarningTask: Task<Void, Never>? = nil
+    /// 錄影開始時間（上方小計時器用）
+    @State private var startedAt = Date()
     
     private var recordingPrompt: String {
         AppLanguage.current.localized(
@@ -176,6 +178,20 @@ struct RecordingOverlayView: View {
                 Spacer(minLength: 0)
             }
             
+
+            // 上方小計時器：小字、很暗，自己看得到、旁人不易察覺
+            VStack {
+                TimelineView(.periodic(from: startedAt, by: 1)) { ctx in
+                    Text(Self.clock(ctx.date.timeIntervalSince(startedAt)))
+                        .font(.system(size: 15, weight: .medium).monospacedDigit())
+                        .foregroundColor(.white.opacity(selectedBackground == .black ? 0.28 : 0.85))
+                        .shadow(color: .black.opacity(0.6), radius: 2)
+                        .accessibilityIdentifier("recording_timer")
+                }
+                .padding(.top, 14)
+                Spacer()
+            }
+            .allowsHitTesting(false)
 
             if let limitWarning {
                 VStack {
@@ -215,6 +231,7 @@ struct RecordingOverlayView: View {
             }
         }
         .onAppear {
+            startedAt = Date()
             selectedBackground = .black
             // 先維持原本亮度讓提示看得清楚，提示消失後才把亮度降到最低
             showRecordingPromptForThreeSeconds()
@@ -232,6 +249,13 @@ struct RecordingOverlayView: View {
         }
     }
     
+    /// 00:00 / 1:02:03
+    static func clock(_ t: TimeInterval) -> String {
+        let n = max(0, Int(t))
+        let h = n / 3600, m = (n % 3600) / 60, sec = n % 60
+        return h > 0 ? String(format: "%d:%02d:%02d", h, m, sec) : String(format: "%02d:%02d", m, sec)
+    }
+
     private func showLimitWarning(minutes: Int) {
         limitWarningTask?.cancel()
         UINotificationFeedbackGenerator().notificationOccurred(.warning)
