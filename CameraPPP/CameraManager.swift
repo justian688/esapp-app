@@ -450,7 +450,7 @@ final class CameraManager: NSObject, Sendable {
             let settings = AVCapturePhotoSettings()
             settings.flashMode = .off
             // 不發出快門聲（iOS 18 起支援；日本、韓國等法規強制快門聲的地區系統會不允許）
-            if self.photoOutput.isShutterSoundSuppressionSupported {
+            if #available(iOS 18.0, *), self.photoOutput.isShutterSoundSuppressionSupported {
                 settings.isShutterSoundSuppressionEnabled = true
             }
             settings.photoQualityPrioritization = PhotoCaptureMode.current.prioritization
