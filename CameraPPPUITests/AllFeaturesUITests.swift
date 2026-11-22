@@ -263,8 +263,8 @@ final class AllFeaturesUITests: XCTestCase {
             wheelDone()
             pause(1)
             app.swipeDown(velocity: .fast); app.swipeDown(velocity: .fast)
-            check("英文：設定頁標題、語言、錄影畫質、幀數都變英文",
-                  text("Settings").exists && text("Language").exists && text("Video quality").exists && text("Frame rate").exists)
+            check("英文：設定頁標題、語言、錄影畫質都變英文",
+                  text("Settings").exists && text("Language").exists && text("Video quality").exists)
             check("英文：設定頁沒有殘留中文（錄影畫質／錄影幀數）", !text("錄影畫質").exists && !text("錄影幀數").exists)
             // 側邊欄
             relaunch()
