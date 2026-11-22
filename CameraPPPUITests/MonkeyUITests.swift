@@ -72,6 +72,15 @@ final class MonkeyUITests: XCTestCase {
             if app.state == .notRunning { crashed = true; break }
             recover()
         }
+        // 最後一下可能點到會跳去別的 App 的按鈕（例如「Siri 與捷徑」打開捷徑 App）：等它跳出去再拉回來
+        if !crashed {
+            sleep(2)
+            for _ in 0..<5 where app.state != .runningForeground && app.state != .notRunning {
+                app.activate(); sleep(2)
+            }
+            if app.state == .notRunning { crashed = true }
+        }
+        print("MONKEY INFO \(screen) 結束時 App 狀態：\(app.state.rawValue)")
         check("\(screen)：亂按 \(times) 次沒閃退", !crashed && app.state == .runningForeground)
         // 還能回到主畫面（重開後主畫面正常）
         relaunch()

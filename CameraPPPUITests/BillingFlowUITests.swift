@@ -106,7 +106,15 @@ final class BillingFlowUITests: XCTestCase {
         return true
     }
 
-    private var status: String { app.staticTexts["test_status"].label }
+    /// 讀測試面板的狀態文字；被晚到的測試廣告擋住時先關廣告再捲過去
+    private var status: String {
+        let e = app.staticTexts["test_status"]
+        if !e.exists {
+            _ = closeAdIfShown(timeout: 4)
+            scrollTo(e)
+        }
+        return e.exists ? e.label : ""
+    }
 
     private func openSettings() {
         app.buttons["menuButton"].tap()
