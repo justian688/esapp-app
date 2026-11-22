@@ -204,6 +204,7 @@ final class BillingFlowUITests: XCTestCase {
         print("INFO 選「繼續使用免費版」後播放廣告：\(adShown ? "有" : "沒有（測試廣告可能還沒載入）")")
         pause(2)
         step("到期後沒有其他自動跳出的付費畫面", !app.buttons["paywall_continueFree"].exists && !app.buttons["paywall_close"].exists && !app.alerts.firstMatch.exists)
+        _ = closeAdIfShown(timeout: 6)   // 測試廣告有時較晚才載好播出，先關掉再看設定頁
         scrollTo(app.staticTexts["test_status"])
         step("狀態變成免費版：\(status)", status.contains("免費版") && status.contains("30 分鐘"))
 
