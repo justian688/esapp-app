@@ -90,6 +90,8 @@ final class CameraManager: NSObject, Sendable {
     var isRecording = false
     /// 錄影無法開始或中途失敗時顯示給使用者看的原因
     var recordingErrorMessage: String?
+    /// 錄影被來電、切到其他 App 等中斷（不是使用者自己結束）：回到 App 時詢問要不要繼續錄
+    var interruptedRecording = false
     /// 只在 sessionQueue 上讀寫：使用者主動結束錄影時為 true，用來區分「時長到了」和「手動結束」
     @ObservationIgnored private var userRequestedStop = false
     /// 只在 sessionQueue 上讀寫：正在上課錄影、相機應該開著時為 true
@@ -318,18 +320,25 @@ final class CameraManager: NSObject, Sendable {
     }
 
     /// 從 Siri 捷徑、小工具開啟 App 時使用：等相機準備好再開始錄影（最多等約 6 秒）
-    func startRecordingWhenReady(attempt: Int = 0) {
+    /// resuming = 中斷後「繼續錄」：免費版的 30 分鐘接著算，不重新計時
+    func startRecordingWhenReady(attempt: Int = 0, resuming: Bool = false) {
         sessionQueue.async {
             if !self.session.inputs.isEmpty {
                 self.userRequestedStop = false
-                self.sessionStartedAt = nil
+                if !resuming { self.sessionStartedAt = nil }
                 self.beginRecordingSegment()
             } else if attempt < 20 {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    self.startRecordingWhenReady(attempt: attempt + 1)
+                    self.startRecordingWhenReady(attempt: attempt + 1, resuming: resuming)
                 }
             }
         }
+    }
+
+    /// 中斷後使用者選「繼續錄」
+    func resumeAfterInterruption() {
+        interruptedRecording = false
+        startRecordingWhenReady(resuming: true)
     }
 
     /// 開始錄一段影片。必須在 sessionQueue 上呼叫。
@@ -424,10 +433,11 @@ final class CameraManager: NSObject, Sendable {
         } else {
             // 時長到了但沒開重複錄影，或錄影因其他原因中斷：讓畫面回到未錄影狀態，並關掉相機
             stopSessionIfIdle()
-            Task { @MainActor in self.isRecording = false }
-            if let nsError, !reachedDurationLimit,
-               (nsError.userInfo[AVErrorRecordingSuccessfullyFinishedKey] as? Bool) != true {
-                reportRecordingError(AppLanguage.current.localized("Recording was interrupted (\(nsError.localizedDescription), code \(nsError.code)). Please send us a screenshot.", "錄影中斷了（\(nsError.localizedDescription)，代碼 \(nsError.code)）。請截圖回報。"))
+            let interrupted = nsError != nil && !reachedDurationLimit
+            Task { @MainActor in
+                self.isRecording = false
+                // 來電、切到其他 App 等中斷：已錄的部分會自動保存，回到 App 時問要不要繼續錄
+                if interrupted { self.interruptedRecording = true }
             }
         }
     }
@@ -439,6 +449,10 @@ final class CameraManager: NSObject, Sendable {
 
             let settings = AVCapturePhotoSettings()
             settings.flashMode = .off
+            // 不發出快門聲（iOS 18 起支援；日本、韓國等法規強制快門聲的地區系統會不允許）
+            if self.photoOutput.isShutterSoundSuppressionSupported {
+                settings.isShutterSoundSuppressionEnabled = true
+            }
             settings.photoQualityPrioritization = PhotoCaptureMode.current.prioritization
             settings.maxPhotoDimensions = self.photoOutput.maxPhotoDimensions
 
@@ -482,20 +496,31 @@ final class CameraManager: NSObject, Sendable {
 
 // MARK: - File Output Delegate
 extension CameraManager: AVCaptureFileOutputRecordingDelegate {
+    /// 檔案存在且有長度、可以讀出影片時間 → 可以保存
+    nonisolated static func isPlayableVideo(_ url: URL) async -> Bool {
+        let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int) ?? 0
+        guard size > 0 else { return false }
+        let asset = AVURLAsset(url: url)
+        guard let duration = try? await asset.load(.duration) else { return false }
+        return duration.seconds.isFinite && duration.seconds > 0.5
+    }
+
     nonisolated func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
         sessionQueue.async {
             self.handleSegmentFinished(error: error)
         }
 
-        // 錄影真的失敗（不是正常結束或到達時長）時，不存一個壞掉的空影片
-        if let nsError = error as NSError?,
-           (nsError.userInfo[AVErrorRecordingSuccessfullyFinishedKey] as? Bool) != true {
-            print("錄影失敗：\(nsError)")
-            try? FileManager.default.removeItem(at: outputFileURL)
-            return
-        }
+        let finishedCleanly = (error as NSError?).map { ($0.userInfo[AVErrorRecordingSuccessfullyFinishedKey] as? Bool) == true } ?? true
 
         Task {
+            // 被中斷（來電、切 App、相機被搶走）時：已錄下的部分若還能播放就照樣保存，不整段遺失
+            if !finishedCleanly {
+                print("錄影中斷：\(String(describing: error))")
+                guard await Self.isPlayableVideo(outputFileURL) else {
+                    try? FileManager.default.removeItem(at: outputFileURL)
+                    return
+                }
+            }
             do {
                 let savedURL = try await StorageManager.shared.saveVideo(from: outputFileURL)
                 print("Securely saved to sandbox: \(savedURL)")

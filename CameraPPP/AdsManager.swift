@@ -4,7 +4,8 @@
 //
 //  免費版廣告（Google AdMob）：7 天試用結束、還沒訂閱 → 顯示廣告；訂閱後全部關閉。
 //  - 首頁下方橫幅廣告（錄影中不顯示）
-//  - 每次停止錄影後一則插頁廣告（間隔至少 3 分鐘）
+//  - 錄影前後不播全螢幕廣告（避免在教室被注意到）；只有使用者自己選「繼續使用免費版」時才播
+//  - 所有廣告一律靜音
 //  App Store 正式版用自己的 AdMob 廣告；TestFlight／Xcode 測試版自動改用 Google 測試廣告。
 //
 
@@ -46,6 +47,9 @@ final class AdsManager: NSObject, ObservableObject, FullScreenContentDelegate {
     func startIfNeeded() {
         guard Self.shouldShowAds, !started else { return }
         started = true
+        // 廣告一律靜音：不會突然發出聲音
+        MobileAds.shared.isApplicationMuted = true
+        MobileAds.shared.applicationVolume = 0
         MobileAds.shared.start(completionHandler: nil)
         loadInterstitial()
     }
@@ -64,11 +68,6 @@ final class AdsManager: NSObject, ObservableObject, FullScreenContentDelegate {
                 print("插頁廣告載入失敗：\(error.localizedDescription)")
             }
         }
-    }
-
-    /// 停止錄影後呼叫：免費版且距離上一則夠久才播
-    func showInterstitialAfterRecording() {
-        showInterstitial(ignoringInterval: false)
     }
 
     /// 播一則插頁廣告（免費版才播）；ignoringInterval = 使用者剛選「繼續使用免費版」，不受 3 分鐘間隔限制

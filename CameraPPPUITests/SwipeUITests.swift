@@ -153,7 +153,7 @@ final class SwipeUITests: XCTestCase {
         // 6–9 側邊欄
         check("點選單鍵 → 側邊欄打開", openMenu())
         app.swipeUp(velocity: .slow)
-        check("側邊欄往上滑 → 最下面的「分享」還在、可以點", visible(app.buttons["menu_square.and.arrow.up"]))
+        check("側邊欄往上滑 → 最下面的「支援」還在、可以點", visible(app.buttons["menu_paperplane.fill"]))
         app.swipeDown(velocity: .slow)
         let menuView = app.buttons["menu_gearshape.fill"]
         let start = menuView.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5))
@@ -190,8 +190,11 @@ final class SwipeUITests: XCTestCase {
 
         // 11 課程資訊表上下左右捲動
         relaunch()
-        _ = openMenu()
-        app.buttons["menu_tablecells"].tap()
+        // 課程資訊表改放在「目前課程」選課彈窗裡
+        let cur = text("目前課程")
+        if cur.waitForExistence(timeout: 4) { cur.tap() }
+        pause(2)
+        if app.buttons["picker_courseInfo"].waitForExistence(timeout: 4) { app.buttons["picker_courseInfo"].tap() }
         _ = text("課程資訊表").waitForExistence(timeout: 5)
         if text("還沒有課程").exists, button("新增").exists {
             button("新增").tap(); pause(2)
@@ -207,7 +210,7 @@ final class SwipeUITests: XCTestCase {
         table.press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.4)))
         pause(1)
         check("課程資訊表往左滑 → 不會跑版，卡片還在原位", card.exists && card.isHittable && text("課程資訊表").exists)
-        app.swipeUp(velocity: .fast); app.swipeDown(velocity: .fast)
+        app.swipeUp(velocity: .fast)   // 現在在選課彈窗裡，往下滑會關彈窗（iOS 正常行為），只測往上捲
         check("課程資訊表上下滑 → 標題列還在、不閃退", text("課程資訊表").exists && app.state == .runningForeground)
 
         // 12 設定頁滑到底再滑回頂

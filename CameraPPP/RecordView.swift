@@ -30,17 +30,16 @@ struct RecordView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // 課程卡＋月曆（比例縮小、記筆記用），上下留白，最下面是開始上課
+                // 精簡首頁：只有日期＋目前課程卡（置中）和最下面的開始上課
+                Spacer(minLength: 20)
                 VStack(alignment: .leading, spacing: 14) {
                     Text(CourseFormat.headerDate.string(from: Date()))
                         .font(.system(size: 13))
                         .tracking(1)
                         .foregroundColor(.gray)
                     CurrentCourseCard()
-                    MonthCalendarView()
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 20)
 
                 Spacer(minLength: 20)
 

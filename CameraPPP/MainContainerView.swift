@@ -58,6 +58,8 @@ struct MainContainerView: View {
             }
     }
 
+    @Environment(\.scenePhase) private var scenePhase
+
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ZStack(alignment: .leading) {
@@ -165,6 +167,22 @@ struct MainContainerView: View {
         } message: {
             Text(cameraManager.recordingErrorMessage ?? "")
         }
+        .alert(
+            tr("錄影中斷了"),
+            isPresented: Binding(
+                get: { cameraManager.interruptedRecording && scenePhase == .active && !cameraManager.isRecording },
+                set: { if !$0 { cameraManager.interruptedRecording = false } }
+            )
+        ) {
+            Button(tr("繼續錄")) {
+                selectedTab = 0
+                cameraManager.resumeAfterInterruption()
+            }
+            .accessibilityIdentifier("resume_recording")
+            Button(tr("不用了"), role: .cancel) { cameraManager.interruptedRecording = false }
+        } message: {
+            Text(tr("因為來電或切換 App，錄影停下來了。剛剛錄的部分已經保存，要接著錄嗎？"))
+        }
         #if targetEnvironment(simulator)
         .task { await applyScreenshotDemo() }
         #endif
@@ -178,14 +196,7 @@ struct MainContainerView: View {
         .persistentSystemOverlays(cameraManager.isRecording ? .hidden : .automatic)
         .onChange(of: cameraManager.isRecording) { _, isRecording in
             ScreenController.setRecordingActive(isRecording)
-            // 免費版：停止錄影後播一則插頁廣告（錄滿 30 分鐘的情況等提示關掉後再播）
-            if !isRecording && showAds {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    if !cameraManager.freeLimitReached && !showPaywall && upsellReason == nil {
-                        AdsManager.shared.showInterstitialAfterRecording()
-                    }
-                }
-            }
+            // 錄影前後不播全螢幕廣告，避免在教室被注意到
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
             ScreenController.restoreBrightness()

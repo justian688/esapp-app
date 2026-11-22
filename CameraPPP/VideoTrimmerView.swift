@@ -267,19 +267,8 @@ private struct ClipEditorView: View {
             }
             .accessibilityIdentifier("trim_play")
             Spacer()
-            HStack(spacing: 18) {
-                Button { engine.undo(); selectedId = nil } label: {
-                    Image(systemName: "arrow.uturn.backward").font(.system(size: 17))
-                }
-                .disabled(!engine.canUndo)
-                .accessibilityIdentifier("trim_undo")
-                Button { engine.redo(); selectedId = nil } label: {
-                    Image(systemName: "arrow.uturn.forward").font(.system(size: 17))
-                }
-                .disabled(!engine.canRedo)
-                .accessibilityIdentifier("trim_redo")
-            }
-            .foregroundColor(.white)
+            // 精簡：只留剪頭去尾、分割、刪除；復原／重做收起來（要重來按「重設」）
+            Color.clear.frame(width: 100, height: 1)
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
@@ -402,9 +391,6 @@ private struct ClipEditorView: View {
             }
             tool("trash", tr("刪除"), id: "trim_delete", disabled: selectedId == nil || engine.segments.count <= 1) {
                 if let id = selectedId { engine.delete(id); selectedId = nil }
-            }
-            tool("plus.square.on.square", tr("複製"), id: "trim_duplicate", disabled: selectedId == nil) {
-                if let id = selectedId { engine.duplicate(id) }
             }
             tool("arrow.counterclockwise", tr("重設"), id: "trim_reset", disabled: !engine.hasEdits) {
                 engine.reset(); selectedId = nil
