@@ -58,8 +58,6 @@ struct MainContainerView: View {
             }
     }
 
-    @Environment(\.scenePhase) private var scenePhase
-
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ZStack(alignment: .leading) {
@@ -166,22 +164,6 @@ struct MainContainerView: View {
             Button("好", role: .cancel) { cameraManager.recordingErrorMessage = nil }
         } message: {
             Text(cameraManager.recordingErrorMessage ?? "")
-        }
-        .alert(
-            tr("錄影中斷了"),
-            isPresented: Binding(
-                get: { cameraManager.interruptedRecording && scenePhase == .active && !cameraManager.isRecording },
-                set: { if !$0 { cameraManager.interruptedRecording = false } }
-            )
-        ) {
-            Button(tr("繼續錄")) {
-                selectedTab = 0
-                cameraManager.resumeAfterInterruption()
-            }
-            .accessibilityIdentifier("resume_recording")
-            Button(tr("不用了"), role: .cancel) { cameraManager.interruptedRecording = false }
-        } message: {
-            Text(tr("因為來電或切換 App，錄影停下來了。剛剛錄的部分已經保存，要接著錄嗎？"))
         }
         #if targetEnvironment(simulator)
         .task { await applyScreenshotDemo() }

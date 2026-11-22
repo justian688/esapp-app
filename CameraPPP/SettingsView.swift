@@ -63,7 +63,9 @@ struct SettingsView: View {
                     SettingsMenuRow(icon: "video.badge.waveform", title: "錄影畫質", subtitle: currentResolutionTitle) {
                         showingResolutionOptions = true
                     }
-                    // 精簡：幀數不讓使用者選，用預設值
+                    SettingsMenuRow(icon: "speedometer", title: "錄影幀數", subtitle: frameRateSubtitle) {
+                        showingFrameRateOptions = true
+                    }
                     SettingsMenuRow(icon: "camera.rotate", title: "相機鏡頭", subtitle: selectedCameraFacingName) {
                         showingCameraOptions = true
                     }

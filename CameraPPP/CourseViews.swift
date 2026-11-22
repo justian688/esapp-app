@@ -124,15 +124,6 @@ struct CoursePickerSheet: View {
                         Label("新增課程", systemImage: "plus.circle.fill")
                             .foregroundColor(Theme.chalkYellow)
                     }
-                    // 原本側邊欄的「課程資訊表」併到這裡
-                    NavigationLink {
-                        CourseInfoTableView()
-                            .navigationBarBackButtonHidden(true)
-                    } label: {
-                        Label(tr("課程資訊表"), systemImage: "tablecells")
-                            .foregroundColor(Theme.chalkWhite)
-                    }
-                    .accessibilityIdentifier("picker_courseInfo")
                 }
             }
             .scrollContentBackground(.hidden)

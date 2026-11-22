@@ -248,7 +248,3 @@
 "下個月" = "Next month";
 "整天" = "All day";
 "筆記" = "Note";
-"錄影中斷了" = "Recording interrupted";
-"繼續錄" = "Keep recording";
-"不用了" = "No thanks";
-"因為來電或切換 App，錄影停下來了。剛剛錄的部分已經保存，要接著錄嗎？" = "Recording stopped because of a call or app switch. What was recorded has been saved. Continue recording?";

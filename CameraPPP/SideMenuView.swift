@@ -53,6 +53,7 @@ struct SideMenuView: View {
                     MenuRow(icon: "books.vertical.fill", title: "課程相簿") {
                         openPage(.gallery)
                     }
+                    // 剪輯：在相簿點影片進去剪
                     MenuRow(icon: "pencil.and.list.clipboard", title: "課程筆記") {
                         openPage(.notes)
                     }
@@ -74,8 +75,18 @@ struct SideMenuView: View {
                     MenuRow(icon: "gearshape.fill", title: "Settings") {
                         openPage(.settings)
                     }
+                    
+                    MenuRow(icon: "square.and.arrow.up", title: "Share this app") {
+                        withAnimation { isMenuOpen = false }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                            AppLinks.shareApp()
+                        }
+                    }
 
-                    // 精簡：剪輯在相簿裡點影片進去剪；課程資訊在「目前課程」裡；分享在「支援」頁
+                    // 課程資訊表、支援放在最下面
+                    MenuRow(icon: "tablecells", title: "課程資訊表") {
+                        openPage(.courseInfo)
+                    }
                     MenuRow(icon: "paperplane.fill", title: SubscriptionConfig.paymentsEnabled ? "Support and Upgrade" : "Support") {
                         openPage(.support)
                     }

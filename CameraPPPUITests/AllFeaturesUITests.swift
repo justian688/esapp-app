@@ -79,19 +79,6 @@ final class AllFeaturesUITests: XCTestCase {
         return ok
     }
 
-    /// 課程資訊表：從首頁「目前課程」→ 選課彈窗裡的「課程資訊表」打開
-    private func openCourseInfo() -> Bool {
-        let course = text("目前課程").exists ? text("目前課程") : text("Current")
-        guard course.waitForExistence(timeout: 4) else { return false }
-        course.tap()
-        pause(2)
-        let link = app.buttons["picker_courseInfo"]
-        guard link.waitForExistence(timeout: 4) else { return false }
-        link.tap()
-        pause(2)
-        return true
-    }
-
     // MARK: - 全功能巡檢
 
     /// 滾輪選單：一格一格轉，直到目前值包含指定文字（先往下找、再往上找）
@@ -163,8 +150,8 @@ final class AllFeaturesUITests: XCTestCase {
 
         // 6. 課程資訊表：新增一堂課
         relaunch()
-        let infoOpened = openCourseInfo() && text("課程資訊表").waitForExistence(timeout: 4)
-        check("目前課程 → 課程資訊表：打開正常", infoOpened)
+        let infoOpened = openMenu("menu_tablecells") && text("課程資訊表").waitForExistence(timeout: 4)
+        check("側邊欄 → 課程資訊表：打開正常", infoOpened)
         if tapIfExists(button("新增")) {
             pause(2)
             let field = app.textFields.firstMatch
@@ -181,16 +168,11 @@ final class AllFeaturesUITests: XCTestCase {
             check("課程資訊表：找得到「新增」按鈕", false)
         }
 
-        // 7. 側邊欄精簡：沒有剪輯、分享、課程資訊表；首頁沒有月曆
+        // 7. 課程剪輯
         relaunch()
-        check("首頁精簡：沒有月曆", !app.descendants(matching: .any)["home_calendar"].exists)
         _ = tapIfExists(app.buttons["menuButton"])
         pause(1)
-        check("側邊欄精簡：只剩相簿、筆記、設定、支援（沒有剪輯／分享／課程資訊表）",
-              app.buttons["menu_books.vertical.fill"].exists && app.buttons["menu_pencil.and.list.clipboard"].exists
-              && app.buttons["menu_gearshape.fill"].exists && app.buttons["menu_paperplane.fill"].exists
-              && !app.buttons["menu_scissors"].exists && !app.buttons["menu_square.and.arrow.up"].exists
-              && !app.buttons["menu_tablecells"].exists)
+        check("側邊欄沒有「課程剪輯」（改在相簿點影片進去剪）", !app.buttons["menu_scissors"].exists)
 
         // 8. 課程筆記：新增一則
         relaunch()
@@ -216,16 +198,15 @@ final class AllFeaturesUITests: XCTestCase {
         check("側邊欄 → 支援：打開正常", openMenu("menu_paperplane.fill"))
         check("支援頁：選單文字是中文（沒有殘留英文）", !text("Change log").exists && !text("More apps").exists)
 
-        // 10. 分享 App（在支援頁）
+        // 10. 分享 App（側邊欄）
         relaunch()
-        _ = openMenu("menu_paperplane.fill")
-        if !tapIfExists(button("推薦給同學"), timeout: 3) { _ = tapIfExists(text("推薦給同學")) }
+        _ = openMenu("menu_square.and.arrow.up")
         var shareSheet = false
         for _ in 0..<6 where !shareSheet {   // 最多等 6 秒
             pause(1)
             shareSheet = app.otherElements["ActivityListView"].exists || app.navigationBars["UIActivityContentView"].exists || app.buttons["Close"].exists || app.buttons["關閉"].exists
         }
-        check("支援頁 → 分享這個 App：跳出分享選單", shareSheet)
+        check("側邊欄 → 分享這個 App：跳出分享選單", shareSheet)
         if app.buttons["Close"].exists { app.buttons["Close"].tap() } else if app.buttons["關閉"].exists { app.buttons["關閉"].tap() }
         pause(1)
 
@@ -240,8 +221,14 @@ final class AllFeaturesUITests: XCTestCase {
             check("設定：相機鏡頭滾輪有前置／後置", hasFront && hasBack)
             wheelDone()
         }
-        // 設定精簡：不再有錄影幀數
-        check("設定精簡：沒有「錄影幀數」", !text("錄影幀數").exists)
+        // 幀數（滾輪選單）
+        if tapIfExists(text("錄影幀數")) {
+            pause(1)
+            let all = pickWheel(containing: "24 fps") && pickWheel(containing: "60 fps") && pickWheel(containing: "30 fps")
+            check("設定：錄影幀數滾輪有 24／30／60 fps", all)
+            wheelDone()
+            check("設定：選 30 fps 後顯示 30 fps", text("30 fps").exists)
+        }
         // 拍照與快速開始
         if tapIfExists(app.buttons["settings_photoSettings"]) {
             pause(2)
@@ -263,8 +250,8 @@ final class AllFeaturesUITests: XCTestCase {
             wheelDone()
             pause(1)
             app.swipeDown(velocity: .fast); app.swipeDown(velocity: .fast)
-            check("英文：設定頁標題、語言、錄影畫質都變英文",
-                  text("Settings").exists && text("Language").exists && text("Video quality").exists)
+            check("英文：設定頁標題、語言、錄影畫質、幀數都變英文",
+                  text("Settings").exists && text("Language").exists && text("Video quality").exists && text("Frame rate").exists)
             check("英文：設定頁沒有殘留中文（錄影畫質／錄影幀數）", !text("錄影畫質").exists && !text("錄影幀數").exists)
             // 側邊欄
             relaunch()
@@ -282,7 +269,7 @@ final class AllFeaturesUITests: XCTestCase {
             check("英文：排程錄影頁變英文（Scheduled Recording／Duration）", text("Scheduled Recording").exists && text("Duration").exists)
             // 課程資訊表
             relaunch()
-            _ = openCourseInfo()
+            _ = openMenu("menu_tablecells")
             check("英文：課程資訊表變英文（Course List）", text("Course List").waitForExistence(timeout: 4))
             // 切回中文
             relaunch()

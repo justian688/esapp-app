@@ -89,6 +89,7 @@ final class MonkeyUITests: XCTestCase {
         let screens: [(String, String)] = [
             ("menu_books.vertical.fill", "課程相簿"),
             ("menu_pencil.and.list.clipboard", "課程筆記"),
+            ("menu_tablecells", "課程資訊表"),
             ("menu_gearshape.fill", "設定"),
             ("menu_paperplane.fill", "支援"),
         ]
