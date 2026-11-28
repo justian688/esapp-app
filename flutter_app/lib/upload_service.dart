@@ -96,7 +96,7 @@ class VideoUploadService {
       existingWorkPolicy: ExistingWorkPolicy.update,
       backoffPolicy: BackoffPolicy.exponential,
       backoffPolicyDelay: const Duration(minutes: 2),
-      foregroundServiceConfig: const ForegroundServiceConfig(
+      foregroundServiceConfig: ForegroundServiceConfig(
         notificationTitle: 'es省電王正在上傳課程影片',
         notificationText: '只透過 Wi-Fi 等非計量網路上傳，影片仍保留在手機。',
         notificationChannelId: 'course_video_uploads',
