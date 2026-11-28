@@ -175,6 +175,25 @@ class _Tile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 10, color: Colors.white, shadows: [Shadow(blurRadius: 3)])),
           ),
+        if (item.kind == MediaKind.video && item.uploadState != 'local')
+          Positioned(
+            top: 4,
+            right: 4,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+              decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(8)),
+              child: Text(
+                switch (item.uploadState) {
+                  'pending' => '待 Wi-Fi',
+                  'uploading' => '上傳中',
+                  'uploaded' => '已上傳',
+                  'failed' => '上傳失敗',
+                  _ => '',
+                },
+                style: const TextStyle(fontSize: 8, color: Colors.white),
+              ),
+            ),
+          ),
       ]),
     );
   }

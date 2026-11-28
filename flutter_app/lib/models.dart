@@ -82,13 +82,14 @@ class CourseNote {
 enum MediaKind { video, photo }
 
 class MediaItem {
-  MediaItem({required this.path, required this.kind, required this.recordedAt, this.courseId, this.thumbPath});
+  MediaItem({required this.path, required this.kind, required this.recordedAt, this.courseId, this.thumbPath, this.uploadState = 'local'});
 
   final String path;
   final MediaKind kind;
   final DateTime recordedAt;
   String? courseId;
   String? thumbPath;
+  String uploadState;
 
   String get fileName => path.split('/').last;
 
@@ -98,6 +99,7 @@ class MediaItem {
         'recordedAt': recordedAt.toIso8601String(),
         'courseId': courseId,
         'thumbPath': thumbPath,
+        'uploadState': uploadState,
       };
 
   factory MediaItem.fromJson(Map<String, dynamic> j) => MediaItem(
@@ -106,6 +108,7 @@ class MediaItem {
         recordedAt: DateTime.tryParse(j['recordedAt'] as String? ?? '') ?? DateTime.now(),
         courseId: j['courseId'] as String?,
         thumbPath: j['thumbPath'] as String?,
+        uploadState: j['uploadState'] as String? ?? 'local',
       );
 }
 

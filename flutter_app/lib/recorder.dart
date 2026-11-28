@@ -10,6 +10,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'models.dart';
 import 'settings.dart';
+import 'upload_service.dart';
 
 /// 錄影控制：只在「開始上課」時打開相機，結束就關掉（省電、相機燈不會一直亮）
 class Recorder extends ChangeNotifier {
@@ -169,13 +170,18 @@ class Recorder extends ChangeNotifier {
     } else {
       thumb = dest;
     }
-    store.addMedia(MediaItem(
+    final item = MediaItem(
       path: dest,
       kind: kind,
       recordedAt: at,
       courseId: store.currentCourseId,
       thumbPath: thumb,
-    ));
+      uploadState: kind == MediaKind.video && await VideoUploadService.isEnabled() ? 'pending' : 'local',
+    );
+    store.addMedia(item);
+    if (kind == MediaKind.video && item.uploadState == 'pending') {
+      await VideoUploadService.enqueue();
+    }
   }
 
   Future<void> dimScreen() async {

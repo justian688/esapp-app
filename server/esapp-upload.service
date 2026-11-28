@@ -1,0 +1,24 @@
+[Unit]
+Description=es省電王課程影片接收服務
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=esapp-upload
+Group=esapp-upload
+WorkingDirectory=/opt/esapp-upload
+EnvironmentFile=/etc/esapp-upload.env
+Environment=UPLOAD_ROOT=/srv/esapp-course-uploads
+ExecStart=/opt/esapp-upload/.venv/bin/uvicorn app:app --host 127.0.0.1 --port 8787 --workers 1
+Restart=on-failure
+RestartSec=5
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/esapp-course-uploads
+
+[Install]
+WantedBy=multi-user.target

@@ -9,6 +9,14 @@ build/
 *.dSYM.zip
 *.dSYM
 
+# Flutter / Android local build state
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/local.properties
+**/.gradle/
+out/
+
 # macOS
 .DS_Store
 

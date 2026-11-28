@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../settings.dart';
 import '../theme.dart';
+import 'upload_settings.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -42,8 +43,16 @@ class SettingsPage extends StatelessWidget {
             onTap: () => _pick<bool>(context, '相機鏡頭', const [true, false], (f) => f ? '前鏡頭' : '後鏡頭',
                 s.frontCamera, (v) => s.update(frontCamera: v)),
           ),
+          _section('儲存與上傳'),
+          ListTile(
+            leading: const Icon(Icons.cloud_upload_outlined),
+            title: const Text('課程影片雲端上傳'),
+            subtitle: const Text('接上 Wi-Fi 後自動上傳到你的 Linux 伺服器'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UploadSettingsPage())),
+          ),
           _section('關於'),
-          const ListTile(title: Text('es省電王'), subtitle: Text('Android 版 2.0.0')),
+          const ListTile(title: Text('es省電王'), subtitle: Text('Android 版 2.1.0')),
         ]),
       ),
     );
