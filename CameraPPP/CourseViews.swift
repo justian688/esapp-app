@@ -12,6 +12,7 @@ import AVKit
 
 struct CurrentCourseCard: View {
     @State private var store = CourseStore.shared
+    @AppStorage(AppLanguage.storageKey) private var appLanguageRaw = AppLanguage.traditionalChinese.rawValue
     @State private var showPicker = false
 
     var body: some View {
@@ -49,14 +50,17 @@ struct CurrentCourseCard: View {
         .background(Theme.chalkboard)
         .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.chalkLine, lineWidth: 1))
         .clipShape(RoundedRectangle(cornerRadius: 14))
+        // 整張卡片都能點，不用剛好點到右邊的小圖示
+        .contentShape(Rectangle())
+        .onTapGesture { showPicker = true }
         .sheet(isPresented: $showPicker) {
             CoursePickerSheet()
         }
     }
 
     private var title: String {
-        guard let course = store.currentCourse else { return "未選擇" }
-        return course.schedule.isEmpty ? course.name : "\(course.name)．\(course.schedule)"
+        guard let course = store.currentCourse else { return tr("未選擇") }
+        return course.schedule.isEmpty ? tr(course.name) : "\(tr(course.name))．\(course.schedule)"
     }
 }
 
@@ -149,11 +153,11 @@ private struct CoursePickRow: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 3) {
-                Text(title)
+                Text(tr(title))
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(Theme.chalkWhite)
                 if !subtitle.isEmpty {
-                    Text(subtitle)
+                    Text(tr(subtitle))
                         .font(.system(size: 13))
                         .foregroundColor(.gray)
                 }
@@ -180,23 +184,34 @@ struct CourseEditor: View {
         CourseStore.shared.courses.contains { $0.id == course.id }
     }
 
+    /// 預設的「一般課程」：名稱固定、不能刪除
+    private var isDefaultCourse: Bool {
+        CourseStore.shared.courses.first { $0.id == course.id }.map(CourseStore.shared.isDefault) ?? false
+    }
+
     var body: some View {
         NavigationStack {
             Form {
                 Section {
                     TextField("課程或演講名稱，例如：經濟學", text: $course.name)
+                        .disabled(isDefaultCourse)
                     TextField("老師／講者", text: $course.teacher)
                     TextField("時間，例如：週四 09:10", text: $course.schedule)
                     TextField("地點，例如：B203", text: $course.room)
                 }
                 Section("分類") {
-                    Picker("分類", selection: $course.category) {
-                        ForEach(CourseStore.shared.categories, id: \.self) { name in
-                            Text(name).tag(name)
-                        }
-                    }
+                    WheelSelectRow(
+                        title: "分類",
+                        selection: $course.category,
+                        options: CourseStore.shared.categories.map { ($0, tr($0)) }
+                    )
                 }
-                if isExisting {
+                if isDefaultCourse {
+                    Section {
+                        Label("這是預設的一般課程，不能刪除", systemImage: "lock.fill")
+                            .foregroundColor(.gray)
+                    }
+                } else if isExisting {
                     Section {
                         Button("刪除這堂課", role: .destructive) { confirmDelete = true }
                     } footer: {
@@ -206,7 +221,7 @@ struct CourseEditor: View {
             }
             .scrollContentBackground(.hidden)
             .background(Color.black)
-            .navigationTitle(isExisting ? "編輯課程" : "新增課程")
+            .navigationTitle(isExisting ? tr("編輯課程") : tr("新增課程"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -241,6 +256,8 @@ struct CourseLibraryView: View {
     @State private var store = CourseStore.shared
     @State private var items: [LibraryItem] = []
     @State private var selectedCategory: String? = nil
+    /// 預設兩個分類：影片、照片（預設先看影片）
+    @State private var mediaTab: MediaKind = .video
     @State private var showNewCategory = false
     @State private var newCategoryName = ""
     @State private var playingVideo: URL?
@@ -276,6 +293,17 @@ struct CourseLibraryView: View {
             .padding(.horizontal, 8)
             .padding(.trailing, 8)
 
+            // 影片／照片 兩個固定分類
+            HStack(spacing: 0) {
+                mediaTabButton(.video, title: "影片", icon: "video.fill")
+                mediaTabButton(.photo, title: "照片", icon: "photo.fill")
+            }
+            .padding(3)
+            .background(Theme.chalkboard, in: Capsule())
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
+            .padding(.bottom, 6)
+
             // 有建立分類才顯示篩選列，否則就是全部影片
             if !store.customCategories.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -292,10 +320,10 @@ struct CourseLibraryView: View {
 
             if filteredItems.isEmpty {
                 VStack(spacing: 12) {
-                    Image(systemName: "video.slash")
+                    Image(systemName: mediaTab == .video ? "video.slash" : "photo")
                         .font(.system(size: 40))
                         .foregroundColor(.gray)
-                    Text("還沒有影片。到錄影頁按下錄影，錄好的課程都會出現在這裡。")
+                    Text(mediaTab == .video ? tr("還沒有影片。到錄影頁按下錄影，錄好的課程都會出現在這裡。") : tr("還沒有照片。錄影時點一下畫面就能拍照，照片會出現在這裡。"))
                         .font(.system(size: 14))
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
@@ -332,7 +360,7 @@ struct CourseLibraryView: View {
             get: { playingVideo.map { IdentifiableURL(url: $0) } },
             set: { playingVideo = $0?.url }
         )) { item in
-            FullScreenVideoPlayer(videoURL: item.url)
+            FullScreenVideoPlayer(videoURL: item.url, onDeleted: { Task { await reload() } })
         }
         .fullScreenCover(item: Binding(
             get: { viewingPhoto.map { IdentifiableURL(url: $0) } },
@@ -351,12 +379,31 @@ struct CourseLibraryView: View {
 
     // MARK: - 畫面元件
 
+    private func mediaTabButton(_ kind: MediaKind, title: String, icon: String) -> some View {
+        let selected = mediaTab == kind
+        let count = items.filter { $0.kind == kind }.count
+        return Button {
+            withAnimation(.easeInOut(duration: 0.15)) { mediaTab = kind }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: icon).font(.system(size: 13))
+                Text(tr(title)).font(.system(size: 14, weight: selected ? .bold : .regular))
+                Text("\(count)").font(.system(size: 12)).opacity(0.7)
+            }
+            .foregroundColor(selected ? .black : .gray)
+            .frame(maxWidth: .infinity, minHeight: 34)
+            .background(selected ? Theme.chalkYellow : Color.clear, in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(kind == .video ? "library_videos" : "library_photos")
+    }
+
     private func categoryChip(title: String, value: String?) -> some View {
         let selected = selectedCategory == value
         return Button {
             selectedCategory = value
         } label: {
-            Text(title)
+            Text(tr(title))
                 .font(.system(size: 13, weight: selected ? .bold : .regular))
                 .foregroundColor(selected ? .black : .gray)
                 .padding(.horizontal, 14)
@@ -418,7 +465,7 @@ struct CourseLibraryView: View {
                 store.forget(fileURL: item.url)
                 items.removeAll { $0.url == item.url }
             } label: {
-                Label(item.kind == .video ? "刪除影片" : "刪除照片", systemImage: "trash")
+                Label(item.kind == .video ? tr("刪除影片") : tr("刪除照片"), systemImage: "trash")
             }
         }
     }
@@ -426,9 +473,10 @@ struct CourseLibraryView: View {
     // MARK: - 資料
 
     private var filteredItems: [LibraryItem] {
-        guard let category = selectedCategory else { return items }
+        let ofKind = items.filter { $0.kind == mediaTab }
+        guard let category = selectedCategory else { return ofKind }
         let ids = Set(store.courses(in: category).map(\.id))
-        return items.filter { item in
+        return ofKind.filter { item in
             guard let id = store.courseId(for: item.url) else { return false }
             return ids.contains(id)
         }
@@ -444,8 +492,8 @@ struct CourseLibraryView: View {
 
     private func dayTitle(_ day: Date) -> String {
         let cal = Calendar.current
-        if cal.isDateInToday(day) { return "今天" }
-        if cal.isDateInYesterday(day) { return "昨天" }
+        if cal.isDateInToday(day) { return tr("今天") }
+        if cal.isDateInYesterday(day) { return tr("昨天") }
         return CourseFormat.headerDate.string(from: day)
     }
 
@@ -520,41 +568,31 @@ struct CourseInfoTableView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView([.vertical, .horizontal]) {
-                    Grid(alignment: .leading, horizontalSpacing: 0, verticalSpacing: 0) {
-                        GridRow {
-                            headerCell("名稱", width: 140)
-                            headerCell("分類", width: 96)
-                            headerCell("老師／講者", width: 110)
-                            headerCell("時間", width: 110)
-                            headerCell("地點", width: 90)
-                            headerCell("錄影", width: 60)
-                        }
+                // 改成由上往下的課程卡片（原本的寬表格要左右拉才看得到全部欄位）
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 10) {
                         ForEach(store.categories, id: \.self) { category in
-                            ForEach(store.courses(in: category)) { course in
-                                GridRow {
-                                    cell(course.name, width: 140, bold: true)
-                                    cell(category, width: 96)
-                                    cell(course.teacher, width: 110)
-                                    cell(course.schedule, width: 110)
-                                    cell(course.room, width: 90)
-                                    cell("\(store.videoCount(courseId: course.id)) 段", width: 60)
+                            let courses = store.courses(in: category)
+                            if !courses.isEmpty {
+                                Text(tr(category))
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(Theme.chalkYellow.opacity(0.85))
+                                    .padding(.top, 10)
+                                    .padding(.leading, 4)
+                                ForEach(courses) { course in
+                                    courseCard(course)
                                 }
-                                .contentShape(Rectangle())
-                                .onTapGesture { editingCourse = course }
-                                .accessibilityElement(children: .combine)
-                                .accessibilityAddTraits(.isButton)
                             }
                         }
+                        Text("點一張卡片可以編輯。分類可在「課程相簿」右上角建立。")
+                            .font(.system(size: 12))
+                            .foregroundColor(.gray)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 12)
                     }
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.chalkLine, lineWidth: 1))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .padding(16)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 24)
                 }
-                Text("點一列可以編輯。分類可在「課程相簿」右上角建立。")
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
-                    .padding(.bottom, 16)
             }
         }
         .background(Color.black.ignoresSafeArea())
@@ -563,8 +601,60 @@ struct CourseInfoTableView: View {
         }
     }
 
+    private func courseCard(_ course: Course) -> some View {
+        let videos = store.videoCount(courseId: course.id)
+        let details: [(String, String)] = [("person.fill", course.teacher), ("clock", course.schedule), ("mappin.and.ellipse", course.room)]
+            .filter { !$0.1.isEmpty }
+        // 用「點一下」手勢而不是 Button：左右滑過卡片時手指放開不會被當成點擊而跳出編輯
+        return HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "graduationcap.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(Theme.chalkYellow)
+                    .frame(width: 36, height: 36)
+                    .background(Theme.chalkYellow.opacity(0.15), in: RoundedRectangle(cornerRadius: 9))
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(tr(course.name))
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(Theme.chalkWhite)
+                        .lineLimit(1)
+                    if details.isEmpty {
+                        Text(tr("點一下補上老師、時間、地點"))
+                            .font(.system(size: 12))
+                            .foregroundColor(.gray)
+                    } else {
+                        // 老師、時間、地點：一行放不下會自動換行
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: 12) { ForEach(details, id: \.0) { detail($0.0, $0.1) } }
+                            VStack(alignment: .leading, spacing: 4) { ForEach(details, id: \.0) { detail($0.0, $0.1) } }
+                        }
+                    }
+                }
+                Spacer(minLength: 8)
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("\(videos)")
+                        .font(.system(size: 18, weight: .bold).monospacedDigit())
+                        .foregroundColor(videos > 0 ? Theme.chalkWhite : .gray)
+                    Text(tr("段錄影"))
+                        .font(.system(size: 11))
+                        .foregroundColor(.gray)
+                }
+            }
+            .padding(14)
+            .background(Theme.chalkboard, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Theme.chalkLine, lineWidth: 1))
+            .contentShape(Rectangle())
+            .onTapGesture { editingCourse = course }
+    }
+
+    private func detail(_ icon: String, _ text: String) -> some View {
+        Label(text, systemImage: icon)
+            .font(.system(size: 12))
+            .foregroundColor(.gray)
+            .lineLimit(1)
+    }
+
     private func headerCell(_ text: String, width: CGFloat) -> some View {
-        Text(text)
+        Text(tr(text))
             .font(.system(size: 12, weight: .bold))
             .foregroundColor(Theme.chalkYellow)
             .frame(width: width, alignment: .leading)
@@ -574,7 +664,7 @@ struct CourseInfoTableView: View {
     }
 
     private func cell(_ text: String, width: CGFloat, bold: Bool = false) -> some View {
-        Text(text.isEmpty ? "—" : text)
+        Text(text.isEmpty ? "—" : tr(text))
             .font(.system(size: 13, weight: bold ? .bold : .regular))
             .foregroundColor(text.isEmpty ? .gray : Theme.chalkWhite)
             .lineLimit(2)
@@ -659,7 +749,7 @@ struct CourseDetailView: View {
                 }
                 .accessibilityLabel("返回")
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(course?.name ?? "未分類")
+                    Text(course?.name ?? tr("未分類"))
                         .font(.title3.weight(.bold))
                         .foregroundColor(Theme.chalkWhite)
                     if let line = course?.detailLine, !line.isEmpty {
@@ -735,9 +825,9 @@ struct CourseDetailView: View {
                                     editingNote = note
                                 } label: {
                                     HStack(spacing: 0) {
-                                        Rectangle().fill(Color.red.opacity(0.3)).frame(width: 3)
+                                        Rectangle().fill(Theme.chalkYellow.opacity(0.6)).frame(width: 3)
                                         VStack(alignment: .leading, spacing: 4) {
-                                            Text(note.title.isEmpty ? "未命名筆記" : note.title)
+                                            Text(note.title.isEmpty ? tr("未命名筆記") : note.title)
                                                 .font(.system(size: 15, weight: .bold))
                                                 .foregroundColor(Theme.chalkWhite)
                                             if !note.body.isEmpty {
@@ -767,7 +857,7 @@ struct CourseDetailView: View {
             get: { playingVideo.map { IdentifiableURL(url: $0) } },
             set: { playingVideo = $0?.url }
         )) { item in
-            FullScreenVideoPlayer(videoURL: item.url)
+            FullScreenVideoPlayer(videoURL: item.url, onDeleted: { Task { await reload() } })
         }
         .fullScreenCover(item: Binding(
             get: { viewingPhoto.map { IdentifiableURL(url: $0) } },
@@ -796,7 +886,7 @@ struct CourseDetailView: View {
             store.forget(fileURL: url)
             Task { await reload() }
         } label: {
-            Label(kind == .video ? "刪除影片" : "刪除照片", systemImage: "trash")
+            Label(kind == .video ? tr("刪除影片") : tr("刪除照片"), systemImage: "trash")
         }
     }
 
@@ -813,14 +903,14 @@ struct CourseDetailView: View {
     }
 
     private func sectionTitle(_ text: String) -> some View {
-        Text(text)
+        Text(tr(text))
             .font(.system(size: 12, weight: .bold))
             .tracking(2)
             .foregroundColor(Theme.chalkYellow)
     }
 
     private func emptyText(_ text: String) -> some View {
-        Text(text)
+        Text(tr(text))
             .font(.system(size: 13))
             .foregroundColor(.gray)
     }

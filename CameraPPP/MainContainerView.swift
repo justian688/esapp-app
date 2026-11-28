@@ -14,10 +14,14 @@ struct MainContainerView: View {
     @State private var selectedTab = 0
     @AppStorage(CameraFacing.storageKey) private var preferredCameraFacingRaw = CameraFacing.defaultFacing.rawValue
     @AppStorage(CaptureResolution.storageKey) private var captureResolutionRaw = CaptureResolution.defaultResolution.rawValue
+    @AppStorage(CaptureFrameRate.storageKey) private var captureFrameRateRaw = CaptureFrameRate.defaultRate.rawValue
     @State private var navigationPath: [SideMenuDestination] = []
     @State private var showPaywall = false
     @State private var allowPaywallDismiss = true
     @State private var trialCheckTimer: Timer?
+    @State private var showTrialEndingReminder = false
+    @State private var upsellReason: UpsellReason?
+    @State private var lastUpsell: UpsellReason?
     
     @State private var cameraManager: CameraManager
     
@@ -26,10 +30,34 @@ struct MainContainerView: View {
         _cameraManager = State(initialValue: CameraManager(initialCameraFacing: savedFacing))
     }
     
+    /// 免費版（付費功能開啟、試用結束、未訂閱）→ 顯示廣告
+    private var showAds: Bool {
+        AdConfig.adsEnabled && SubscriptionConfig.paymentsEnabled && !subscriptionManager.isPremium && !trialManager.isTrialActive
+    }
+
     private var preferredCameraFacing: CameraFacing {
         CameraFacing(rawValue: preferredCameraFacingRaw) ?? CameraFacing.defaultFacing
     }
     
+    /// 側邊欄打開時，手指往左滑就關閉
+    private var closeMenuSwipe: some Gesture {
+        DragGesture(minimumDistance: 20)
+            .onChanged { v in
+                // 正在左右滑 → 記下時間，讓選單項目不要把這次滑動當成「點一下」
+                if abs(v.translation.width) > 15 && abs(v.translation.width) > abs(v.translation.height) {
+                    SideMenuGestureGate.lastHorizontalSwipe = Date()
+                }
+            }
+            .onEnded { v in
+                if abs(v.translation.width) > abs(v.translation.height) {
+                    SideMenuGestureGate.lastHorizontalSwipe = Date()
+                }
+                if v.translation.width < -50 && abs(v.translation.width) > abs(v.translation.height) {
+                    withAnimation { isMenuOpen = false }
+                }
+            }
+    }
+
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ZStack(alignment: .leading) {
@@ -50,6 +78,11 @@ struct MainContainerView: View {
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
                     .ignoresSafeArea(.container, edges: .bottom)
+
+                    // 免費版（試用結束、未訂閱）：首頁下方橫幅廣告，錄影中不顯示
+                    if showAds && !cameraManager.isRecording {
+                        FreeTierBanner()
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .opacity(cameraManager.isRecording ? 0 : 1)
@@ -59,6 +92,7 @@ struct MainContainerView: View {
                     Color.black.opacity(0.3)
                         .ignoresSafeArea()
                         .onTapGesture { withAnimation { isMenuOpen = false } }
+                        .gesture(closeMenuSwipe)
                         .zIndex(1)
                     
                     SideMenuView(
@@ -70,6 +104,7 @@ struct MainContainerView: View {
                     .environmentObject(trialManager)
                     .frame(width: min(UIScreen.main.bounds.width * 0.66, 300))
                     .transition(.move(edge: .leading))
+                    .simultaneousGesture(closeMenuSwipe)   // 往左滑關閉側邊欄（不影響裡面上下捲動）
                     .zIndex(2)
                 }
 
@@ -79,10 +114,12 @@ struct MainContainerView: View {
                         .zIndex(100)
                 }
             }
+            .enableSwipeBack()   // 從側邊欄打開的頁面都能滑動返回
             .navigationDestination(for: SideMenuDestination.self) { destination in
                 switch destination {
                 case .gallery:
                     CourseLibraryView()
+                        .albumLocked()
                         .navigationBarBackButtonHidden(true)
                 case .courseInfo:
                     CourseInfoTableView()
@@ -92,6 +129,7 @@ struct MainContainerView: View {
                         .navigationBarBackButtonHidden(true)
                 case .trimmer:
                     VideoTrimmerView()
+                        .albumLocked()
                         .navigationBarBackButtonHidden(true)
                 case .settings:
                     SettingsView()
@@ -112,6 +150,9 @@ struct MainContainerView: View {
         }
         .onChange(of: captureResolutionRaw) { _, _ in
             cameraManager.applyCaptureResolution()
+        }
+        .onChange(of: captureFrameRateRaw) { _, _ in
+            cameraManager.applyFrameRateSetting()
         }
         .alert(
             "無法錄影",
@@ -137,6 +178,7 @@ struct MainContainerView: View {
         .persistentSystemOverlays(cameraManager.isRecording ? .hidden : .automatic)
         .onChange(of: cameraManager.isRecording) { _, isRecording in
             ScreenController.setRecordingActive(isRecording)
+            // 錄影前後不播全螢幕廣告，避免在教室被注意到
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
             ScreenController.restoreBrightness()
@@ -165,8 +207,51 @@ struct MainContainerView: View {
                 showPaywall = false
             }
         }
-        .fullScreenCover(isPresented: $showPaywall) {
-            PaywallView(isPresented: $showPaywall, allowDismiss: allowPaywallDismiss)
+        .alert(
+            AppLanguage.current.localized("Your free trial ends tomorrow", "免費試用明天到期"),
+            isPresented: $showTrialEndingReminder
+        ) {
+            Button(AppLanguage.current.localized("See Premium plans", "查看付費方案")) {
+                openPaywallManually()
+            }
+            Button(AppLanguage.current.localized("Continue with Free", "到期後用免費版"), role: .cancel) { }
+        } message: {
+            Text(AppLanguage.current.localized(
+                "After the trial you can subscribe to keep everything, or keep using the free version (recordings up to 30 minutes, up to 1080p).",
+                "試用結束後，你可以訂閱繼續使用完整功能，或改用免費版繼續錄影（每次最多 30 分鐘、最高 1080p）。"
+            ))
+        }
+        // 碰到限制：從下方滑上來的小彈窗
+        .sheet(item: $upsellReason) { reason in
+            UpsellSheet(reason: reason, onClose: {
+                upsellReason = nil
+            }, onSeeAllPlans: {
+                upsellReason = nil
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { openPaywallManually() }
+            })
+            .environmentObject(subscriptionManager)
+        }
+        .onChange(of: cameraManager.freeLimitReached) { _, reached in
+            guard reached else { return }
+            cameraManager.freeLimitReached = false
+            lastUpsell = .timeLimit
+            upsellReason = .timeLimit
+        }
+        // 手動打開（可關閉）→ 一般彈出頁，可以往下滑關閉，跟設定、支援頁一致
+        .sheet(isPresented: Binding(
+            get: { showPaywall && allowPaywallDismiss },
+            set: { if !$0 { showPaywall = false } }
+        )) {
+            PaywallView(isPresented: $showPaywall, allowDismiss: true)
+                .environmentObject(subscriptionManager)
+                .environmentObject(trialManager)
+        }
+        // 強制付費（不可關閉）→ 全螢幕
+        .fullScreenCover(isPresented: Binding(
+            get: { showPaywall && !allowPaywallDismiss },
+            set: { if !$0 { showPaywall = false } }
+        )) {
+            PaywallView(isPresented: $showPaywall, allowDismiss: false)
                 .environmentObject(subscriptionManager)
                 .environmentObject(trialManager)
         }
@@ -223,11 +308,27 @@ struct MainContainerView: View {
         trialCheckTimer = timer
     }
 
-    /// 試用結束後自動顯示付費牆（不可關閉，直到訂閱）
+    /// 只在試用到期前 1 天提醒一次，讓使用者選擇付費或到期後用免費版
     private func evaluatePaywallPresentation() {
-        guard SubscriptionConfig.paymentsEnabled else { return }
-        guard trialManager.shouldShowPaywall(isPremium: subscriptionManager.isPremium) else { return }
-        allowPaywallDismiss = false
-        showPaywall = true
+        guard SubscriptionConfig.paymentsEnabled, !subscriptionManager.isPremium else { return }
+        guard !cameraManager.isRecording, !showPaywall, !showTrialEndingReminder, upsellReason == nil else { return }
+        let defaults = UserDefaults.standard
+
+        if trialManager.isTrialEndingSoon,
+           !defaults.bool(forKey: SubscriptionConfig.trialReminderShownKey) {
+            defaults.set(true, forKey: SubscriptionConfig.trialReminderShownKey)
+            showTrialEndingReminder = true
+            return
+        }
+
+        // 到期時正在用 4K：告訴他已改成 1080p，可訂閱繼續用 4K（只一次）
+        if !trialManager.isTrialActive,
+           captureResolutionRaw == CaptureResolution.uhd4K.rawValue,
+           !defaults.bool(forKey: SubscriptionConfig.fourKDowngradeNoticeShownKey) {
+            defaults.set(true, forKey: SubscriptionConfig.fourKDowngradeNoticeShownKey)
+            lastUpsell = .fourKDowngraded
+            upsellReason = .fourKDowngraded
+        }
+        // 其他情況到期後直接變免費版，不自動跳付費畫面
     }
 }

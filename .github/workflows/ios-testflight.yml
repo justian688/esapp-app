@@ -6,6 +6,11 @@ on:
     paths-ignore:
       - 'flutter_app/**'
       - '.github/workflows/android.yml'
+      - 'version.json'
+      - '.github/workflows/auto-force-update.yml'
+      - 'app-versions/**'   # 其他 App（cc-music 等）的強制更新設定，不該觸發 es省電王打包
+      - 'docs/**'           # 隱私權政策等網頁
+      - '**/*.md'
   workflow_dispatch:
 
 concurrency:

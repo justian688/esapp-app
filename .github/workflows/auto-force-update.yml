@@ -1,0 +1,64 @@
+name: 新版上架後自動強制更新
+
+# 每小時查一次 App Store 上「已經上架」的版本。
+# 一旦比 version.json 的版本新，就把 minVersion / latestVersion 改成新版本：
+# 舊版 App 打開時會被擋住，必須更新到新版才能用。
+# 只在 Apple 審核通過、真的上架之後才會改，所以不會發生「還沒上架就把人擋住」。
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-force-update
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 查 App Store 上架版本，必要時更新 version.json
+        run: |
+          python3 - <<'EOF'
+          import json, urllib.request, subprocess, sys
+
+          url = "https://itunes.apple.com/lookup?bundleId=com.lin.energysaving&country=tw"
+          with urllib.request.urlopen(url, timeout=30) as r:
+              results = json.load(r).get("results") or []
+          if not results:
+              sys.exit("App Store 查不到這個 App，這次不處理")
+          live = results[0]["version"]
+
+          def ver(s):
+              return [int(x) if x.isdigit() else 0 for x in s.split(".")]
+
+          with open("version.json", encoding="utf-8") as f:
+              cfg = json.load(f)
+
+          print(f"App Store 目前上架：{live}，version.json：min {cfg.get('minVersion')} / latest {cfg.get('latestVersion')}")
+          if ver(live) <= ver(cfg.get("minVersion", "0")):
+              print("沒有新版本，不用改")
+              sys.exit(0)
+
+          cfg["minVersion"] = live
+          cfg["latestVersion"] = live
+          with open("version.json", "w", encoding="utf-8") as f:
+              json.dump(cfg, f, ensure_ascii=False, indent=2)
+              f.write("\n")
+          print(f"已改成強制更新到 {live}")
+          EOF
+
+      - name: 有變更就提交
+        run: |
+          if git diff --quiet version.json; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add version.json
+          git commit -m "新版已上架，自動強制更新到 $(python3 -c 'import json;print(json.load(open("version.json"))["minVersion"])')"
+          git push

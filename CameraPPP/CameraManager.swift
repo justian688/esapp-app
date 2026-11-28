@@ -36,9 +36,9 @@ enum CameraFacing: Int, CaseIterable, Identifiable {
     var settingsDisplayName: String {
         switch self {
         case .back:
-            return "後置鏡頭"
+            return tr("後置鏡頭")
         case .front:
-            return "前置鏡頭"
+            return tr("前置鏡頭")
         }
     }
     
@@ -62,10 +62,10 @@ nonisolated enum RecordingPreferences {
     static let durationOptions = [3, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 0]
 
     static func durationLabel(_ minutes: Int) -> String {
-        if minutes == 0 { return "不限" }
-        if minutes % 60 == 0 { return "\(minutes / 60) 小時" }
-        if minutes > 60 { return "\(minutes / 60) 小時 \(minutes % 60) 分鐘" }
-        return "\(minutes) 分鐘"
+        if minutes == 0 { return tr("不限") }
+        if minutes % 60 == 0 { return trf("%lld 小時", minutes / 60) }
+        if minutes > 60 { return trf("%lld 小時 %lld 分鐘", minutes / 60, minutes % 60) }
+        return trf("%lld 分鐘", minutes)
     }
 
     static var isRepeatRecordingEnabled: Bool {
@@ -95,6 +95,14 @@ final class CameraManager: NSObject, Sendable {
     /// 只在 sessionQueue 上讀寫：正在上課錄影、相機應該開著時為 true
     @ObservationIgnored private var wantsSessionRunning = false
     var isAuthorized = false
+    /// 免費版錄滿 30 分鐘自動停止時為 true，畫面用來提示升級
+    var freeLimitReached = false
+    /// 免費版這次錄影會在何時自動停止（試用中／已訂閱為 nil），錄影畫面用來提前提醒
+    var freeLimitEndsAt: Date?
+    /// 只在 sessionQueue 上讀寫：這次錄影（含重複錄影的各段）開始的時間，用來算免費版 30 分鐘
+    @ObservationIgnored private var sessionStartedAt: Date?
+    /// 只在 sessionQueue 上讀寫：目前這段是不是被免費版 30 分鐘上限截斷
+    @ObservationIgnored private var segmentCappedByFreeLimit = false
     
     init(initialCameraFacing: CameraFacing = .back) {
         self.cameraFacing = initialCameraFacing
@@ -176,6 +184,7 @@ final class CameraManager: NSObject, Sendable {
         
         session.commitConfiguration()
         updateMaxPhotoDimensions()
+        applyFrameRate()
     }
 
     /// 沒在錄影時關掉相機，iPhone 上方的綠燈就會熄滅。必須在 sessionQueue 上呼叫。
@@ -195,6 +204,59 @@ final class CameraManager: NSObject, Sendable {
             self.session.sessionPreset = preset
             self.session.commitConfiguration()
             self.updateMaxPhotoDimensions()
+            self.applyFrameRate()
+        }
+    }
+
+    /// 套用「錄影幀數」設定（錄影中不會變更，下次開始錄影前生效）
+    func applyFrameRateSetting() {
+        sessionQueue.async {
+            guard !self.fileOutput.isRecording, !self.session.inputs.isEmpty else { return }
+            self.applyFrameRate()
+        }
+    }
+
+    /// 設定幀數：目前格式不支援時，找同解析度、支援該幀數的格式；
+    /// 手機完全不支援（例如舊機沒有 4K 60fps）就用支援的最高幀數，不會出錯。必須在 sessionQueue 上呼叫。
+    private func applyFrameRate() {
+        guard let device = session.inputs.compactMap({ ($0 as? AVCaptureDeviceInput)?.device }).first(where: { $0.hasMediaType(.video) }) else { return }
+        let want = Double(CaptureFrameRate.current.rawValue)
+        func maxRate(_ f: AVCaptureDevice.Format) -> Double {
+            f.videoSupportedFrameRateRanges.map(\.maxFrameRate).max() ?? 30
+        }
+        let current = device.activeFormat
+        let dims = CMVideoFormatDescriptionGetDimensions(current.formatDescription)
+        var format = current
+        if maxRate(current) < want {
+            let subtype = CMFormatDescriptionGetMediaSubType(current.formatDescription)
+            let candidates = device.formats.filter {
+                let d = CMVideoFormatDescriptionGetDimensions($0.formatDescription)
+                return d.width == dims.width && d.height == dims.height && maxRate($0) >= want
+            }
+            if let better = candidates.first(where: { CMFormatDescriptionGetMediaSubType($0.formatDescription) == subtype }) ?? candidates.first {
+                format = better
+            }
+        }
+        // 找一個「真的包含」目標幀數的範圍；設定值一定落在範圍內，避免 iOS 因不支援的幀數直接閃退
+        let ranges = format.videoSupportedFrameRateRanges
+        guard !ranges.isEmpty else { return }
+        let target = min(want, maxRate(format))
+        let range = ranges.first(where: { $0.minFrameRate <= target && target <= $0.maxFrameRate })
+            ?? ranges.max(by: { $0.maxFrameRate < $1.maxFrameRate })!
+        let fps = min(max(target, range.minFrameRate), range.maxFrameRate)
+        var duration = CMTime(value: 1000, timescale: CMTimeScale((fps * 1000).rounded(.down)))
+        // 夾在範圍允許的最短／最長時間之間
+        if CMTimeCompare(duration, range.minFrameDuration) < 0 { duration = range.minFrameDuration }
+        if CMTimeCompare(duration, range.maxFrameDuration) > 0 { duration = range.maxFrameDuration }
+        do {
+            try device.lockForConfiguration()
+            defer { device.unlockForConfiguration() }
+            if format != current { device.activeFormat = format }
+            device.activeVideoMinFrameDuration = duration
+            device.activeVideoMaxFrameDuration = duration
+            UserDefaults.standard.set(Int(fps.rounded()), forKey: CaptureFrameRate.actualKey)
+        } catch {
+            print("設定幀數失敗：\(error.localizedDescription)")
         }
     }
 
@@ -217,6 +279,7 @@ final class CameraManager: NSObject, Sendable {
             self.installCameraInput()
             self.session.commitConfiguration()
             self.updateMaxPhotoDimensions()
+            self.applyFrameRate()
         }
     }
 
@@ -249,6 +312,7 @@ final class CameraManager: NSObject, Sendable {
     func startRecording() {
         sessionQueue.async {
             self.userRequestedStop = false
+            self.sessionStartedAt = nil
             self.beginRecordingSegment()
         }
     }
@@ -258,6 +322,7 @@ final class CameraManager: NSObject, Sendable {
         sessionQueue.async {
             if !self.session.inputs.isEmpty {
                 self.userRequestedStop = false
+                self.sessionStartedAt = nil
                 self.beginRecordingSegment()
             } else if attempt < 20 {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -273,7 +338,7 @@ final class CameraManager: NSObject, Sendable {
         guard !fileOutput.isRecording else { return }
 
         guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
-            reportRecordingError("沒有相機權限。請到「設定」→「es省電王」打開相機權限後再試一次。")
+            reportRecordingError(tr("沒有相機權限。請到「設定」→「es省電王」打開相機權限後再試一次。"))
             return
         }
         if session.inputs.isEmpty || session.outputs.isEmpty {
@@ -285,14 +350,36 @@ final class CameraManager: NSObject, Sendable {
         }
         guard session.isRunning, fileOutput.connection(with: .video) != nil else {
             stopSessionIfIdle()
-            reportRecordingError("相機還沒準備好，請稍等一下再按錄影。如果一直出現，請把 App 完全關掉再打開。")
+            reportRecordingError(tr("相機還沒準備好，請稍等一下再按錄影。如果一直出現，請把 App 完全關掉再打開。"))
             return
         }
 
         let minutes = RecordingPreferences.segmentMinutes
-        fileOutput.maxRecordedDuration = minutes > 0
-            ? CMTime(seconds: Double(minutes * 60), preferredTimescale: 600)
-            : .invalid
+        var maxSeconds: Double? = minutes > 0 ? Double(minutes * 60) : nil
+
+        // 免費版：整次錄影（含重複錄影）最多 30 分鐘
+        if sessionStartedAt == nil { sessionStartedAt = Date() }
+        segmentCappedByFreeLimit = false
+        if !FeatureAccess.hasFullAccess {
+            let remaining = SubscriptionConfig.freeRecordingLimit - Date().timeIntervalSince(sessionStartedAt ?? Date())
+            guard remaining > 1 else {
+                stopSessionIfIdle()
+                Task { @MainActor in
+                    self.isRecording = false
+                    self.freeLimitReached = true
+                }
+                return
+            }
+            if maxSeconds == nil || remaining < maxSeconds! {
+                maxSeconds = remaining
+                segmentCappedByFreeLimit = true
+            }
+            let endsAt = Date().addingTimeInterval(remaining)
+            Task { @MainActor in self.freeLimitEndsAt = endsAt }
+        } else {
+            Task { @MainActor in self.freeLimitEndsAt = nil }
+        }
+        fileOutput.maxRecordedDuration = maxSeconds.map { CMTime(seconds: $0, preferredTimescale: 600) } ?? .invalid
 
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp4")
         fileOutput.startRecording(to: tempURL, recordingDelegate: self)
@@ -325,7 +412,14 @@ final class CameraManager: NSObject, Sendable {
         let nsError = error as NSError?
         let reachedDurationLimit = nsError?.code == AVError.Code.maximumDurationReached.rawValue
 
-        if reachedDurationLimit, RecordingPreferences.isRepeatRecordingEnabled, session.isRunning {
+        if reachedDurationLimit, segmentCappedByFreeLimit {
+            // 免費版錄滿 30 分鐘：停止並保存影片，停下後告訴使用者
+            stopSessionIfIdle()
+            Task { @MainActor in
+                self.isRecording = false
+                self.freeLimitReached = true
+            }
+        } else if reachedDurationLimit, RecordingPreferences.isRepeatRecordingEnabled, session.isRunning {
             beginRecordingSegment()
         } else {
             // 時長到了但沒開重複錄影，或錄影因其他原因中斷：讓畫面回到未錄影狀態，並關掉相機
@@ -333,7 +427,7 @@ final class CameraManager: NSObject, Sendable {
             Task { @MainActor in self.isRecording = false }
             if let nsError, !reachedDurationLimit,
                (nsError.userInfo[AVErrorRecordingSuccessfullyFinishedKey] as? Bool) != true {
-                reportRecordingError("錄影中斷了（\(nsError.localizedDescription)，代碼 \(nsError.code)）。請截圖回報。")
+                reportRecordingError(AppLanguage.current.localized("Recording was interrupted (\(nsError.localizedDescription), code \(nsError.code)). Please send us a screenshot.", "錄影中斷了（\(nsError.localizedDescription)，代碼 \(nsError.code)）。請截圖回報。"))
             }
         }
     }
@@ -345,6 +439,10 @@ final class CameraManager: NSObject, Sendable {
 
             let settings = AVCapturePhotoSettings()
             settings.flashMode = .off
+            // 不發出快門聲（iOS 18 起支援；日本、韓國等法規強制快門聲的地區系統會不允許）
+            if #available(iOS 18.0, *), self.photoOutput.isShutterSoundSuppressionSupported {
+                settings.isShutterSoundSuppressionEnabled = true
+            }
             settings.photoQualityPrioritization = PhotoCaptureMode.current.prioritization
             settings.maxPhotoDimensions = self.photoOutput.maxPhotoDimensions
 
